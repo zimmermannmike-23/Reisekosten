@@ -1,0 +1,2926 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a3a5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TG/RB Nachweis">
+<title>Reisekosten- & Arbeitszeitnachweis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://nominatim.openstreetmap.org">
+<link rel="preconnect" href="https://router.project-osrm.org">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a5c'/%3E%3Ctext x='50' y='66' font-family='serif' font-size='52' font-weight='700' text-anchor='middle' fill='%23c9a84c'%3EZ%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --navy:#1a3a5c;
+  --navy-deep:#102842;
+  --gold:#c9a84c;
+  --gold-soft:#e2c87a;
+  --bg:#fafaf7;
+  --card:#ffffff;
+  --text:#1c1c1c;
+  --muted:#6b6b6b;
+  --line:#e5e5dd;
+  --line-soft:#f0f0e8;
+  --success:#2d6a4f;
+  --success-soft:#e8f3ed;
+  --danger:#a83232;
+  --danger-soft:#fbecec;
+  --warn:#a86b1f;
+  --shadow-sm:0 1px 2px rgba(16,40,66,0.05);
+  --shadow-md:0 4px 16px rgba(16,40,66,0.08);
+  --shadow-lg:0 12px 40px rgba(16,40,66,0.12);
+  --radius:10px;
+  --radius-lg:16px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;line-height:1.5;color:var(--text);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+body{padding-bottom:env(safe-area-inset-bottom);}
+
+/* ------------- TOPBAR ------------- */
+.topbar{
+  background:var(--navy);
+  color:#fff;
+  padding:14px 20px calc(14px + env(safe-area-inset-top)) 20px;
+  padding-top:calc(14px + env(safe-area-inset-top));
+  position:sticky;top:0;z-index:50;
+  border-bottom:3px solid var(--gold);
+  box-shadow:var(--shadow-md);
+}
+.topbar-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:38px;height:38px;border-radius:8px;
+  background:var(--gold);color:var(--navy);
+  display:grid;place-items:center;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:22px;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.15);
+}
+.brand-text h1{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;letter-spacing:0.2px;line-height:1.15;}
+.brand-text p{font-size:11px;color:rgba(255,255,255,0.65);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+.user-chip{font-size:13px;color:rgba(255,255,255,0.85);padding:6px 12px;border:1px solid rgba(255,255,255,0.18);border-radius:999px;background:rgba(255,255,255,0.04);}
+
+/* ------------- TABS ------------- */
+.tabs{
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tabs-inner{max-width:1100px;margin:0 auto;display:flex;gap:0;padding:0 12px;}
+.tab{
+  background:none;border:none;padding:14px 16px;font:inherit;font-size:14px;
+  color:var(--muted);cursor:pointer;font-weight:500;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;transition:color .15s,border-color .15s;
+  letter-spacing:0.2px;
+}
+.tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:600;}
+.tab:hover{color:var(--navy);}
+
+/* ------------- LAYOUT ------------- */
+main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
+.view{display:none;}
+.view.active{display:block;animation:fadeUp .35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+.section-head h2{font-family:'Playfair Display',serif;font-weight:600;font-size:26px;letter-spacing:-0.3px;color:var(--navy);}
+.section-head p{color:var(--muted);font-size:14px;max-width:560px;margin-top:4px;}
+
+/* ------------- WIZARD ------------- */
+.progress{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow-sm);
+}
+.progress-bar{height:6px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-top:14px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold));transition:width .4s cubic-bezier(.4,0,.2,1);}
+.steps{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.step{
+  display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);
+  font-weight:500;
+}
+.step-dot{
+  width:26px;height:26px;border-radius:50%;background:var(--line-soft);
+  display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--muted);
+  transition:all .25s;
+  border:2px solid transparent;
+}
+.step.active .step-dot{background:var(--navy);color:#fff;}
+.step.done .step-dot{background:var(--success);color:#fff;}
+.step.active{color:var(--navy);}
+.step.done{color:var(--success);}
+
+.wizard-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:28px;box-shadow:var(--shadow-md);
+}
+.wizard-card h3{font-family:'Playfair Display',serif;font-weight:600;font-size:22px;color:var(--navy);margin-bottom:6px;}
+.wizard-card .sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+.grid.two{grid-template-columns:repeat(2,1fr);}
+@media (max-width:520px){.grid.two{grid-template-columns:1fr;}}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12px;font-weight:600;color:var(--navy);letter-spacing:0.4px;text-transform:uppercase;}
+.field input,.field select,.field textarea{
+  font:inherit;font-size:15px;color:var(--text);
+  padding:11px 12px;border:1px solid var(--line);background:#fdfdfb;
+  border-radius:8px;transition:border-color .15s,box-shadow .15s;
+  width:100%;
+}
+.field textarea{resize:vertical;min-height:80px;font-family:inherit;}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,58,92,0.12);
+}
+.field .hint{font-size:11px;color:var(--muted);margin-top:-2px;}
+
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  padding:9px 14px;border:1px solid var(--line);background:#fff;
+  border-radius:999px;font:inherit;font-size:13px;cursor:pointer;
+  color:var(--text);font-weight:500;transition:all .15s;
+}
+.chip:hover{border-color:var(--navy);}
+.chip.selected{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+.wizard-actions{
+  display:flex;justify-content:space-between;gap:12px;margin-top:28px;
+  padding-top:20px;border-top:1px solid var(--line-soft);
+  flex-wrap:wrap;
+}
+.btn{
+  font:inherit;font-weight:600;font-size:14px;padding:11px 20px;
+  border-radius:8px;border:1px solid transparent;cursor:pointer;
+  transition:all .15s;letter-spacing:0.2px;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:var(--navy-deep);}
+.btn-secondary{background:#fff;color:var(--navy);border-color:var(--line);}
+.btn-secondary:hover{border-color:var(--navy);}
+.btn-ghost{background:transparent;color:var(--muted);}
+.btn-ghost:hover{color:var(--navy);background:var(--line-soft);}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:700;}
+.btn-gold:hover{background:var(--gold-soft);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{background:#8b2828;}
+.btn-icon{padding:8px 10px;font-size:13px;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Day-type quick picker */
+.daytype-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px;}
+.daytype{
+  padding:14px;border:1.5px solid var(--line);border-radius:10px;
+  background:#fdfdfb;cursor:pointer;text-align:left;font:inherit;
+  transition:all .15s;
+}
+.daytype:hover{border-color:var(--gold);}
+.daytype.selected{border-color:var(--navy);background:#f5f8fc;box-shadow:0 0 0 3px rgba(26,58,92,0.08);}
+.daytype .code{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:var(--navy);
+  display:inline-block;padding:2px 8px;background:var(--gold);border-radius:5px;
+  margin-bottom:6px;
+}
+.daytype .name{font-weight:600;font-size:14px;display:block;margin-bottom:2px;}
+.daytype .desc{font-size:11px;color:var(--muted);}
+
+/* ------------- OVERVIEW ------------- */
+.filters{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+}
+.filters select,.filters input{
+  font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);
+  border-radius:6px;background:#fdfdfb;
+}
+.filters .spacer{flex:1;}
+.entries-count{font-size:13px;color:var(--muted);}
+
+.entries-table{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+  overflow:hidden;box-shadow:var(--shadow-sm);
+}
+.entries-table table{width:100%;border-collapse:collapse;font-size:13px;}
+.entries-table thead{background:var(--navy);color:#fff;}
+.entries-table th{
+  text-align:left;padding:11px 12px;font-weight:600;font-size:11px;
+  letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;
+}
+.entries-table td{padding:11px 12px;border-top:1px solid var(--line-soft);vertical-align:top;}
+.entries-table tr:hover{background:#fafaf3;}
+.entries-table .day-cell{font-weight:600;color:var(--navy);white-space:nowrap;}
+.entries-table .day-cell small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.code-pill{
+  display:inline-block;padding:2px 8px;border-radius:5px;
+  background:var(--line-soft);color:var(--navy);font-weight:700;font-size:11px;
+  font-family:'Playfair Display',serif;letter-spacing:0.5px;
+}
+.code-pill.X{background:#e6efe9;color:var(--success);}
+.code-pill.U,.code-pill.WE,.code-pill.FH,.code-pill.HF,.code-pill.RF,.code-pill.WFH{background:var(--gold);color:var(--navy);}
+.code-pill.DR{background:#f8e9d2;color:var(--warn);}
+
+.actions-cell{white-space:nowrap;text-align:right;}
+.btn-mini{
+  padding:5px 9px;font-size:12px;border:1px solid var(--line);
+  background:#fff;border-radius:5px;cursor:pointer;font:inherit;font-weight:600;
+  color:var(--muted);transition:all .15s;
+}
+.btn-mini:hover{color:var(--navy);border-color:var(--navy);}
+.btn-mini.danger:hover{color:var(--danger);border-color:var(--danger);background:var(--danger-soft);}
+
+.empty-state{
+  padding:60px 20px;text-align:center;color:var(--muted);
+}
+.empty-state svg{width:64px;height:64px;color:var(--line);margin-bottom:12px;}
+.empty-state h3{font-family:'Playfair Display',serif;color:var(--navy);font-size:20px;margin-bottom:6px;}
+
+/* Responsive table → cards on mobile */
+@media (max-width:720px){
+  .entries-table table,.entries-table thead,.entries-table tbody,.entries-table tr,.entries-table th,.entries-table td{display:block;}
+  .entries-table thead{display:none;}
+  .entries-table tr{border-top:1px solid var(--line);padding:14px;position:relative;}
+  .entries-table td{border:none;padding:3px 0;}
+  .entries-table td::before{content:attr(data-label);font-weight:700;color:var(--navy);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-top:8px;}
+  .entries-table td:first-child::before{display:none;}
+  .actions-cell{margin-top:12px;text-align:left;}
+}
+
+/* ------------- SETTINGS ------------- */
+.settings-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:28px;box-shadow:var(--shadow-md);max-width:640px;
+}
+.settings-card h3{font-family:'Playfair Display',serif;font-weight:600;font-size:20px;color:var(--navy);margin-bottom:6px;}
+.settings-card p{color:var(--muted);font-size:14px;margin-bottom:20px;}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--line-soft);gap:14px;flex-wrap:wrap;}
+.settings-row:first-of-type{border-top:none;}
+.settings-row .label{font-weight:600;font-size:14px;}
+.settings-row .desc{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ------------- EXPORT VIEW ------------- */
+.export-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:28px;box-shadow:var(--shadow-md);
+}
+.export-summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;
+  margin:20px 0;
+}
+.summary-stat{
+  background:#fafaf3;border:1px solid var(--line-soft);border-radius:10px;padding:14px;
+}
+.summary-stat .num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1;}
+.summary-stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+
+/* ------------- TOAST ------------- */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--navy);color:#fff;padding:12px 22px;border-radius:99px;
+  font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;
+  display:flex;align-items:center;gap:10px;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+
+/* ------------- MODAL ------------- */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(16,40,66,0.5);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px;
+  backdrop-filter:blur(3px);
+}
+.modal-backdrop.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{
+  background:var(--card);border-radius:var(--radius-lg);
+  max-width:480px;width:100%;padding:24px;box-shadow:var(--shadow-lg);
+  animation:popIn .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:none;}}
+.modal h3{font-family:'Playfair Display',serif;font-size:20px;color:var(--navy);margin-bottom:8px;}
+.modal p{color:var(--muted);font-size:14px;margin-bottom:20px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+/* ------------- TRAVEL SEGMENTS ------------- */
+.segments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;}
+.segment{
+  border:1.5px solid var(--line);border-radius:12px;
+  background:#fdfdfb;overflow:hidden;
+  transition:border-color .15s, box-shadow .15s;
+}
+.segment.active{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,58,92,0.06);}
+.segment-head{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:#f5f5ee;border-bottom:1px solid var(--line);
+}
+.segment-head select{
+  font:inherit;font-size:14px;font-weight:600;color:var(--navy);
+  padding:6px 28px 6px 10px;border:1px solid var(--line);
+  border-radius:6px;background:#fff;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%231a3a5c' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.segment-head .seg-label{
+  font-family:'Playfair Display',serif;font-weight:600;
+  color:var(--navy);font-size:14px;flex:1;
+}
+.segment-body{padding:14px;}
+.segment-body .grid{gap:12px;}
+.segment-body label{font-size:11px;}
+.segment-body input{font-size:14px;padding:9px 10px;}
+
+.add-segment-btn{
+  width:100%;padding:14px;border:1.5px dashed var(--line);
+  background:transparent;border-radius:12px;cursor:pointer;
+  color:var(--muted);font:inherit;font-size:14px;font-weight:600;
+  transition:all .15s;
+}
+.add-segment-btn:hover{border-color:var(--gold);color:var(--navy);background:#fafaf3;}
+
+/* ------------- RECEIPT UPLOAD ------------- */
+.receipts-section{
+  margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);
+}
+.receipts-section .lbl{
+  font-size:11px;font-weight:600;color:var(--navy);
+  letter-spacing:0.4px;text-transform:uppercase;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.receipts-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.receipt-item{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--line);border-radius:8px;
+  padding:6px 8px 6px 6px;font-size:12px;max-width:240px;
+  transition:border-color .15s;
+}
+.receipt-item:hover{border-color:var(--navy);}
+.receipt-thumb{
+  width:32px;height:32px;border-radius:5px;overflow:hidden;
+  background:var(--line-soft);display:grid;place-items:center;
+  flex-shrink:0;font-size:14px;color:var(--muted);
+}
+.receipt-thumb img{width:100%;height:100%;object-fit:cover;}
+.receipt-info{flex:1;min-width:0;}
+.receipt-info .nm{font-weight:600;color:var(--text);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.receipt-info .sz{font-size:10px;color:var(--muted);}
+.receipt-rm{
+  background:none;border:none;cursor:pointer;font:inherit;
+  color:var(--muted);font-size:16px;padding:2px 6px;line-height:1;
+  border-radius:4px;transition:all .15s;
+}
+.receipt-rm:hover{color:var(--danger);background:var(--danger-soft);}
+
+.file-input-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border:1px solid var(--line);border-radius:6px;
+  background:#fff;cursor:pointer;font:inherit;font-size:12px;font-weight:600;
+  color:var(--navy);transition:all .15s;
+}
+.file-input-btn:hover{border-color:var(--navy);background:#fafaf3;}
+.file-input-btn input{display:none;}
+
+.receipt-modal-img{
+  max-width:100%;max-height:80vh;border-radius:8px;
+  box-shadow:var(--shadow-lg);display:block;margin:0 auto;
+}
+
+/* Address quick-fill chips */
+.addr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.addr-chip{
+  font-size:11px;padding:4px 10px;border:1px solid var(--line);
+  background:#fafaf3;border-radius:99px;cursor:pointer;
+  color:var(--navy);font-weight:600;transition:all .15s;font:inherit;font-weight:600;font-size:11px;
+}
+.addr-chip:hover{border-color:var(--gold);background:#fff;}
+
+/* Storage usage indicator */
+.storage-bar{
+  height:6px;background:var(--line-soft);border-radius:99px;
+  overflow:hidden;margin-top:8px;
+}
+.storage-fill{
+  height:100%;background:linear-gradient(90deg,var(--success),var(--gold));
+  transition:width .4s;
+}
+.storage-fill.warn{background:var(--gold);}
+.storage-fill.danger{background:var(--danger);}
+
+/* ------------- FHF TOGGLE ------------- */
+.fhf-toggle{
+  margin-top:16px;padding:14px 16px;
+  background:linear-gradient(135deg,#fff8e1,#fffdf5);
+  border:1.5px solid var(--gold);border-radius:12px;
+  display:flex;align-items:flex-start;gap:12px;
+  animation:fadeUp .3s ease;
+}
+.fhf-toggle input[type=checkbox]{
+  width:20px;height:20px;cursor:pointer;
+  margin-top:2px;accent-color:var(--gold);flex-shrink:0;
+}
+.fhf-toggle .lbl-wrap{flex:1;cursor:pointer;user-select:none;}
+.fhf-toggle .lbl-wrap b{font-weight:700;color:var(--navy);font-size:14px;display:block;}
+.fhf-toggle .lbl-wrap .desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45;}
+
+/* ------------- ROUTE BADGE / BUTTON ------------- */
+.route-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;
+}
+.route-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--success-soft);color:var(--success);
+  padding:4px 10px;border-radius:99px;
+  font-size:11px;font-weight:600;
+}
+.route-badge.error{background:var(--danger-soft);color:var(--danger);}
+.route-badge.loading{background:#fff7e6;color:var(--warn);}
+.route-btn{
+  font:inherit;font-size:11px;padding:6px 11px;
+  background:#fff;border:1px solid var(--line);
+  border-radius:6px;cursor:pointer;font-weight:600;
+  color:var(--navy);transition:all .15s;
+  white-space:nowrap;
+}
+.route-btn:hover:not(:disabled){border-color:var(--gold);background:#fafaf3;}
+.route-btn:disabled{opacity:0.5;cursor:wait;}
+.route-btn.gmaps{background:#fff;border-color:#dadada;color:#444;}
+.route-btn.gmaps:hover{border-color:#4285f4;color:#4285f4;}
+
+/* Datalist hint */
+.field .with-list{position:relative;}
+.field .with-list::after{
+  content:'▾';position:absolute;right:12px;top:50%;
+  transform:translateY(-50%);pointer-events:none;
+  color:var(--muted);font-size:12px;
+}
+
+/* ------------- FHF PDF SECTION ------------- */
+.fhf-section{
+  background:linear-gradient(135deg,#fafaf3,#fff);
+  border:1.5px solid var(--gold);border-radius:var(--radius-lg);
+  padding:22px;margin-bottom:16px;
+}
+.fhf-section h3{
+  font-family:'Playfair Display',serif;font-weight:600;
+  color:var(--navy);font-size:18px;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.fhf-section .desc{color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.5;}
+.fhf-stat{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border:1px solid var(--line);border-radius:8px;
+  padding:6px 12px;font-size:12px;font-weight:600;color:var(--navy);
+  margin-right:8px;margin-bottom:6px;
+}
+.fhf-stat b{color:var(--gold);font-family:'Playfair Display',serif;font-size:14px;}
+
+.fhf-entry-row{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:#fff;border:1px solid var(--line);border-radius:8px;
+  margin-bottom:8px;flex-wrap:wrap;
+}
+.fhf-entry-row .date{font-weight:700;color:var(--navy);font-size:13px;min-width:90px;}
+.fhf-entry-row .route{flex:1;font-size:13px;color:var(--text);min-width:120px;}
+.fhf-entry-row .meta{font-size:11px;color:var(--muted);}
+
+/* ------------- PRINT ------------- */
+.print-only{display:none;}
+
+@media print{
+  @page{size:A4 portrait;margin:14mm 12mm 18mm 12mm;}
+  body{background:#fff;color:#000;font-size:9pt;}
+  .topbar,.tabs,.filters,.actions-cell,.wizard-actions,.btn,.no-print{display:none !important;}
+  main{padding:0;max-width:none;}
+  .view{display:none !important;}
+  .print-only{display:block !important;}
+  .print-header{border-bottom:2px solid #1a3a5c;padding-bottom:8mm;margin-bottom:6mm;}
+  .print-header h1{font-family:'Playfair Display',serif;font-size:18pt;color:#1a3a5c;font-weight:600;letter-spacing:0.3px;}
+  .print-header .meta{font-size:9pt;color:#444;margin-top:3mm;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6mm;}
+  .print-header .meta b{color:#1a3a5c;}
+  .print-section{margin-bottom:6mm;page-break-inside:avoid;}
+  .print-section h2{font-family:'Playfair Display',serif;font-size:11pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:2mm;margin-bottom:3mm;font-weight:600;}
+  .print-section table{width:100%;border-collapse:collapse;font-size:8.2pt;}
+  .print-section th{background:#1a3a5c;color:#fff;text-align:left;padding:2.5mm 2mm;font-weight:600;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.3px;}
+  .print-section td{padding:2mm;border-bottom:0.5px solid #ccc;vertical-align:top;}
+  .print-section tr:nth-child(even) td{background:#f9f9f3;}
+  .print-footer{position:fixed;bottom:6mm;left:0;right:0;text-align:center;font-size:7.5pt;color:#888;border-top:0.5px solid #ccc;padding-top:2mm;}
+  .print-totals{margin-top:4mm;font-size:9pt;display:flex;gap:8mm;flex-wrap:wrap;}
+  .print-totals span{padding:2mm 4mm;background:#f5f5ee;border-left:2px solid #c9a84c;}
+  .print-sig{margin-top:14mm;display:flex;justify-content:space-between;gap:10mm;}
+  .print-sig div{flex:1;border-top:1px solid #000;padding-top:2mm;font-size:8pt;color:#444;text-align:center;}
+  .print-addr{margin-top:3mm;font-size:8.5pt;line-height:1.5;display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;border:0.5px solid #ddd;padding:3mm;border-radius:2mm;}
+  .print-addr b{color:#1a3a5c;display:block;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:0.5mm;}
+  .print-receipts{page-break-before:always;}
+  .print-receipts h2{font-family:'Playfair Display',serif;font-size:13pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:2mm;margin-bottom:4mm;font-weight:600;}
+  .receipt-page{page-break-inside:avoid;margin-bottom:6mm;border:0.5px solid #ccc;padding:3mm;border-radius:2mm;}
+  .receipt-page-head{font-size:8.5pt;color:#444;margin-bottom:2mm;display:flex;justify-content:space-between;border-bottom:0.5px solid #eee;padding-bottom:1.5mm;}
+  .receipt-page-head b{color:#1a3a5c;}
+  .receipt-page img{max-width:100%;max-height:130mm;display:block;margin:0 auto;}
+  .receipt-page .pdf-note{padding:8mm;text-align:center;color:#666;font-size:9pt;font-style:italic;background:#f5f5ee;}
+  .print-segments-mini{font-size:7.5pt;line-height:1.4;}
+  .print-segments-mini div{margin-bottom:0.8mm;}
+  .print-segments-mini b{color:#1a3a5c;}
+}
+
+/* Small adjustments */
+@media (max-width:480px){
+  .brand-text h1{font-size:15px;}
+  .brand-text p{font-size:10px;}
+  .user-chip{display:none;}
+  main{padding:18px 14px 80px;}
+  .wizard-card,.settings-card,.export-card{padding:20px;}
+  .section-head h2{font-size:22px;}
+  .filters{padding:10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============== APP UI ============== -->
+<div class="topbar no-print">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">Z</div>
+      <div class="brand-text">
+        <h1>Reisekosten- & Arbeitszeit&shy;nachweis</h1>
+        <p>TG · RB · Spesennachweis</p>
+      </div>
+    </div>
+    <div class="user-chip" id="userChip">Nicht konfiguriert</div>
+  </div>
+</div>
+
+<nav class="tabs no-print">
+  <div class="tabs-inner" role="tablist">
+    <button class="tab active" data-view="wizard" role="tab">+ Neuer Eintrag</button>
+    <button class="tab" data-view="overview" role="tab">Übersicht</button>
+    <button class="tab" data-view="export" role="tab">PDF / Druck</button>
+    <button class="tab" data-view="settings" role="tab">Einstellungen</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- Global address autocomplete list (populated by JS from settings) -->
+<datalist id="addrList"></datalist>
+
+  <!-- ============== WIZARD ============== -->
+  <section class="view active" id="view-wizard">
+    <div class="section-head">
+      <div>
+        <h2>Neuer Eintrag</h2>
+        <p>Schrittweise Erfassung: Anwesenheit · Fahrt · Kosten · Reisemittel. Felder, die nicht zutreffen, können übersprungen werden.</p>
+      </div>
+      <button class="btn btn-ghost" id="btnResetWizard">Zurücksetzen</button>
+    </div>
+
+    <div class="progress">
+      <div class="steps" id="stepsBar">
+        <div class="step active" data-step="0"><div class="step-dot">1</div><span>Tagesart</span></div>
+        <div class="step" data-step="1"><div class="step-dot">2</div><span>Arbeitszeiten</span></div>
+        <div class="step" data-step="2"><div class="step-dot">3</div><span>Fahrt</span></div>
+        <div class="step" data-step="3"><div class="step-dot">4</div><span>Reisemittel</span></div>
+        <div class="step" data-step="4"><div class="step-dot">5</div><span>Kosten</span></div>
+        <div class="step" data-step="5"><div class="step-dot">✓</div><span>Speichern</span></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:16%"></div></div>
+    </div>
+
+    <!-- Step 0: Date + Day-type -->
+    <div class="wizard-card" id="step-0">
+      <h3>Schritt 1 · Tagesart</h3>
+      <p class="sub">Wähle Datum und die Kennzeichnung für den Tag.</p>
+
+      <div class="grid two">
+        <div class="field">
+          <label for="entryDate">Datum</label>
+          <input type="date" id="entryDate">
+        </div>
+        <div class="field">
+          <label for="entryVorhaben">Vorhaben / Projekt (optional)</label>
+          <input type="text" id="entryVorhaben" placeholder="z. B. GebJgBtl 231 · TG 2026">
+        </div>
+      </div>
+
+      <label style="font-size:12px;font-weight:600;color:var(--navy);letter-spacing:0.4px;text-transform:uppercase;display:block;margin-top:18px;">Tageskennzeichen</label>
+      <div class="daytype-grid" id="daytypeGrid">
+        <button class="daytype selected" type="button" data-code="X">
+          <span class="code">X</span>
+          <span class="name">Anwesend</span>
+          <span class="desc">Regulärer Dienst</span>
+        </button>
+        <button class="daytype" type="button" data-code="WFH">
+          <span class="code">WFH</span>
+          <span class="name">Homeoffice</span>
+          <span class="desc">Tele-Arbeit</span>
+        </button>
+        <button class="daytype" type="button" data-code="WE">
+          <span class="code">WE</span>
+          <span class="name">Wochenende</span>
+          <span class="desc">Freier Tag</span>
+        </button>
+        <button class="daytype" type="button" data-code="HF">
+          <span class="code">HF</span>
+          <span class="name">Heimfahrt</span>
+          <span class="desc">Reise nach Hause</span>
+        </button>
+        <button class="daytype" type="button" data-code="RF">
+          <span class="code">RF</span>
+          <span class="name">Rückfahrt</span>
+          <span class="desc">Reise zum Dienstort</span>
+        </button>
+        <button class="daytype" type="button" data-code="U">
+          <span class="code">U</span>
+          <span class="name">Urlaub</span>
+          <span class="desc">Erholungsurlaub</span>
+        </button>
+        <button class="daytype" type="button" data-code="K">
+          <span class="code">K</span>
+          <span class="name">Krankheit</span>
+          <span class="desc">AU</span>
+        </button>
+        <button class="daytype" type="button" data-code="DR">
+          <span class="code">DR</span>
+          <span class="name">Dienstreise</span>
+          <span class="desc">Außenstelle</span>
+        </button>
+        <button class="daytype" type="button" data-code="SG">
+          <span class="code">SG</span>
+          <span class="name">Sondergebühr</span>
+          <span class="desc">Lehrgang/Übung</span>
+        </button>
+      </div>
+
+      <div class="fhf-toggle" id="fhfToggleBlock" style="display:none">
+        <input type="checkbox" id="fhfCheckbox">
+        <label class="lbl-wrap" for="fhfCheckbox">
+          <b>👨‍👩‍👧 Familienheimfahrt (FHF)</b>
+          <span class="desc">Markiere diesen Tag als steuerlich relevante Familienheimfahrt im Rahmen der doppelten Haushaltsführung. Die Belege werden für das automatisch generierte FHF-Sammel-PDF berücksichtigt.</span>
+        </label>
+      </div>
+
+      <div class="wizard-actions">
+        <span></span>
+        <button class="btn btn-primary" onclick="nextStep()">Weiter →</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Work times -->
+    <div class="wizard-card" id="step-1" style="display:none">
+      <h3>Schritt 2 · Arbeitszeiten</h3>
+      <p class="sub">Beginn, Ende, Pause. Zeiten werden automatisch auf 5 Minuten gerundet.</p>
+
+      <div class="grid">
+        <div class="field">
+          <label for="workStart">Arbeitsbeginn</label>
+          <input type="time" id="workStart" step="300">
+        </div>
+        <div class="field">
+          <label for="workEnd">Arbeitsende</label>
+          <input type="time" id="workEnd" step="300">
+        </div>
+        <div class="field">
+          <label for="workBreak">Pausendauer (Min.)</label>
+          <input type="number" id="workBreak" min="0" step="5" value="30">
+        </div>
+        <div class="field">
+          <label for="workLocation">Dienstort</label>
+          <input type="text" id="workLocation" list="addrList" placeholder="z. B. Bad Reichenhall">
+          <span class="hint">Wähle aus gespeicherten Adressen oder gib einen neuen Ort ein.</span>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label for="workNotes">Bemerkung (optional)</label>
+        <input type="text" id="workNotes" placeholder="z. B. Übergabegespräch, Lehrgangsteilnahme …">
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">← Zurück</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="skipStep()">Überspringen</button>
+          <button class="btn btn-primary" onclick="nextStep()">Weiter →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Trip -->
+    <div class="wizard-card" id="step-2" style="display:none">
+      <h3>Schritt 3 · Fahrt</h3>
+      <p class="sub">Strecke und Distanz. Lasse die Felder leer, wenn keine Fahrt erfolgt ist.</p>
+
+      <div class="grid two">
+        <div class="field">
+          <label for="tripFrom">Abfahrtsort</label>
+          <input type="text" id="tripFrom" list="addrList" placeholder="z. B. Bad Reichenhall">
+          <div class="addr-chips" id="tripFromChips"></div>
+        </div>
+        <div class="field">
+          <label for="tripTo">Zielort</label>
+          <input type="text" id="tripTo" list="addrList" placeholder="z. B. Maria Alm">
+          <div class="addr-chips" id="tripToChips"></div>
+        </div>
+        <div class="field">
+          <label for="tripKm">Kilometer</label>
+          <input type="number" id="tripKm" min="0" step="0.1" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Fahrtrichtung</label>
+          <div class="chip-group">
+            <button type="button" class="chip selected" data-trip="einfach">Einfach</button>
+            <button type="button" class="chip" data-trip="hin_zurueck">Hin & Zurück</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">← Zurück</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="skipStep()">Überspringen</button>
+          <button class="btn btn-primary" onclick="nextStep()">Weiter →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Transport modes (multi-segment) -->
+    <div class="wizard-card" id="step-3" style="display:none">
+      <h3>Schritt 4 · Reisemittel & Zeiten</h3>
+      <p class="sub">Mehrere Reisemittel pro Tag möglich. Pro Abschnitt: Verkehrsmittel, Kilometer, Zeiten und Belege.</p>
+
+      <div class="segments-list" id="segmentsList"></div>
+      <button type="button" class="add-segment-btn" onclick="addSegment()">+ Reisemittel hinzufügen</button>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">← Zurück</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="skipStep()">Überspringen</button>
+          <button class="btn btn-primary" onclick="nextStep()">Weiter →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Costs -->
+    <div class="wizard-card" id="step-4" style="display:none">
+      <h3>Schritt 5 · Kosten</h3>
+      <p class="sub">Erstattungsfähige Ausgaben. Mehrere Posten können nach dem Speichern als separate Einträge angelegt werden.</p>
+
+      <div class="grid">
+        <div class="field">
+          <label for="costType">Art der Ausgabe</label>
+          <select id="costType">
+            <option value="">— Keine —</option>
+            <optgroup label="Verkehrsmittel">
+              <option>Bahnfahren in Uniform</option>
+              <option>Bahnkarte</option>
+              <option>Buskarte</option>
+              <option>Flugkarte</option>
+              <option>Tanken</option>
+              <option>Taxi</option>
+              <option>ÖPNV / Einzelticket</option>
+              <option>Mietwagen</option>
+            </optgroup>
+            <optgroup label="Reise">
+              <option>Verpflegung</option>
+              <option>Übernachtung</option>
+              <option>Parkgebühr</option>
+              <option>Maut</option>
+            </optgroup>
+            <optgroup label="Sonstiges">
+              <option>Sonstiges</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label for="costAmount">Betrag</label>
+          <input type="number" id="costAmount" min="0" step="0.01" placeholder="0,00">
+        </div>
+        <div class="field">
+          <label for="costCurrency">Währung</label>
+          <select id="costCurrency">
+            <option>EUR</option>
+            <option>CHF</option>
+            <option>USD</option>
+            <option>GBP</option>
+            <option>NOK</option>
+            <option>CAD</option>
+            <option>ILS</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="costReceipt">Belegnummer (opt.)</label>
+          <input type="text" id="costReceipt" placeholder="z. B. Beleg-Nr. 4711">
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label for="costDesc">Beschreibung</label>
+        <textarea id="costDesc" placeholder="z. B. Mittagessen Bahnhofsrestaurant Salzburg, 2 Personen"></textarea>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">← Zurück</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="skipStep()">Überspringen</button>
+          <button class="btn btn-primary" onclick="nextStep()">Weiter →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Review & save -->
+    <div class="wizard-card" id="step-5" style="display:none">
+      <h3>Schritt 6 · Prüfen & Speichern</h3>
+      <p class="sub">Übersicht aller eingegebenen Daten. Anpassungen sind über „Zurück" möglich.</p>
+
+      <div id="reviewBox" style="background:#fafaf3;border:1px solid var(--line-soft);border-radius:10px;padding:18px;font-size:14px;line-height:1.7"></div>
+
+      <div class="wizard-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">← Zurück</button>
+        <button class="btn btn-gold" onclick="saveEntry()">✓ Eintrag speichern</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== OVERVIEW ============== -->
+  <section class="view" id="view-overview">
+    <div class="section-head">
+      <div>
+        <h2>Übersicht</h2>
+        <p>Alle erfassten Einträge — sortiert nach Datum, filterbar nach Zeitraum.</p>
+      </div>
+    </div>
+
+    <div class="filters">
+      <select id="filterYear"></select>
+      <select id="filterMonth">
+        <option value="all">Alle Monate</option>
+        <option value="0">Januar</option><option value="1">Februar</option><option value="2">März</option>
+        <option value="3">April</option><option value="4">Mai</option><option value="5">Juni</option>
+        <option value="6">Juli</option><option value="7">August</option><option value="8">September</option>
+        <option value="9">Oktober</option><option value="10">November</option><option value="11">Dezember</option>
+      </select>
+      <input type="text" id="filterSearch" placeholder="🔍 Suchen…" style="min-width:160px">
+      <span class="spacer"></span>
+      <span class="entries-count" id="entriesCount">0 Einträge</span>
+    </div>
+
+    <div class="entries-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Datum</th><th>Code</th><th>Arbeitszeit</th><th>Fahrt</th><th>Reisemittel</th><th>Kosten</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="entriesBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <h3>Noch keine Einträge</h3>
+        <p>Lege deinen ersten Eintrag im Reiter „Neuer Eintrag" an.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== EXPORT ============== -->
+  <section class="view" id="view-export">
+    <div class="section-head">
+      <div>
+        <h2>PDF / Druck&shy;ansicht</h2>
+        <p>Steuerlicher Nachweis. Wähle einen Zeitraum und drucke die Übersicht direkt oder speichere sie als PDF.</p>
+      </div>
+    </div>
+
+    <!-- FHF Sammel-PDF -->
+    <div class="fhf-section">
+      <h3>👨‍👩‍👧 Familienheimfahrt · Beleg-PDF</h3>
+      <p class="desc">
+        Erzeugt für jede markierte Familienheimfahrt ein einzelnes PDF mit Deckblatt und allen hochgeladenen Belegen (Bahnkarten, Bahnfahrten in Uniform, Tankquittungen etc.). Dateiname wird fortlaufend durchnummeriert: <code>FHF-{Jahr}-{Nr.}.pdf</code>.
+      </p>
+      <div id="fhfStats" style="margin-bottom:12px"></div>
+      <div id="fhfEntriesList"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-gold" onclick="generateAllFhfPdfs()">📦 Alle FHF-PDFs erzeugen</button>
+        <button class="btn btn-secondary btn-icon" onclick="resetFhfCounter()" title="Zähler auf 0 setzen (Jahreswechsel)">🔄 Zähler</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5">
+        Tipp: Im Steuerjahresbeginn den Zähler zurücksetzen. Pro FHF-Eintrag wird genau ein PDF erzeugt, das alle zugehörigen Belege enthält.
+      </p>
+    </div>
+
+    <div class="export-card">
+      <div class="grid">
+        <div class="field">
+          <label for="exportFrom">Von</label>
+          <input type="date" id="exportFrom">
+        </div>
+        <div class="field">
+          <label for="exportTo">Bis</label>
+          <input type="date" id="exportTo">
+        </div>
+        <div class="field">
+          <label for="exportTitle">Titel (optional)</label>
+          <input type="text" id="exportTitle" placeholder="z. B. Trennungsgeldnachweis Q1 2026">
+        </div>
+      </div>
+
+      <div class="export-summary" id="exportSummary"></div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <button class="btn btn-gold" onclick="prepareAndPrint()">🖨️ Drucken / Als PDF speichern</button>
+        <button class="btn btn-secondary" onclick="exportJSON()">📥 JSON-Backup</button>
+        <label class="btn btn-secondary" style="cursor:pointer">
+          📤 JSON laden
+          <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none">
+        </label>
+      </div>
+
+      <p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6">
+        <b>Hinweis:</b> Die Druckansicht enthält Kopfzeile (Name & Zeitraum), Tabelle aller Einträge, Summen und Unterschriftsfeld.
+        Beim Drucken in Safari/Chrome → <i>„Als PDF sichern"</i> wählen für ein archivierungsfähiges Dokument.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============== SETTINGS ============== -->
+  <section class="view" id="view-settings">
+    <div class="section-head">
+      <div>
+        <h2>Einstellungen</h2>
+        <p>Persönliche Angaben für die Druckansicht.</p>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>Identifikation</h3>
+      <p>Diese Angaben erscheinen in der Kopfzeile des Ausdrucks.</p>
+
+      <div class="grid two">
+        <div class="field">
+          <label for="setName">Name</label>
+          <input type="text" id="setName" placeholder="Vor- und Nachname">
+        </div>
+        <div class="field">
+          <label for="setRank">Dienstgrad (optional)</label>
+          <input type="text" id="setRank" placeholder="z. B. Hauptmann">
+        </div>
+        <div class="field">
+          <label for="setUnit">Einheit / Dienststelle</label>
+          <input type="text" id="setUnit" placeholder="z. B. GebJgBtl 231, Bad Reichenhall">
+        </div>
+        <div class="field">
+          <label for="setPersNr">Personalnummer (optional)</label>
+          <input type="text" id="setPersNr" placeholder="">
+        </div>
+      </div>
+
+      <h3 style="margin-top:28px">Adressen</h3>
+      <p>Werden im Ausdruck angezeigt und stehen als Schnellauswahl bei „Fahrt" zur Verfügung.</p>
+
+      <div class="field" style="margin-bottom:14px">
+        <label for="setAddrPrimary">🏠 Erstwohnung (Familienwohnsitz)</label>
+        <textarea id="setAddrPrimary" placeholder="Straße Nr., PLZ Ort" style="min-height:60px"></textarea>
+        <span class="hint">Ausgangspunkt für Familienheimfahrten</span>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="setAddrSecondary">🏡 Zweitwohnung (am Dienstort)</label>
+        <textarea id="setAddrSecondary" placeholder="Straße Nr., PLZ Ort" style="min-height:60px"></textarea>
+        <span class="hint">Zweitwohnsitz am Dienstort — relevant für doppelte Haushaltsführung</span>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="setAddrWork">🏢 Arbeitsstätte / Dienststelle</label>
+        <textarea id="setAddrWork" placeholder="Kasernenname, Straße Nr., PLZ Ort" style="min-height:60px"></textarea>
+        <span class="hint">Erste regelmäßige Tätigkeitsstätte</span>
+      </div>
+
+      <div style="background:#fafaf3;border:1px solid var(--line-soft);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:600;color:var(--navy);font-size:13px">Adressen geokodieren</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5">Aktiviert die automatische Kilometer-Berechnung zwischen Adressen via OpenStreetMap/OSRM.</div>
+          </div>
+          <button class="btn btn-secondary btn-icon" onclick="geocodeAllAddresses()">🗺️ Verifizieren</button>
+        </div>
+        <div id="geoStatus" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
+      </div>
+
+      <h3 style="margin-top:28px">Familienheimfahrt-Zähler</h3>
+      <p>Fortlaufende Nummerierung für die automatisch erzeugten FHF-PDF-Belegpakete.</p>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px">
+        <div class="field" style="flex:0 0 auto;width:120px">
+          <label for="setFhfYear">Jahr</label>
+          <input type="number" id="setFhfYear" min="2000" max="2099">
+        </div>
+        <div class="field" style="flex:0 0 auto;width:120px">
+          <label for="setFhfCounter">Letzte Nr.</label>
+          <input type="number" id="setFhfCounter" min="0">
+        </div>
+        <span class="hint" style="flex:1;min-width:200px">Beispiel: Bei Zähler "5" wird die nächste Datei <code>FHF-{Jahr}-006.pdf</code> heißen.</span>
+      </div>
+
+      <h3 style="margin-top:28px">Speicher</h3>
+      <p>Belege werden lokal im Browser-Speicher (IndexedDB) abgelegt. Quota: typ. 50 MB – 1 GB je nach Browser.</p>
+      <div id="storageInfo" style="font-size:13px;color:var(--muted)">Belege werden geladen…</div>
+      <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
+
+      <div class="settings-row" style="margin-top:18px">
+        <div>
+          <div class="label">Daten zurücksetzen</div>
+          <div class="desc">Löscht <b>alle</b> gespeicherten Einträge. Vorher ein JSON-Backup erstellen!</div>
+        </div>
+        <button class="btn btn-danger btn-icon" onclick="confirmReset()">Alle Einträge löschen</button>
+      </div>
+
+      <div class="wizard-actions" style="margin-top:24px">
+        <span></span>
+        <button class="btn btn-primary" onclick="saveSettings()">Speichern</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============== PRINT VIEW ============== -->
+<div class="print-only" id="printView"></div>
+
+<!-- ============== TOAST ============== -->
+<div class="toast" id="toast"></div>
+
+<!-- ============== RECEIPT VIEWER MODAL ============== -->
+<div class="modal-backdrop" id="receiptModal" onclick="if(event.target.id==='receiptModal')closeReceiptModal()">
+  <div class="modal" style="max-width:720px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px">
+      <h3 id="receiptModalTitle" style="margin:0;font-size:16px">Beleg</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn-mini" id="receiptDownloadBtn">⬇ Download</button>
+        <button class="btn-mini danger" onclick="closeReceiptModal()">Schließen</button>
+      </div>
+    </div>
+    <div id="receiptModalBody" style="text-align:center"></div>
+  </div>
+</div>
+
+<!-- ============== MODAL ============== -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Bestätigen</h3>
+    <p id="modalText">Aktion durchführen?</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-danger" id="modalConfirm">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ZIMMERMANN · TG/RB Nachweis · v3.0
+   Single-file PWA · localStorage + IndexedDB · Print-to-PDF
+   v3: HF/RF/FHF · Adress-Dropdowns · Auto-Distanz (OSM/OSRM)
+       · Cost-Kategorien · FHF-Sammel-PDF (pdf-lib)
+   ============================================================ */
+
+const STORAGE_KEY = 'zc-tgrb-tracker-v1';
+const SETTINGS_KEY = 'zc-tgrb-settings-v1';
+
+const DAYTYPES = {
+  'X':   {name:'Anwesend',          desc:'Regulärer Dienst'},
+  'WFH': {name:'Homeoffice',        desc:'Tele-Arbeit'},
+  'WE':  {name:'Wochenende',        desc:'Freier Tag'},
+  'HF':  {name:'Heimfahrt',         desc:'Reise nach Hause'},
+  'RF':  {name:'Rückfahrt',         desc:'Reise zum Dienstort'},
+  'FH':  {name:'Familienheimfahrt', desc:'Heimreise (Legacy)'},
+  'U':   {name:'Urlaub',            desc:'Erholungsurlaub'},
+  'K':   {name:'Krankheit',         desc:'Arbeitsunfähig'},
+  'DR':  {name:'Dienstreise',       desc:'Außenstelle'},
+  'SG':  {name:'Sondergebühr',      desc:'Lehrgang/Übung'}
+};
+const DAYNAMES = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+
+/* ---------- STATE ---------- */
+let state = {
+  entries: [],
+  settings: {
+    name:'', rank:'', unit:'', persNr:'',
+    addrPrimary:'', addrSecondary:'', addrWork:'',
+    addrPrimaryGeo:null, addrSecondaryGeo:null, addrWorkGeo:null,
+    fhfCounter: 0,
+    fhfYear: new Date().getFullYear()
+  }
+};
+let wizardData = freshWizard();
+let currentStep = 0;
+let editId = null;
+
+const TRAVEL_MODES = [
+  {v:'', label:'— Auswählen —'},
+  {v:'PKW', label:'🚗 PKW (privat)'},
+  {v:'Dienst-Kfz', label:'🛻 Dienst-Kfz'},
+  {v:'Bahn', label:'🚆 Bahn'},
+  {v:'Flugzeug', label:'✈️ Flugzeug'},
+  {v:'ÖPNV', label:'🚍 ÖPNV'},
+  {v:'Taxi', label:'🚕 Taxi'},
+  {v:'Mietwagen', label:'🚙 Mietwagen'},
+  {v:'Fahrrad', label:'🚴 Fahrrad'},
+  {v:'Zu Fuß', label:'🚶 Zu Fuß'},
+  {v:'Mitfahrgelegenheit', label:'👥 Mitfahrgelegenheit'}
+];
+
+// Day-type codes that conceptually relate to travel (auto-shows FHF prompt)
+const TRAVEL_DAYCODES = new Set(['HF','RF','FH']);
+
+function freshWizard(){
+  return {
+    date:'', vorhaben:'', dayCode:'X',
+    isFamilienheimfahrt:false,
+    workStart:'', workEnd:'', workBreak:30, workLocation:'', workNotes:'',
+    tripFrom:'', tripTo:'', tripKm:'', tripType:'einfach',
+    travelSegments:[],   // {mode, fromLoc, toLoc, fromGeo, toGeo, km, kmSource, dep, arr, route, receiptIds[]}
+    costType:'', costAmount:'', costCurrency:'EUR', costReceipt:'', costDesc:''
+  };
+}
+function freshSegment(){
+  return {
+    mode:'', fromLoc:'', toLoc:'',
+    fromGeo:null, toGeo:null,
+    km:'', kmSource:'',
+    dep:'', arr:'', route:'', receiptIds:[]
+  };
+}
+
+/* ---------- INDEXEDDB (FILES) ---------- */
+let db = null;
+function openDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open('zc-tgrb-files-v1', 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('files')){
+        d.createObjectStore('files', {keyPath:'id'});
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e.target.error);
+  });
+}
+function saveFile(record){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(['files'],'readwrite');
+    tx.objectStore('files').put(record);
+    tx.oncomplete = () => resolve(record.id);
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+function getFile(id){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(['files'],'readonly');
+    const req = tx.objectStore('files').get(id);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+function deleteFileFromDB(id){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(['files'],'readwrite');
+    tx.objectStore('files').delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+function listAllFiles(){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(['files'],'readonly');
+    const req = tx.objectStore('files').getAll();
+    req.onsuccess = e => resolve(e.target.result||[]);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+/* ---------- IMAGE COMPRESSION ---------- */
+async function compressImage(file){
+  if(!file.type || !file.type.startsWith('image/')) return file;
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 1800;
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          if(w >= h){ h = Math.round(h*maxDim/w); w = maxDim; }
+          else { w = Math.round(w*maxDim/h); h = maxDim; }
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img,0,0,w,h);
+        c.toBlob(b => resolve(b||file),'image/jpeg',0.78);
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
+function fmtBytes(b){
+  if(!b) return '0 B';
+  const u = ['B','KB','MB','GB'];
+  let i = 0;
+  while(b >= 1024 && i < u.length-1){ b /= 1024; i++; }
+  return b.toFixed(b<10?1:0)+' '+u[i];
+}
+
+/* ---------- STORAGE ---------- */
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ state.entries = JSON.parse(raw) || []; }
+    const set = localStorage.getItem(SETTINGS_KEY);
+    if(set){ state.settings = Object.assign(state.settings, JSON.parse(set)); }
+    migrateEntries();
+  }catch(e){ console.error('Load error',e); }
+}
+function persist(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.entries));
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+  }catch(e){
+    toast('Speicherfehler: '+e.message,'error');
+  }
+}
+function migrateEntries(){
+  // v1 → v2: convert single travelMode fields into travelSegments[]
+  state.entries.forEach(e => {
+    // v1 → v2: convert single travelMode fields into travelSegments[]
+    if(!Array.isArray(e.travelSegments)){
+      if(e.travelMode){
+        e.travelSegments = [{
+          mode: e.travelMode,
+          km: '',
+          dep: e.travelDep || '',
+          arr: e.travelArr || '',
+          route: e.travelRoute || '',
+          receiptIds: []
+        }];
+      } else {
+        e.travelSegments = [];
+      }
+    }
+    // v2 → v3: ensure FHF flag, segment from/to fields, dayCode FH → HF
+    if(e.dayCode === 'FH'){
+      e.dayCode = 'HF';
+      if(e.isFamilienheimfahrt === undefined) e.isFamilienheimfahrt = true;
+    }
+    if(typeof e.isFamilienheimfahrt !== 'boolean') e.isFamilienheimfahrt = false;
+    e.travelSegments.forEach(s => {
+      if(!Array.isArray(s.receiptIds)) s.receiptIds = [];
+      if(s.fromLoc === undefined) s.fromLoc = '';
+      if(s.toLoc === undefined) s.toLoc = '';
+      if(s.fromGeo === undefined) s.fromGeo = null;
+      if(s.toGeo === undefined) s.toGeo = null;
+      if(s.kmSource === undefined) s.kmSource = s.km ? 'manual' : '';
+    });
+  });
+  // settings defaults for new fields
+  if(typeof state.settings.fhfCounter !== 'number') state.settings.fhfCounter = 0;
+  if(!state.settings.fhfYear) state.settings.fhfYear = new Date().getFullYear();
+}
+
+/* ---------- HELPERS ---------- */
+function todayISO(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function nowRounded5(){
+  const d = new Date();
+  const m = Math.round(d.getMinutes()/5)*5;
+  d.setMinutes(m, 0, 0);
+  return d.toTimeString().slice(0,5);
+}
+function round5(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  if(isNaN(h)||isNaN(m)) return t;
+  let rounded = Math.round(m/5)*5;
+  let hh = h, mm = rounded;
+  if(mm===60){ mm=0; hh=(hh+1)%24; }
+  return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+function uid(){
+  return 'e_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+}
+function escapeHtml(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+function fmtDateLong(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+function dayName(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00');
+  return DAYNAMES[d.getDay()];
+}
+function fmtCurrency(amt,cur){
+  if(!amt) return '';
+  const n = parseFloat(amt);
+  if(isNaN(n)) return '';
+  return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+(cur||'EUR');
+}
+function calcWorkHours(start,end,brk){
+  if(!start||!end) return null;
+  const [sh,sm]=start.split(':').map(Number);
+  const [eh,em]=end.split(':').map(Number);
+  let mins = (eh*60+em)-(sh*60+sm)-(parseInt(brk)||0);
+  if(mins<0) mins += 24*60;
+  return mins;
+}
+function fmtMinutes(mins){
+  if(mins===null||mins===undefined) return '';
+  const h = Math.floor(mins/60);
+  const m = mins%60;
+  return h+':'+String(m).padStart(2,'0')+' h';
+}
+
+/* ---------- GEOCODING & ROUTING (OSM/OSRM, no API key) ---------- */
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
+let lastNominatimCall = 0;
+
+async function geocodeAddress(addr){
+  // Rate-limit: Nominatim allows 1 req/sec
+  const now = Date.now();
+  const wait = Math.max(0, 1100 - (now - lastNominatimCall));
+  if(wait > 0) await new Promise(r => setTimeout(r, wait));
+  lastNominatimCall = Date.now();
+
+  // Use only the first non-empty line of multi-line address
+  const cleanAddr = addr.split('\n').map(l=>l.trim()).filter(Boolean).join(', ');
+  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(cleanAddr)}&format=json&limit=1&accept-language=de`;
+  const r = await fetch(url, {
+    headers: {'Accept': 'application/json'}
+  });
+  if(!r.ok) throw new Error('Geocoder HTTP '+r.status);
+  const data = await r.json();
+  if(!Array.isArray(data) || !data.length) throw new Error('Adresse nicht gefunden');
+  return {
+    lat: parseFloat(data[0].lat),
+    lng: parseFloat(data[0].lon),
+    displayName: data[0].display_name
+  };
+}
+
+async function calculateRoute(fromGeo, toGeo){
+  if(!fromGeo || !toGeo) throw new Error('Geo-Koordinaten fehlen');
+  const url = `${OSRM_URL}/${fromGeo.lng},${fromGeo.lat};${toGeo.lng},${toGeo.lat}?overview=false`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('Routing HTTP '+r.status);
+  const data = await r.json();
+  if(data.code !== 'Ok' || !data.routes?.length) throw new Error('Keine Route gefunden');
+  return {
+    km: data.routes[0].distance / 1000,
+    durationSec: data.routes[0].duration
+  };
+}
+
+function googleMapsUrl(fromText, toText){
+  const o = encodeURIComponent(fromText);
+  const d = encodeURIComponent(toText);
+  return `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}`;
+}
+
+/* Geocode any text that matches a saved address — uses cached geo if present */
+function lookupSavedAddrGeo(text){
+  const s = state.settings;
+  const norm = (x)=> (x||'').replace(/\s+/g,' ').trim().toLowerCase();
+  const t = norm(text);
+  if(!t) return null;
+  // match against full address OR first-line summary
+  const matchers = [
+    {addr: s.addrPrimary,   geo: s.addrPrimaryGeo},
+    {addr: s.addrSecondary, geo: s.addrSecondaryGeo},
+    {addr: s.addrWork,      geo: s.addrWorkGeo}
+  ];
+  for(const m of matchers){
+    if(!m.addr) continue;
+    if(norm(m.addr) === t || norm(firstLine(m.addr)) === t){
+      return m.geo;
+    }
+  }
+  return null;
+}
+
+async function geocodeAllAddresses(){
+  const s = state.settings;
+  const el = document.getElementById('geoStatus');
+  if(el) el.textContent = 'Adressen werden verifiziert…';
+  const targets = [
+    {key:'addrPrimary',   geoKey:'addrPrimaryGeo',   label:'Erstwohnung'},
+    {key:'addrSecondary', geoKey:'addrSecondaryGeo', label:'Zweitwohnung'},
+    {key:'addrWork',      geoKey:'addrWorkGeo',      label:'Arbeitsstätte'}
+  ];
+  // Pull latest from form (in case user changed without saving yet)
+  s.addrPrimary   = document.getElementById('setAddrPrimary').value.trim();
+  s.addrSecondary = document.getElementById('setAddrSecondary').value.trim();
+  s.addrWork      = document.getElementById('setAddrWork').value.trim();
+
+  const results = [];
+  for(const t of targets){
+    if(!s[t.key]){ results.push(`<span style="color:var(--muted)">${t.label}: leer</span>`); continue; }
+    try{
+      const geo = await geocodeAddress(s[t.key]);
+      s[t.geoKey] = geo;
+      results.push(`<span style="color:var(--success)">✓ ${t.label}</span> <small>(${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)})</small>`);
+    }catch(err){
+      results.push(`<span style="color:var(--danger)">✕ ${t.label}: ${escapeHtml(err.message)}</span>`);
+    }
+  }
+  persist();
+  if(el) el.innerHTML = results.join('<br>');
+  refreshAddrList();
+  toast('Geokodierung abgeschlossen','success');
+}
+
+/* Populate the global addrList datalist from settings */
+function refreshAddrList(){
+  const dl = document.getElementById('addrList');
+  if(!dl) return;
+  const s = state.settings;
+  const opts = [];
+  // Both full and short forms for each address
+  const entries = [
+    {full:s.addrPrimary,   label:'Erstwohnung'},
+    {full:s.addrSecondary, label:'Zweitwohnung'},
+    {full:s.addrWork,      label:'Arbeitsstätte'}
+  ];
+  entries.forEach(e => {
+    if(!e.full) return;
+    const short = firstLine(e.full);
+    if(short) opts.push(`<option value="${escapeHtml(short)}">${escapeHtml(e.label)}</option>`);
+    // also a full-address variant
+    const flat = e.full.replace(/\n/g,', ');
+    if(flat && flat !== short) opts.push(`<option value="${escapeHtml(flat)}">${escapeHtml(e.label)} (vollständig)</option>`);
+  });
+  dl.innerHTML = opts.join('');
+}
+
+/* ---------- PDF-LIB LAZY LOADER ---------- */
+async function loadPdfLib(){
+  if(window.PDFLib) return window.PDFLib;
+  toast('PDF-Bibliothek wird geladen…');
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('PDF-Bibliothek konnte nicht geladen werden (Internet-Verbindung?)'));
+    document.head.appendChild(s);
+  });
+  return window.PDFLib;
+}
+
+/* ---------- FHF PDF GENERATION ---------- */
+async function generateFhfPdfForEntry(entry, customNumber){
+  const PDFLib = await loadPdfLib();
+  const {PDFDocument, StandardFonts, rgb} = PDFLib;
+
+  // Collect receipt ids from all segments
+  const allRids = [];
+  (entry.travelSegments||[]).forEach(s => {
+    (s.receiptIds||[]).forEach(rid => allRids.push({rid, segment:s}));
+  });
+
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.setTitle(`Familienheimfahrt ${entry.date}`);
+  pdfDoc.setAuthor((state.settings.rank?state.settings.rank+' ':'')+(state.settings.name||''));
+  pdfDoc.setSubject('Beleg-Sammelpaket Familienheimfahrt');
+  pdfDoc.setCreationDate(new Date());
+
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const font     = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const NAVY     = rgb(0.102, 0.227, 0.361);
+  const GOLD     = rgb(0.788, 0.659, 0.298);
+  const GREY     = rgb(0.4, 0.4, 0.4);
+
+  // --- Cover page ---
+  const A4 = [595.28, 841.89];
+  const cover = pdfDoc.addPage(A4);
+  let y = 800;
+
+  // Gold accent bar
+  cover.drawRectangle({x:40, y:y-4, width:30, height:6, color:GOLD});
+  y -= 30;
+  cover.drawText('Familienheimfahrt', {x:40, y, size:24, font:fontBold, color:NAVY});
+  y -= 32;
+  cover.drawText('Beleg-Sammelpaket · Steuerlicher Nachweis', {x:40, y, size:11, font, color:GREY});
+  y -= 40;
+
+  // Document number prominently
+  const docNum = customNumber || `FHF-${state.settings.fhfYear}-${String((state.settings.fhfCounter||0)+1).padStart(3,'0')}`;
+  cover.drawText('Dokumenten-Nr.', {x:40, y, size:9, font, color:GREY});
+  cover.drawText(docNum, {x:40, y:y-16, size:18, font:fontBold, color:NAVY});
+  y -= 50;
+
+  // Identification
+  const s = state.settings;
+  const idLines = [
+    `Name:          ${(s.rank?s.rank+' ':'')+(s.name||'—')}`,
+    s.unit   ? `Einheit:       ${s.unit}` : null,
+    s.persNr ? `Personal-Nr.:  ${s.persNr}` : null,
+    `Datum FHF:     ${fmtDateLong(entry.date)}`,
+    `Vorhaben:      ${entry.vorhaben || '—'}`
+  ].filter(Boolean);
+  idLines.forEach(line => {
+    cover.drawText(line, {x:40, y, size:10, font, color:NAVY});
+    y -= 14;
+  });
+  y -= 16;
+
+  // Trip details
+  cover.drawText('Reise', {x:40, y, size:11, font:fontBold, color:NAVY});
+  cover.drawLine({start:{x:40, y:y-3}, end:{x:555, y:y-3}, thickness:0.5, color:GOLD});
+  y -= 18;
+  cover.drawText(`Strecke: ${entry.tripFrom||'—'} → ${entry.tripTo||'—'}`, {x:40, y, size:10, font, color:NAVY});
+  y -= 14;
+  if(entry.tripKm){
+    cover.drawText(`Distanz: ${entry.tripKm} km (${entry.tripType==='hin_zurueck'?'Hin & Zurück':'einfach'})`, {x:40, y, size:10, font, color:NAVY});
+    y -= 14;
+  }
+  y -= 8;
+
+  // Segments
+  if(entry.travelSegments?.length){
+    cover.drawText('Reisemittel', {x:40, y, size:11, font:fontBold, color:NAVY});
+    cover.drawLine({start:{x:40, y:y-3}, end:{x:555, y:y-3}, thickness:0.5, color:GOLD});
+    y -= 18;
+    entry.travelSegments.forEach((seg,i) => {
+      const parts = [];
+      if(seg.mode) parts.push(seg.mode);
+      if(seg.fromLoc||seg.toLoc) parts.push(`${seg.fromLoc||'?'} → ${seg.toLoc||'?'}`);
+      if(seg.km) parts.push(`${seg.km} km`);
+      if(seg.dep||seg.arr) parts.push(`${seg.dep||'?'}–${seg.arr||'?'}`);
+      const line = `${i+1}. ${parts.join(' · ') || '—'}`;
+      cover.drawText(line.slice(0,90), {x:40, y, size:9.5, font, color:NAVY});
+      y -= 13;
+      if(seg.route){
+        cover.drawText(`   ${seg.route.slice(0,85)}`, {x:40, y, size:8.5, font, color:GREY});
+        y -= 12;
+      }
+    });
+    y -= 8;
+  }
+
+  // Receipts overview
+  cover.drawText(`Belege: ${allRids.length}`, {x:40, y, size:11, font:fontBold, color:NAVY});
+  cover.drawLine({start:{x:40, y:y-3}, end:{x:555, y:y-3}, thickness:0.5, color:GOLD});
+  y -= 18;
+
+  // Footer
+  cover.drawText(`Erzeugt: ${new Date().toLocaleString('de-DE')}`, {x:40, y:30, size:8, font, color:GREY});
+  cover.drawText(docNum, {x:540, y:30, size:8, font, color:GREY});
+
+  // --- Append all receipts ---
+  let receiptIndex = 0;
+  for(const {rid, segment} of allRids){
+    receiptIndex++;
+    try{
+      const rec = await getFile(rid);
+      if(!rec) continue;
+      if(rec.type === 'application/pdf'){
+        const bytes = await rec.blob.arrayBuffer();
+        try{
+          const src = await PDFDocument.load(bytes, {ignoreEncryption:true});
+          const pages = await pdfDoc.copyPages(src, src.getPageIndices());
+          pages.forEach(p => pdfDoc.addPage(p));
+        }catch(err){
+          // Fallback: add a placeholder page
+          const p = pdfDoc.addPage(A4);
+          p.drawText(`Beleg #${receiptIndex} (PDF konnte nicht eingebettet werden):`, {x:40, y:790, size:11, font:fontBold, color:NAVY});
+          p.drawText(rec.name||'unbenannt', {x:40, y:770, size:10, font, color:GREY});
+          p.drawText(err.message||'Unbekannter Fehler', {x:40, y:754, size:9, font, color:rgb(0.6,0.2,0.2)});
+        }
+      } else if(rec.type && rec.type.startsWith('image/')){
+        // Re-encode to ensure JPEG (pdf-lib supports JPG and PNG only)
+        let imgBytes = await rec.blob.arrayBuffer();
+        let img;
+        if(rec.type === 'image/png'){
+          try{ img = await pdfDoc.embedPng(imgBytes); }
+          catch(e){
+            // try as JPEG
+            const jpegBlob = await reencodeAsJpeg(rec.blob);
+            imgBytes = await jpegBlob.arrayBuffer();
+            img = await pdfDoc.embedJpg(imgBytes);
+          }
+        } else {
+          try{ img = await pdfDoc.embedJpg(imgBytes); }
+          catch(e){
+            const jpegBlob = await reencodeAsJpeg(rec.blob);
+            imgBytes = await jpegBlob.arrayBuffer();
+            img = await pdfDoc.embedJpg(imgBytes);
+          }
+        }
+        const page = pdfDoc.addPage(A4);
+        // Header strip
+        page.drawText(`Beleg #${receiptIndex}`, {x:40, y:810, size:11, font:fontBold, color:NAVY});
+        page.drawText(`${segment.mode||''}${segment.route?' · '+segment.route:''}`, {x:90, y:810, size:9, font, color:GREY});
+        page.drawText(rec.name||'', {x:40, y:794, size:8, font, color:GREY});
+        page.drawLine({start:{x:40, y:786}, end:{x:555, y:786}, thickness:0.5, color:GOLD});
+        // Scale image to fit (max 515×700)
+        const scaled = img.scaleToFit(515, 700);
+        const x = (A4[0] - scaled.width) / 2;
+        const yi = Math.max(50, (786 - 50 - scaled.height) / 2 + 50);
+        page.drawImage(img, {x, y:yi, width:scaled.width, height:scaled.height});
+      }
+    }catch(err){
+      console.error('Receipt embed error', err);
+    }
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  return {pdfBytes, docNum, receiptCount: allRids.length};
+}
+
+async function reencodeAsJpeg(blob){
+  return new Promise((resolve,reject)=>{
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0);
+      c.toBlob(b => { URL.revokeObjectURL(url); resolve(b); }, 'image/jpeg', 0.88);
+    };
+    img.onerror = e => { URL.revokeObjectURL(url); reject(new Error('Bild-Konvertierung fehlgeschlagen')); };
+    img.src = url;
+  });
+}
+
+async function downloadFhfForEntry(entryId){
+  const entry = state.entries.find(e => e.id === entryId);
+  if(!entry){ toast('Eintrag nicht gefunden','error'); return; }
+  if(!entry.isFamilienheimfahrt){ toast('Dieser Eintrag ist nicht als FHF markiert','error'); return; }
+
+  // Check receipts exist
+  let receiptCount = 0;
+  (entry.travelSegments||[]).forEach(s => receiptCount += (s.receiptIds||[]).length);
+  if(receiptCount === 0){
+    if(!confirm('Dieser Eintrag hat keine Belege. PDF trotzdem erzeugen (nur mit Deckblatt)?')) return;
+  }
+
+  try{
+    toast('PDF wird erzeugt…');
+    // Increment counter BEFORE generation so the cover shows the right number
+    const year = state.settings.fhfYear || new Date().getFullYear();
+    const nextNum = (state.settings.fhfCounter||0) + 1;
+    const docNum = `FHF-${year}-${String(nextNum).padStart(3,'0')}`;
+    const {pdfBytes} = await generateFhfPdfForEntry(entry, docNum);
+    // commit counter
+    state.settings.fhfCounter = nextNum;
+    persist();
+    // Download
+    const blob = new Blob([pdfBytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${docNum}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(`${docNum}.pdf erzeugt ✓`,'success');
+    if(document.getElementById('view-export').classList.contains('active')) refreshFhfSection();
+    if(document.getElementById('view-settings').classList.contains('active')) loadSettingsForm();
+  }catch(err){
+    console.error(err);
+    toast('Fehler: '+err.message,'error');
+  }
+}
+
+async function generateAllFhfPdfs(){
+  const fhfEntries = state.entries
+    .filter(e => e.isFamilienheimfahrt)
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(!fhfEntries.length){ toast('Keine FHF-Einträge vorhanden','error'); return; }
+  if(!confirm(`${fhfEntries.length} PDF-Dateien werden nacheinander heruntergeladen. Fortfahren?`)) return;
+  for(const e of fhfEntries){
+    await downloadFhfForEntry(e.id);
+    await new Promise(r => setTimeout(r, 600)); // small delay between downloads
+  }
+}
+
+function resetFhfCounter(){
+  const newYear = parseInt(document.getElementById('setFhfYear').value) || new Date().getFullYear();
+  showModal('Zähler zurücksetzen?', `Der FHF-Zähler wird auf 0 gesetzt und das Jahr auf ${newYear}. Die nächste FHF-PDF wird "FHF-${newYear}-001.pdf" heißen.`, ()=>{
+    state.settings.fhfCounter = 0;
+    state.settings.fhfYear = newYear;
+    persist();
+    loadSettingsForm();
+    if(document.getElementById('view-export').classList.contains('active')) refreshFhfSection();
+    toast('Zähler zurückgesetzt','success');
+  });
+}
+
+function refreshFhfSection(){
+  const list = state.entries
+    .filter(e => e.isFamilienheimfahrt)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const totalReceipts = list.reduce((sum,e) => {
+    return sum + (e.travelSegments||[]).reduce((s,seg)=>s+(seg.receiptIds||[]).length, 0);
+  }, 0);
+  const year = state.settings.fhfYear || new Date().getFullYear();
+  const ctr  = state.settings.fhfCounter || 0;
+  const next = `FHF-${year}-${String(ctr+1).padStart(3,'0')}`;
+
+  document.getElementById('fhfStats').innerHTML = `
+    <div class="fhf-stat"><span>FHF-Einträge:</span> <b>${list.length}</b></div>
+    <div class="fhf-stat"><span>Belege:</span> <b>${totalReceipts}</b></div>
+    <div class="fhf-stat"><span>Letzte Nr.:</span> <b>${ctr}</b></div>
+    <div class="fhf-stat"><span>Nächste Datei:</span> <b>${next}.pdf</b></div>
+  `;
+
+  if(!list.length){
+    document.getElementById('fhfEntriesList').innerHTML =
+      `<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;border:1px dashed var(--line);border-radius:10px">Noch keine Familienheimfahrt erfasst.</div>`;
+    return;
+  }
+  document.getElementById('fhfEntriesList').innerHTML = list.map(e => {
+    const rcount = (e.travelSegments||[]).reduce((s,seg)=>s+(seg.receiptIds||[]).length, 0);
+    return `
+      <div class="fhf-entry-row">
+        <span class="date">${fmtDate(e.date)}</span>
+        <span class="route">${escapeHtml(e.tripFrom||'?')} → ${escapeHtml(e.tripTo||'?')}</span>
+        <span class="meta">📎 ${rcount} Beleg${rcount===1?'':'e'}</span>
+        <button class="btn-mini" onclick="downloadFhfForEntry('${e.id}')">📦 PDF erzeugen</button>
+      </div>`;
+  }).join('');
+}
+
+/* ---------- TABS ---------- */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => switchView(t.dataset.view));
+});
+function switchView(v){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view===v));
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id==='view-'+v));
+  if(v==='overview') renderEntries();
+  if(v==='export'){ updateExportSummary(); refreshFhfSection(); }
+  if(v==='settings') loadSettingsForm();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- WIZARD ---------- */
+function showStep(i){
+  for(let n=0;n<=5;n++){
+    const el = document.getElementById('step-'+n);
+    if(el) el.style.display = (n===i)?'block':'none';
+  }
+  document.querySelectorAll('#stepsBar .step').forEach((s,n)=>{
+    s.classList.toggle('active', n===i);
+    s.classList.toggle('done', n<i);
+  });
+  document.getElementById('progressFill').style.width = ((i+1)/6*100)+'%';
+  currentStep = i;
+  if(i===5) renderReview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function nextStep(){ collectStep(currentStep); if(currentStep<5) showStep(currentStep+1); }
+function prevStep(){ if(currentStep>0) showStep(currentStep-1); }
+function skipStep(){ if(currentStep<5) showStep(currentStep+1); }
+
+function collectStep(step){
+  if(step===0){
+    wizardData.date = document.getElementById('entryDate').value || todayISO();
+    wizardData.vorhaben = document.getElementById('entryVorhaben').value.trim();
+  }
+  if(step===1){
+    wizardData.workStart = round5(document.getElementById('workStart').value);
+    wizardData.workEnd   = round5(document.getElementById('workEnd').value);
+    wizardData.workBreak = parseInt(document.getElementById('workBreak').value)||0;
+    wizardData.workLocation = document.getElementById('workLocation').value.trim();
+    wizardData.workNotes = document.getElementById('workNotes').value.trim();
+    // reflect rounding back
+    if(wizardData.workStart) document.getElementById('workStart').value = wizardData.workStart;
+    if(wizardData.workEnd)   document.getElementById('workEnd').value   = wizardData.workEnd;
+  }
+  if(step===2){
+    wizardData.tripFrom = document.getElementById('tripFrom').value.trim();
+    wizardData.tripTo = document.getElementById('tripTo').value.trim();
+    wizardData.tripKm = document.getElementById('tripKm').value;
+  }
+  if(step===3){
+    // Travel segments are kept in sync via the segment-editor handlers, so just round all times
+    wizardData.travelSegments.forEach(s => {
+      if(s.dep) s.dep = round5(s.dep);
+      if(s.arr) s.arr = round5(s.arr);
+    });
+    renderSegments(); // reflect any rounding back into DOM
+  }
+  if(step===4){
+    wizardData.costType = document.getElementById('costType').value;
+    wizardData.costAmount = document.getElementById('costAmount').value;
+    wizardData.costCurrency = document.getElementById('costCurrency').value;
+    wizardData.costReceipt = document.getElementById('costReceipt').value.trim();
+    wizardData.costDesc = document.getElementById('costDesc').value.trim();
+  }
+}
+
+function renderReview(){
+  const w = wizardData;
+  const dt = DAYTYPES[w.dayCode] || {name:'—'};
+  const work = (w.workStart && w.workEnd)
+    ? `${w.workStart} – ${w.workEnd} (Pause ${w.workBreak} Min · ${fmtMinutes(calcWorkHours(w.workStart,w.workEnd,w.workBreak))})`
+    : '—';
+  const trip = (w.tripFrom||w.tripTo||w.tripKm)
+    ? `${escapeHtml(w.tripFrom||'?')} → ${escapeHtml(w.tripTo||'?')}${w.tripKm?` · ${w.tripKm} km`:''} · ${w.tripType==='hin_zurueck'?'Hin & Zurück':'Einfach'}`
+    : '—';
+
+  let travelHtml = '—';
+  if(w.travelSegments && w.travelSegments.length){
+    travelHtml = '<ul style="margin:0;padding-left:18px">' + w.travelSegments.map(s => {
+      const parts = [];
+      if(s.mode) parts.push(`<b>${escapeHtml(s.mode)}</b>`);
+      if(s.fromLoc||s.toLoc) parts.push(`${escapeHtml(s.fromLoc||'?')} → ${escapeHtml(s.toLoc||'?')}`);
+      if(s.km) parts.push(`${s.km} km${s.kmSource==='auto'?' 🗺️':''}`);
+      if(s.dep || s.arr) parts.push(`${s.dep||'?'}–${s.arr||'?'}`);
+      if(s.route) parts.push(escapeHtml(s.route));
+      const rec = (s.receiptIds&&s.receiptIds.length) ? ` <span style="color:var(--success)">📎 ${s.receiptIds.length} Beleg(e)</span>` : '';
+      return '<li>' + (parts.join(' · ') || '<i>Leer</i>') + rec + '</li>';
+    }).join('') + '</ul>';
+  }
+
+  const cost = w.costType
+    ? `${escapeHtml(w.costType)} · ${fmtCurrency(w.costAmount,w.costCurrency)}${w.costDesc?` · ${escapeHtml(w.costDesc)}`:''}`
+    : '—';
+
+  const fhfBadge = w.isFamilienheimfahrt
+    ? '<span style="background:var(--gold);color:var(--navy);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;margin-left:6px">👨‍👩‍👧 FHF</span>'
+    : '';
+
+  document.getElementById('reviewBox').innerHTML = `
+    <div><b style="color:var(--navy)">Datum:</b> ${fmtDateLong(w.date)}</div>
+    <div><b style="color:var(--navy)">Tagesart:</b> <span class="code-pill ${w.dayCode}">${w.dayCode}</span> ${dt.name}${fhfBadge}${w.vorhaben?' · '+escapeHtml(w.vorhaben):''}</div>
+    <div><b style="color:var(--navy)">Arbeitszeit:</b> ${work}${w.workLocation?' · '+escapeHtml(w.workLocation):''}</div>
+    <div><b style="color:var(--navy)">Fahrt:</b> ${trip}</div>
+    <div><b style="color:var(--navy)">Reisemittel:</b> ${travelHtml}</div>
+    <div><b style="color:var(--navy)">Kosten:</b> ${cost}</div>
+    ${w.workNotes?`<div style="color:var(--muted);font-size:13px;margin-top:6px"><b>Bemerkung:</b> ${escapeHtml(w.workNotes)}</div>`:''}
+  `;
+}
+
+function saveEntry(){
+  collectStep(currentStep);
+  if(!wizardData.date){ toast('Datum fehlt','error'); return; }
+  if(editId){
+    const i = state.entries.findIndex(e=>e.id===editId);
+    if(i>=0){ state.entries[i] = {...wizardData, id:editId, updated:Date.now()}; }
+    editId = null;
+  }else{
+    state.entries.push({...wizardData, id:uid(), created:Date.now()});
+  }
+  persist();
+  toast(editId?'Aktualisiert':'Eintrag gespeichert ✓','success');
+  resetWizard();
+  setTimeout(()=>switchView('overview'),350);
+}
+
+function resetWizard(){
+  wizardData = freshWizard();
+  wizardData.date = todayISO();
+  wizardData.workStart = '08:00';
+  wizardData.workEnd = nowRounded5();
+  document.getElementById('entryDate').value = wizardData.date;
+  document.getElementById('entryVorhaben').value = '';
+  document.getElementById('workStart').value = wizardData.workStart;
+  document.getElementById('workEnd').value = wizardData.workEnd;
+  document.getElementById('workBreak').value = 30;
+  document.getElementById('workLocation').value = '';
+  document.getElementById('workNotes').value = '';
+  document.getElementById('tripFrom').value = '';
+  document.getElementById('tripTo').value = '';
+  document.getElementById('tripKm').value = '';
+  document.getElementById('costType').value = '';
+  document.getElementById('costAmount').value = '';
+  document.getElementById('costCurrency').value = 'EUR';
+  document.getElementById('costReceipt').value = '';
+  document.getElementById('costDesc').value = '';
+  document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>b.classList.toggle('selected', b.dataset.code==='X'));
+  document.querySelectorAll('[data-trip]').forEach(b=>b.classList.toggle('selected', b.dataset.trip==='einfach'));
+  document.getElementById('fhfCheckbox').checked = false;
+  updateFhfToggleVisibility();
+  refreshAddrList();
+  renderSegments();
+  renderAddressChips();
+  showStep(0);
+}
+
+/* Chip selectors */
+document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#daytypeGrid .daytype').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    wizardData.dayCode = b.dataset.code;
+    updateFhfToggleVisibility();
+  });
+});
+function updateFhfToggleVisibility(){
+  const block = document.getElementById('fhfToggleBlock');
+  if(!block) return;
+  const cb = document.getElementById('fhfCheckbox');
+  if(TRAVEL_DAYCODES.has(wizardData.dayCode)){
+    block.style.display = 'flex';
+    // Auto-check on HF (most common case is heimfahrt = familienheimfahrt)
+    if(wizardData.dayCode === 'HF' && !wizardData._userTouchedFhf){
+      wizardData.isFamilienheimfahrt = true;
+    }
+    cb.checked = !!wizardData.isFamilienheimfahrt;
+  } else {
+    block.style.display = 'none';
+    wizardData.isFamilienheimfahrt = false;
+    cb.checked = false;
+  }
+}
+document.getElementById('fhfCheckbox').addEventListener('change', e => {
+  wizardData.isFamilienheimfahrt = e.target.checked;
+  wizardData._userTouchedFhf = true;
+});
+
+document.querySelectorAll('[data-trip]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-trip]').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    wizardData.tripType = b.dataset.trip;
+  });
+});
+
+/* Round time-inputs on blur (static fields only) */
+['workStart','workEnd'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('blur', e=>{
+    if(e.target.value){ e.target.value = round5(e.target.value); }
+  });
+});
+
+document.getElementById('btnResetWizard').addEventListener('click', ()=>{
+  editId = null;
+  resetWizard();
+  toast('Eingabe zurückgesetzt');
+});
+
+/* ---------- TRAVEL SEGMENTS ---------- */
+function addSegment(){
+  wizardData.travelSegments.push(freshSegment());
+  renderSegments();
+  // Scroll the new segment into view
+  setTimeout(()=>{
+    const list = document.getElementById('segmentsList');
+    if(list && list.lastElementChild) list.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },50);
+}
+function removeSegment(idx){
+  const seg = wizardData.travelSegments[idx];
+  if(!seg) return;
+  // delete attached receipts from DB
+  if(seg.receiptIds && seg.receiptIds.length){
+    seg.receiptIds.forEach(rid => { deleteFileFromDB(rid).catch(()=>{}); });
+  }
+  wizardData.travelSegments.splice(idx,1);
+  renderSegments();
+}
+function renderSegments(){
+  const list = document.getElementById('segmentsList');
+  if(!list) return;
+  if(!wizardData.travelSegments.length){
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;border:1px dashed var(--line);border-radius:10px">Noch kein Reisemittel hinzugefügt.</div>`;
+    return;
+  }
+  list.innerHTML = wizardData.travelSegments.map((s,i)=>{
+    const opts = TRAVEL_MODES.map(m =>
+      `<option value="${escapeHtml(m.v)}" ${m.v===s.mode?'selected':''}>${escapeHtml(m.label)}</option>`
+    ).join('');
+    const kmBadge = s.kmSource==='auto'
+      ? `<span class="route-badge" title="berechnet via OpenStreetMap/OSRM">🗺️ auto</span>`
+      : (s.km && s.kmSource==='manual' ? `<span class="route-badge" style="background:#fafaf3;color:var(--muted)">manuell</span>` : '');
+    return `
+      <div class="segment" data-idx="${i}">
+        <div class="segment-head">
+          <span class="seg-label">Abschnitt ${i+1}</span>
+          <select onchange="updateSegment(${i},'mode',this.value)">${opts}</select>
+          <button type="button" class="btn-mini danger" onclick="removeSegment(${i})" title="Entfernen">✕</button>
+        </div>
+        <div class="segment-body">
+          <div class="grid two">
+            <div class="field">
+              <label>Abfahrtsort</label>
+              <input type="text" list="addrList" value="${escapeHtml(s.fromLoc)}"
+                onchange="updateSegment(${i},'fromLoc',this.value.trim());onSegLocChange(${i},'from')"
+                placeholder="Adresse / Ort">
+            </div>
+            <div class="field">
+              <label>Abfahrtszeit</label>
+              <input type="time" step="300" value="${escapeHtml(s.dep)}"
+                onchange="updateSegment(${i},'dep',round5(this.value));this.value=wizardData.travelSegments[${i}].dep||''">
+            </div>
+            <div class="field">
+              <label>Zielort</label>
+              <input type="text" list="addrList" value="${escapeHtml(s.toLoc)}"
+                onchange="updateSegment(${i},'toLoc',this.value.trim());onSegLocChange(${i},'to')"
+                placeholder="Adresse / Ort">
+            </div>
+            <div class="field">
+              <label>Ankunftszeit</label>
+              <input type="time" step="300" value="${escapeHtml(s.arr)}"
+                onchange="updateSegment(${i},'arr',round5(this.value));this.value=wizardData.travelSegments[${i}].arr||''">
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:12px">
+            <label>Kilometer</label>
+            <div style="display:flex;gap:6px;align-items:stretch">
+              <input type="number" min="0" step="0.1" value="${escapeHtml(s.km)}" style="flex:1"
+                onchange="updateSegment(${i},'km',this.value);updateSegment(${i},'kmSource','manual');document.getElementById('segBadge-${i}').innerHTML='<span class=&quot;route-badge&quot; style=&quot;background:#fafaf3;color:var(--muted)&quot;>manuell</span>'"
+                placeholder="0">
+              <button type="button" class="route-btn" onclick="autoCalcDistance(${i})" title="Distanz via OpenStreetMap berechnen">🗺️ Berechnen</button>
+              <button type="button" class="route-btn gmaps" onclick="openInGoogleMaps(${i})" title="In Google Maps öffnen">G</button>
+            </div>
+            <div class="route-row" id="segBadge-${i}">${kmBadge}</div>
+          </div>
+
+          <div class="field" style="margin-top:10px">
+            <label>Strecke / Details (optional)</label>
+            <input type="text" value="${escapeHtml(s.route)}"
+              onchange="updateSegment(${i},'route',this.value.trim())"
+              placeholder="z. B. ICE 525, Kennzeichen, Flugnr.">
+          </div>
+
+          <div class="receipts-section">
+            <div class="lbl">
+              <span>Belege / Rechnungen ${s.receiptIds.length?'· '+s.receiptIds.length:''}</span>
+              <label class="file-input-btn">
+                📎 Hinzufügen
+                <input type="file" accept="image/*,application/pdf" multiple
+                  onchange="handleReceiptUpload(${i}, event)">
+              </label>
+            </div>
+            <div class="receipts-list" id="receipts-list-${i}"></div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  // Render receipts asynchronously
+  wizardData.travelSegments.forEach((s,i) => renderReceiptList(i));
+}
+
+/* Try to resolve a segment from/to text to cached geo */
+function onSegLocChange(idx, which){
+  const seg = wizardData.travelSegments[idx];
+  if(!seg) return;
+  const text = which==='from' ? seg.fromLoc : seg.toLoc;
+  const geo = lookupSavedAddrGeo(text);
+  if(which==='from'){ seg.fromGeo = geo; } else { seg.toGeo = geo; }
+}
+
+async function autoCalcDistance(idx){
+  const seg = wizardData.travelSegments[idx];
+  if(!seg) return;
+  if(!seg.fromLoc || !seg.toLoc){
+    toast('Abfahrtsort und Zielort eingeben','error');
+    return;
+  }
+  const badge = document.getElementById('segBadge-'+idx);
+  badge.innerHTML = '<span class="route-badge loading">⏳ wird berechnet…</span>';
+  try{
+    // Resolve geo for from/to
+    let fromGeo = seg.fromGeo || lookupSavedAddrGeo(seg.fromLoc);
+    let toGeo   = seg.toGeo   || lookupSavedAddrGeo(seg.toLoc);
+    if(!fromGeo){ fromGeo = await geocodeAddress(seg.fromLoc); seg.fromGeo = fromGeo; }
+    if(!toGeo){   toGeo   = await geocodeAddress(seg.toLoc);   seg.toGeo   = toGeo;   }
+    const route = await calculateRoute(fromGeo, toGeo);
+    seg.km = route.km.toFixed(1);
+    seg.kmSource = 'auto';
+    // update DOM
+    const inp = document.querySelector(`.segment[data-idx="${idx}"] input[type="number"]`);
+    if(inp) inp.value = seg.km;
+    const dur = Math.round(route.durationSec/60);
+    badge.innerHTML = `<span class="route-badge">🗺️ ${seg.km} km · ~${dur} min</span>`;
+    toast('Distanz berechnet ✓','success');
+  }catch(err){
+    console.error(err);
+    badge.innerHTML = `<span class="route-badge error">✕ ${escapeHtml(err.message)}</span>`;
+    toast('Berechnung fehlgeschlagen: '+err.message,'error');
+  }
+}
+
+function openInGoogleMaps(idx){
+  const seg = wizardData.travelSegments[idx];
+  if(!seg) return;
+  if(!seg.fromLoc || !seg.toLoc){ toast('Abfahrtsort und Zielort eingeben','error'); return; }
+  window.open(googleMapsUrl(seg.fromLoc, seg.toLoc), '_blank', 'noopener');
+}
+function updateSegment(idx,field,value){
+  if(!wizardData.travelSegments[idx]) return;
+  wizardData.travelSegments[idx][field] = value;
+}
+async function renderReceiptList(idx){
+  const seg = wizardData.travelSegments[idx];
+  const cont = document.getElementById('receipts-list-'+idx);
+  if(!cont || !seg) return;
+  if(!seg.receiptIds.length){ cont.innerHTML = ''; return; }
+  const parts = [];
+  for(const rid of seg.receiptIds){
+    try{
+      const rec = await getFile(rid);
+      if(!rec){ continue; }
+      const isImg = rec.type && rec.type.startsWith('image/');
+      const thumbHtml = isImg
+        ? `<img alt="" loading="lazy" data-rid="${rid}">`
+        : (rec.type==='application/pdf' ? '📄' : '📎');
+      parts.push(`
+        <div class="receipt-item">
+          <div class="receipt-thumb">${thumbHtml}</div>
+          <div class="receipt-info" onclick="viewReceipt('${rid}')" style="cursor:pointer">
+            <div class="nm">${escapeHtml(rec.name||'Beleg')}</div>
+            <div class="sz">${fmtBytes(rec.size||0)}</div>
+          </div>
+          <button class="receipt-rm" onclick="removeReceipt(${idx},'${rid}')" title="Entfernen">×</button>
+        </div>`);
+    }catch(e){ /* ignore missing files */ }
+  }
+  cont.innerHTML = parts.join('');
+  // Hydrate image thumbnails from blobs (security: don't put blob URLs in the HTML string above)
+  for(const img of cont.querySelectorAll('img[data-rid]')){
+    try{
+      const rec = await getFile(img.dataset.rid);
+      if(rec && rec.blob) img.src = URL.createObjectURL(rec.blob);
+    }catch(e){}
+  }
+}
+
+async function handleReceiptUpload(idx, ev){
+  const files = Array.from(ev.target.files||[]);
+  ev.target.value = '';
+  if(!files.length) return;
+  if(!db){ toast('Speicher nicht bereit','error'); return; }
+  const seg = wizardData.travelSegments[idx];
+  if(!seg) return;
+  toast(`Verarbeite ${files.length} Datei(en)…`);
+  for(const file of files){
+    try{
+      const blob = await compressImage(file);
+      const id = 'f_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+      await saveFile({
+        id, blob,
+        name: file.name,
+        type: blob.type || file.type,
+        size: blob.size,
+        created: Date.now()
+      });
+      seg.receiptIds.push(id);
+    }catch(e){
+      console.error(e);
+      toast('Fehler beim Speichern: '+(e.message||'unbekannt'),'error');
+    }
+  }
+  await renderReceiptList(idx);
+  // also update header counter
+  const segEl = document.querySelector(`.segment[data-idx="${idx}"] .receipts-section .lbl span`);
+  if(segEl) segEl.textContent = `Belege / Rechnungen · ${seg.receiptIds.length}`;
+  toast('Beleg(e) gespeichert ✓','success');
+}
+
+async function removeReceipt(segIdx, rid){
+  const seg = wizardData.travelSegments[segIdx];
+  if(!seg) return;
+  seg.receiptIds = seg.receiptIds.filter(x => x!==rid);
+  try{ await deleteFileFromDB(rid); }catch(e){}
+  await renderReceiptList(segIdx);
+  const segEl = document.querySelector(`.segment[data-idx="${segIdx}"] .receipts-section .lbl span`);
+  if(segEl) segEl.textContent = `Belege / Rechnungen ${seg.receiptIds.length?'· '+seg.receiptIds.length:''}`;
+}
+
+let activeReceiptBlobUrl = null;
+async function viewReceipt(rid){
+  try{
+    const rec = await getFile(rid);
+    if(!rec){ toast('Beleg nicht gefunden','error'); return; }
+    if(activeReceiptBlobUrl){ URL.revokeObjectURL(activeReceiptBlobUrl); activeReceiptBlobUrl=null; }
+    activeReceiptBlobUrl = URL.createObjectURL(rec.blob);
+    document.getElementById('receiptModalTitle').textContent = rec.name||'Beleg';
+    const body = document.getElementById('receiptModalBody');
+    if(rec.type && rec.type.startsWith('image/')){
+      body.innerHTML = `<img class="receipt-modal-img" src="${activeReceiptBlobUrl}" alt="Beleg">`;
+    } else if(rec.type==='application/pdf'){
+      body.innerHTML = `<iframe src="${activeReceiptBlobUrl}" style="width:100%;height:70vh;border:1px solid var(--line);border-radius:8px"></iframe>`;
+    } else {
+      body.innerHTML = `<p style="padding:30px;color:var(--muted)">Vorschau nicht verfügbar. Über „Download" lokal öffnen.</p>`;
+    }
+    const dl = document.getElementById('receiptDownloadBtn');
+    dl.onclick = () => {
+      const a = document.createElement('a');
+      a.href = activeReceiptBlobUrl;
+      a.download = rec.name||'beleg';
+      a.click();
+    };
+    document.getElementById('receiptModal').classList.add('show');
+  }catch(e){ toast('Fehler: '+e.message,'error'); }
+}
+function closeReceiptModal(){
+  document.getElementById('receiptModal').classList.remove('show');
+  if(activeReceiptBlobUrl){ URL.revokeObjectURL(activeReceiptBlobUrl); activeReceiptBlobUrl=null; }
+}
+
+/* ---------- ADDRESS QUICK CHIPS ---------- */
+function renderAddressChips(){
+  ['tripFromChips','tripToChips'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const target = id==='tripFromChips'?'tripFrom':'tripTo';
+    const s = state.settings;
+    const items = [];
+    if(s.addrPrimary)   items.push({label:'🏠 Erstwohnung',    val:firstLine(s.addrPrimary)});
+    if(s.addrSecondary) items.push({label:'🏡 Zweitwohnung',   val:firstLine(s.addrSecondary)});
+    if(s.addrWork)      items.push({label:'🏢 Arbeitsstätte',  val:firstLine(s.addrWork)});
+    el.innerHTML = items.map((it,i) =>
+      `<button type="button" class="addr-chip" data-target="${target}" data-val="${escapeHtml(it.val)}">${escapeHtml(it.label)}</button>`
+    ).join('');
+    // attach listeners
+    el.querySelectorAll('.addr-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.target;
+        const v = btn.dataset.val;
+        const input = document.getElementById(t);
+        if(input){ input.value = v; }
+        wizardData[t] = v;
+      });
+    });
+  });
+}
+function firstLine(s){
+  if(!s) return '';
+  // Take last non-empty line that looks like a city (or whole thing if just 1 line)
+  const lines = s.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length===0) return '';
+  if(lines.length===1) return lines[0];
+  // Prefer the line containing PLZ/city
+  const cityLine = lines.find(l => /\d{4,5}/.test(l));
+  return cityLine || lines[lines.length-1];
+}
+
+/* ---------- OVERVIEW ---------- */
+function renderEntries(){
+  populateYearFilter();
+  const year = document.getElementById('filterYear').value;
+  const month = document.getElementById('filterMonth').value;
+  const q = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+  let list = [...state.entries].sort((a,b)=> (a.date||'').localeCompare(b.date||''));
+
+  if(year && year!=='all'){
+    list = list.filter(e => e.date && e.date.startsWith(year));
+  }
+  if(month && month!=='all'){
+    list = list.filter(e => {
+      if(!e.date) return false;
+      const m = new Date(e.date+'T00:00').getMonth();
+      return m===parseInt(month);
+    });
+  }
+  if(q){
+    list = list.filter(e => JSON.stringify(e).toLowerCase().includes(q));
+  }
+
+  const tbody = document.getElementById('entriesBody');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('entriesCount');
+
+  count.textContent = list.length + (list.length===1?' Eintrag':' Einträge');
+
+  if(list.length===0){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map(e => {
+    const work = (e.workStart && e.workEnd)
+      ? `${e.workStart}–${e.workEnd}<br><small style="color:var(--muted)">Pause ${e.workBreak||0}m</small>`
+      : '<span style="color:var(--line)">—</span>';
+    const trip = (e.tripFrom||e.tripTo)
+      ? `${escapeHtml(e.tripFrom||'?')} → ${escapeHtml(e.tripTo||'?')}${e.tripKm?`<br><small style="color:var(--muted)">${e.tripKm} km · ${e.tripType==='hin_zurueck'?'H&R':'einfach'}</small>`:''}`
+      : '<span style="color:var(--line)">—</span>';
+    const travel = (e.travelSegments && e.travelSegments.length)
+      ? e.travelSegments.map(s => {
+          const parts = [escapeHtml(s.mode||'?')];
+          if(s.km) parts.push(`${s.km}km`);
+          const t = (s.dep||s.arr)?`<br><small style="color:var(--muted)">${s.dep||'?'}–${s.arr||'?'}</small>`:'';
+          const r = (s.receiptIds&&s.receiptIds.length)?` <small style="color:var(--success);font-weight:700">📎${s.receiptIds.length}</small>`:'';
+          return parts.join(' · ')+r+t;
+        }).join('<br>')
+      : '<span style="color:var(--line)">—</span>';
+    const cost = e.costType
+      ? `${escapeHtml(e.costType)}<br><small style="color:var(--muted)">${fmtCurrency(e.costAmount,e.costCurrency)}</small>`
+      : '<span style="color:var(--line)">—</span>';
+    const fhfBadge = e.isFamilienheimfahrt
+      ? '<br><small style="background:var(--gold);color:var(--navy);padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:0.3px;display:inline-block;margin-top:3px">👨‍👩‍👧 FHF</small>'
+      : '';
+    const fhfBtn = e.isFamilienheimfahrt
+      ? `<button class="btn-mini" style="background:#fff7e6;border-color:var(--gold);color:var(--navy)" onclick="downloadFhfForEntry('${e.id}')" title="FHF-PDF erzeugen">📦 PDF</button>`
+      : '';
+    return `
+      <tr>
+        <td data-label="Datum" class="day-cell">${fmtDate(e.date)}<small>${dayName(e.date)}</small></td>
+        <td data-label="Code"><span class="code-pill ${e.dayCode}">${e.dayCode||'X'}</span>${fhfBadge}</td>
+        <td data-label="Arbeitszeit">${work}</td>
+        <td data-label="Fahrt">${trip}</td>
+        <td data-label="Reisemittel">${travel}</td>
+        <td data-label="Kosten">${cost}</td>
+        <td class="actions-cell">
+          ${fhfBtn}
+          <button class="btn-mini" onclick="editEntry('${e.id}')">✎ Bearbeiten</button>
+          <button class="btn-mini danger" onclick="deleteEntry('${e.id}')">✕ Löschen</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function populateYearFilter(){
+  const sel = document.getElementById('filterYear');
+  const current = sel.value;
+  const years = new Set();
+  state.entries.forEach(e=>{ if(e.date) years.add(e.date.slice(0,4)); });
+  years.add(String(new Date().getFullYear()));
+  const sorted = [...years].sort().reverse();
+  sel.innerHTML = '<option value="all">Alle Jahre</option>' + sorted.map(y=>`<option value="${y}">${y}</option>`).join('');
+  if(current) sel.value = current;
+}
+
+document.getElementById('filterYear').addEventListener('change', renderEntries);
+document.getElementById('filterMonth').addEventListener('change', renderEntries);
+document.getElementById('filterSearch').addEventListener('input', renderEntries);
+
+function editEntry(id){
+  const e = state.entries.find(x=>x.id===id);
+  if(!e){ toast('Eintrag nicht gefunden','error'); return; }
+  editId = id;
+  // deep clone to avoid mutating stored entry until save
+  wizardData = JSON.parse(JSON.stringify({...freshWizard(), ...e}));
+  if(!Array.isArray(wizardData.travelSegments)) wizardData.travelSegments = [];
+  wizardData._userTouchedFhf = true; // suppress auto-toggle on edit
+  // populate form fields
+  document.getElementById('entryDate').value = e.date||'';
+  document.getElementById('entryVorhaben').value = e.vorhaben||'';
+  document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>b.classList.toggle('selected', b.dataset.code===(e.dayCode||'X')));
+  document.getElementById('fhfCheckbox').checked = !!e.isFamilienheimfahrt;
+  updateFhfToggleVisibility();
+  document.getElementById('workStart').value = e.workStart||'';
+  document.getElementById('workEnd').value = e.workEnd||'';
+  document.getElementById('workBreak').value = e.workBreak||0;
+  document.getElementById('workLocation').value = e.workLocation||'';
+  document.getElementById('workNotes').value = e.workNotes||'';
+  document.getElementById('tripFrom').value = e.tripFrom||'';
+  document.getElementById('tripTo').value = e.tripTo||'';
+  document.getElementById('tripKm').value = e.tripKm||'';
+  document.querySelectorAll('[data-trip]').forEach(b=>b.classList.toggle('selected', b.dataset.trip===(e.tripType||'einfach')));
+  document.getElementById('costType').value = e.costType||'';
+  document.getElementById('costAmount').value = e.costAmount||'';
+  document.getElementById('costCurrency').value = e.costCurrency||'EUR';
+  document.getElementById('costReceipt').value = e.costReceipt||'';
+  document.getElementById('costDesc').value = e.costDesc||'';
+  refreshAddrList();
+  renderSegments();
+  renderAddressChips();
+  switchView('wizard');
+  showStep(0);
+  toast('Bearbeitung gestartet');
+}
+
+function deleteEntry(id){
+  showModal('Eintrag löschen?', 'Dieser Vorgang kann nicht rückgängig gemacht werden. Verknüpfte Belege werden ebenfalls gelöscht.', async ()=>{
+    const e = state.entries.find(x=>x.id===id);
+    if(e && e.travelSegments){
+      for(const s of e.travelSegments){
+        if(s.receiptIds){
+          for(const rid of s.receiptIds){
+            try{ await deleteFileFromDB(rid); }catch(err){}
+          }
+        }
+      }
+    }
+    state.entries = state.entries.filter(x=>x.id!==id);
+    persist();
+    renderEntries();
+    toast('Eintrag gelöscht','success');
+  });
+}
+
+/* ---------- EXPORT / PRINT ---------- */
+function updateExportSummary(){
+  const from = document.getElementById('exportFrom').value;
+  const to = document.getElementById('exportTo').value;
+  const list = getRange(from,to);
+  // total km = max of (trip-km doubled if H&R) vs sum of segment-km — we add both as separate stats
+  const tripKm = list.reduce((s,e)=>{
+    const km = parseFloat(e.tripKm)||0;
+    return s + (e.tripType==='hin_zurueck'?km*2:km);
+  },0);
+  const segKm = list.reduce((s,e)=>{
+    if(!e.travelSegments) return s;
+    return s + e.travelSegments.reduce((ss,seg)=>ss+(parseFloat(seg.km)||0),0);
+  },0);
+  let receiptCount = 0;
+  list.forEach(e=>{
+    if(e.travelSegments) e.travelSegments.forEach(s=>{ if(s.receiptIds) receiptCount += s.receiptIds.length; });
+  });
+  const costsByCur = {};
+  list.forEach(e=>{
+    if(e.costAmount){
+      const c = e.costCurrency||'EUR';
+      costsByCur[c] = (costsByCur[c]||0) + parseFloat(e.costAmount);
+    }
+  });
+  const workMins = list.reduce((s,e)=>{
+    const m = calcWorkHours(e.workStart, e.workEnd, e.workBreak);
+    return s + (m||0);
+  },0);
+  const drDays = list.filter(e=>e.dayCode==='DR').length;
+  const fhDays = list.filter(e=>e.dayCode==='FH').length;
+
+  const costsHtml = Object.keys(costsByCur).length
+    ? Object.entries(costsByCur).map(([c,v])=>`<span class="num" style="font-size:18px;display:block">${v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${c}</span>`).join('')
+    : '<span class="num" style="font-size:18px">0,00 €</span>';
+
+  document.getElementById('exportSummary').innerHTML = `
+    <div class="summary-stat"><div class="num">${list.length}</div><div class="lbl">Einträge</div></div>
+    <div class="summary-stat"><div class="num">${tripKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</div><div class="lbl">Fahrt-km gesamt</div></div>
+    <div class="summary-stat"><div class="num">${segKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</div><div class="lbl">Reisemittel-km</div></div>
+    <div class="summary-stat"><div class="num">${(workMins/60).toLocaleString('de-DE',{maximumFractionDigits:1})}</div><div class="lbl">Arbeits&shy;stunden</div></div>
+    <div class="summary-stat"><div class="num">${drDays}</div><div class="lbl">Dienstreise-Tage</div></div>
+    <div class="summary-stat"><div class="num">${fhDays}</div><div class="lbl">Heim&shy;fahrten</div></div>
+    <div class="summary-stat"><div class="num">${receiptCount}</div><div class="lbl">Belege</div></div>
+    <div class="summary-stat" style="grid-column:span 2">${costsHtml}<div class="lbl" style="margin-top:6px">Kosten gesamt</div></div>
+  `;
+}
+
+function getRange(from,to){
+  let list = [...state.entries].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(from) list = list.filter(e=>e.date && e.date>=from);
+  if(to)   list = list.filter(e=>e.date && e.date<=to);
+  return list;
+}
+
+['exportFrom','exportTo'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', updateExportSummary);
+});
+
+async function prepareAndPrint(){
+  const from = document.getElementById('exportFrom').value;
+  const to = document.getElementById('exportTo').value;
+  const list = getRange(from,to);
+  if(list.length===0){
+    toast('Keine Einträge im gewählten Zeitraum','error');
+    return;
+  }
+  const s = state.settings;
+  const title = document.getElementById('exportTitle').value.trim()
+                || 'Reisekosten- & Arbeitszeit­nachweis';
+
+  const tripKm = list.reduce((sum,e)=>{
+    const km = parseFloat(e.tripKm)||0;
+    return sum + (e.tripType==='hin_zurueck'?km*2:km);
+  },0);
+  const segKm = list.reduce((sum,e)=>{
+    if(!e.travelSegments) return sum;
+    return sum + e.travelSegments.reduce((ss,seg)=>ss+(parseFloat(seg.km)||0),0);
+  },0);
+  const costsByCur = {};
+  list.forEach(e=>{
+    if(e.costAmount){
+      const c = e.costCurrency||'EUR';
+      costsByCur[c] = (costsByCur[c]||0) + parseFloat(e.costAmount);
+    }
+  });
+  const workMins = list.reduce((sum,e)=>{
+    const m = calcWorkHours(e.workStart,e.workEnd,e.workBreak);
+    return sum + (m||0);
+  },0);
+
+  const periodLabel = (from||to)
+    ? `${from?fmtDate(from):'…'} – ${to?fmtDate(to):'…'}`
+    : 'gesamter Erfassungszeitraum';
+
+  toast('PDF wird vorbereitet…');
+
+  // Collect all receipts referenced in the printed period for the appendix
+  const receiptManifest = [];
+  let receiptCounter = 0;
+
+  const rows = list.map(e=>{
+    const work = (e.workStart && e.workEnd)
+      ? `${e.workStart}–${e.workEnd}<br><span style="color:#666;font-size:7pt">P ${e.workBreak||0}m · ${fmtMinutes(calcWorkHours(e.workStart,e.workEnd,e.workBreak))}</span>`
+      : '—';
+    const trip = (e.tripFrom||e.tripTo)
+      ? `${escapeHtml(e.tripFrom||'')} → ${escapeHtml(e.tripTo||'')}${e.tripKm?` <span style="color:#666">(${e.tripKm}km${e.tripType==='hin_zurueck'?' H&R':''})</span>`:''}`
+      : '—';
+
+    let travel = '—';
+    if(e.travelSegments && e.travelSegments.length){
+      travel = `<div class="print-segments-mini">` + e.travelSegments.map(seg => {
+        const refs = [];
+        (seg.receiptIds||[]).forEach(rid => {
+          receiptCounter++;
+          receiptManifest.push({num:receiptCounter, rid, entry:e, segment:seg});
+          refs.push(`#${receiptCounter}`);
+        });
+        const parts = [];
+        if(seg.mode) parts.push(`<b>${escapeHtml(seg.mode)}</b>`);
+        if(seg.fromLoc || seg.toLoc) parts.push(`${escapeHtml(seg.fromLoc||'?')}→${escapeHtml(seg.toLoc||'?')}`);
+        if(seg.km)   parts.push(`${seg.km}km`);
+        if(seg.dep||seg.arr) parts.push(`${seg.dep||'?'}–${seg.arr||'?'}`);
+        const head = parts.join(' · ');
+        const route = seg.route ? `<br><span style="color:#666;font-size:7pt">${escapeHtml(seg.route)}</span>` : '';
+        const recHtml = refs.length ? ` <span style="color:#1a3a5c;font-size:7pt;font-weight:700">📎${refs.join(',')}</span>` : '';
+        return `<div>${head}${recHtml}${route}</div>`;
+      }).join('') + `</div>`;
+    }
+
+    const cost = e.costType
+      ? `${escapeHtml(e.costType)}<br><b>${fmtCurrency(e.costAmount,e.costCurrency)}</b>${e.costReceipt?` <span style="color:#666;font-size:7pt">#${escapeHtml(e.costReceipt)}</span>`:''}`
+      : '—';
+    const fhfPrintBadge = e.isFamilienheimfahrt
+      ? `<br><span style="background:#1a3a5c;color:#c9a84c;padding:0 4px;border-radius:2px;font-size:7pt;font-weight:700;letter-spacing:0.3px">FHF</span>`
+      : '';
+    return `
+      <tr>
+        <td style="white-space:nowrap"><b>${fmtDate(e.date)}</b><br><span style="color:#666;font-size:7pt">${dayName(e.date)}</span></td>
+        <td><b style="background:#c9a84c;color:#1a3a5c;padding:1px 4px;border-radius:3px;font-size:8pt">${e.dayCode||'X'}</b>${fhfPrintBadge}</td>
+        <td>${work}${e.workLocation?`<br><span style="color:#666;font-size:7pt">${escapeHtml(e.workLocation)}</span>`:''}</td>
+        <td>${trip}</td>
+        <td>${travel}</td>
+        <td>${cost}</td>
+        <td style="font-size:7.5pt;color:#444">${escapeHtml(e.workNotes||e.costDesc||'')}</td>
+      </tr>`;
+  }).join('');
+
+  const costsTotal = Object.entries(costsByCur).map(([c,v])=>`${v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${c}`).join(' · ') || '0,00 €';
+
+  // Render receipt appendix (load all images as data URLs so they survive the print dialog)
+  let receiptsHtml = '';
+  if(receiptManifest.length){
+    const pages = [];
+    for(const m of receiptManifest){
+      try{
+        const rec = await getFile(m.rid);
+        if(!rec){
+          pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(m.segment.mode||'')}</span><span>${escapeHtml(rec?.name||'fehlt')}</span></div><div class="pdf-note">Beleg nicht mehr im Speicher</div></div>`);
+          continue;
+        }
+        const dataUrl = await blobToDataUrl(rec.blob);
+        if(rec.type && rec.type.startsWith('image/')){
+          pages.push(`
+            <div class="receipt-page">
+              <div class="receipt-page-head">
+                <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(m.segment.mode||'')}${m.segment.route?' · '+escapeHtml(m.segment.route):''}</span>
+                <span>${escapeHtml(rec.name||'')}</span>
+              </div>
+              <img src="${dataUrl}" alt="Beleg ${m.num}">
+            </div>`);
+        } else if(rec.type === 'application/pdf'){
+          pages.push(`
+            <div class="receipt-page">
+              <div class="receipt-page-head">
+                <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(m.segment.mode||'')}</span>
+                <span>${escapeHtml(rec.name||'')}</span>
+              </div>
+              <div class="pdf-note">📄 PDF-Beleg: <b>${escapeHtml(rec.name||'')}</b> (${fmtBytes(rec.size||0)}) — separat dem Antrag beilegen.</div>
+            </div>`);
+        }
+      }catch(e){ console.error(e); }
+    }
+    receiptsHtml = `
+      <div class="print-receipts">
+        <h2>Belegsammlung · ${receiptManifest.length} Belege</h2>
+        ${pages.join('')}
+      </div>`;
+  }
+
+  // Address block (only if at least one address is set)
+  const addrBlock = (s.addrPrimary||s.addrSecondary||s.addrWork) ? `
+    <div class="print-addr">
+      ${s.addrPrimary?`<div><b>Erstwohnung</b><br>${escapeHtml(s.addrPrimary).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
+      ${s.addrSecondary?`<div><b>Zweitwohnung</b><br>${escapeHtml(s.addrSecondary).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
+      ${s.addrWork?`<div><b>Arbeitsstätte</b><br>${escapeHtml(s.addrWork).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
+    </div>` : '';
+
+  document.getElementById('printView').innerHTML = `
+    <div class="print-header">
+      <h1>${escapeHtml(title)}</h1>
+      <div class="meta">
+        <span><b>Name:</b> ${escapeHtml((s.rank?s.rank+' ':'')+(s.name||'—'))}</span>
+        ${s.unit?`<span><b>Einheit:</b> ${escapeHtml(s.unit)}</span>`:''}
+        ${s.persNr?`<span><b>Pers.-Nr.:</b> ${escapeHtml(s.persNr)}</span>`:''}
+        <span><b>Zeitraum:</b> ${periodLabel}</span>
+        <span><b>Erstellt:</b> ${new Date().toLocaleDateString('de-DE')}</span>
+      </div>
+      ${addrBlock}
+    </div>
+
+    <div class="print-section">
+      <h2>Nachweis · ${list.length} Einträge</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:10%">Datum</th>
+            <th style="width:5%">Code</th>
+            <th style="width:12%">Arbeitszeit</th>
+            <th style="width:18%">Fahrt</th>
+            <th style="width:22%">Reisemittel</th>
+            <th style="width:15%">Kosten</th>
+            <th style="width:18%">Bemerkung</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="print-totals">
+        <span><b>Fahrt-Km:</b> ${tripKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</span>
+        <span><b>Reisemittel-Km:</b> ${segKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</span>
+        <span><b>Arbeitsstunden:</b> ${(workMins/60).toLocaleString('de-DE',{maximumFractionDigits:2})} h</span>
+        <span><b>Kosten gesamt:</b> ${costsTotal}</span>
+        <span><b>Belege:</b> ${receiptManifest.length}</span>
+      </div>
+
+      <div class="print-sig">
+        <div>Datum, Ort</div>
+        <div>Unterschrift Antragsteller</div>
+        <div>Unterschrift Vorgesetzter</div>
+      </div>
+    </div>
+
+    ${receiptsHtml}
+
+    <div class="print-footer">
+      ${escapeHtml(title.replace(/&shy;/g,''))} · ${escapeHtml((s.rank?s.rank+' ':'')+(s.name||''))}
+    </div>
+  `;
+  setTimeout(()=>window.print(), 200);
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = e => reject(e);
+    r.readAsDataURL(blob);
+  });
+}
+
+/* ---------- SETTINGS ---------- */
+function loadSettingsForm(){
+  const s = state.settings;
+  document.getElementById('setName').value = s.name||'';
+  document.getElementById('setRank').value = s.rank||'';
+  document.getElementById('setUnit').value = s.unit||'';
+  document.getElementById('setPersNr').value = s.persNr||'';
+  document.getElementById('setAddrPrimary').value = s.addrPrimary||'';
+  document.getElementById('setAddrSecondary').value = s.addrSecondary||'';
+  document.getElementById('setAddrWork').value = s.addrWork||'';
+  document.getElementById('setFhfYear').value = s.fhfYear || new Date().getFullYear();
+  document.getElementById('setFhfCounter').value = s.fhfCounter || 0;
+  // show geo status
+  const geo = el => el ? `${el.lat.toFixed(4)}, ${el.lng.toFixed(4)}` : '–';
+  const statusEl = document.getElementById('geoStatus');
+  if(statusEl){
+    statusEl.innerHTML = [
+      s.addrPrimary   ? `Erstwohnung: ${s.addrPrimaryGeo?'<span style="color:var(--success)">✓ '+geo(s.addrPrimaryGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : '',
+      s.addrSecondary ? `Zweitwohnung: ${s.addrSecondaryGeo?'<span style="color:var(--success)">✓ '+geo(s.addrSecondaryGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : '',
+      s.addrWork      ? `Arbeitsstätte: ${s.addrWorkGeo?'<span style="color:var(--success)">✓ '+geo(s.addrWorkGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : ''
+    ].filter(Boolean).join('<br>');
+  }
+  updateStorageInfo();
+}
+function saveSettings(){
+  const prev = state.settings;
+  const newAddrPrimary = document.getElementById('setAddrPrimary').value.trim();
+  const newAddrSecondary = document.getElementById('setAddrSecondary').value.trim();
+  const newAddrWork = document.getElementById('setAddrWork').value.trim();
+  state.settings = {
+    name: document.getElementById('setName').value.trim(),
+    rank: document.getElementById('setRank').value.trim(),
+    unit: document.getElementById('setUnit').value.trim(),
+    persNr: document.getElementById('setPersNr').value.trim(),
+    addrPrimary: newAddrPrimary,
+    addrSecondary: newAddrSecondary,
+    addrWork: newAddrWork,
+    // Invalidate geo cache if address changed
+    addrPrimaryGeo:   newAddrPrimary   === prev.addrPrimary   ? prev.addrPrimaryGeo   : null,
+    addrSecondaryGeo: newAddrSecondary === prev.addrSecondary ? prev.addrSecondaryGeo : null,
+    addrWorkGeo:      newAddrWork      === prev.addrWork      ? prev.addrWorkGeo      : null,
+    fhfYear: parseInt(document.getElementById('setFhfYear').value) || new Date().getFullYear(),
+    fhfCounter: Math.max(0, parseInt(document.getElementById('setFhfCounter').value) || 0)
+  };
+  persist();
+  updateUserChip();
+  renderAddressChips();
+  refreshAddrList();
+  toast('Einstellungen gespeichert ✓','success');
+}
+function updateUserChip(){
+  const s = state.settings;
+  const t = (s.rank?s.rank+' ':'')+(s.name||'Nicht konfiguriert');
+  document.getElementById('userChip').textContent = t;
+}
+async function updateStorageInfo(){
+  const el = document.getElementById('storageInfo');
+  const fill = document.getElementById('storageFill');
+  if(!el) return;
+  try{
+    const files = await listAllFiles();
+    const totalBytes = files.reduce((s,f)=>s+(f.size||0),0);
+    let quotaInfo = '';
+    let percent = 0;
+    if(navigator.storage && navigator.storage.estimate){
+      const est = await navigator.storage.estimate();
+      const quota = est.quota || 0;
+      const usage = est.usage || 0;
+      percent = quota ? (usage/quota*100) : 0;
+      quotaInfo = ` · gesamtes Browser-Kontingent: ${fmtBytes(usage)} / ${fmtBytes(quota)} (${percent.toFixed(1)}%)`;
+    }
+    el.textContent = `${files.length} Beleg(e), ${fmtBytes(totalBytes)}${quotaInfo}`;
+    fill.style.width = Math.min(100,percent)+'%';
+    fill.classList.toggle('warn', percent>70);
+    fill.classList.toggle('danger', percent>90);
+  }catch(e){
+    el.textContent = 'Speicherinfo nicht verfügbar.';
+  }
+}
+
+/* ---------- BACKUP ---------- */
+async function exportJSON(){
+  toast('Backup wird vorbereitet…');
+  // Collect all receipt blobs and convert to base64 for portable backup
+  const fileRecords = await listAllFiles();
+  const filesBase64 = [];
+  for(const f of fileRecords){
+    try{
+      const dataUrl = await blobToDataUrl(f.blob);
+      filesBase64.push({
+        id: f.id, name: f.name, type: f.type, size: f.size,
+        created: f.created, dataUrl
+      });
+    }catch(e){ /* skip broken */ }
+  }
+  const data = {
+    exported: new Date().toISOString(),
+    version: 2,
+    settings: state.settings,
+    entries: state.entries,
+    files: filesBase64
+  };
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tg-rb-backup-${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`Backup heruntergeladen · ${filesBase64.length} Belege enthalten`,'success');
+}
+function importJSON(ev){
+  const f = ev.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try{
+      const d = JSON.parse(e.target.result);
+      if(!d.entries||!Array.isArray(d.entries)) throw new Error('Ungültiges Format');
+      const fileCount = (d.files && d.files.length) || 0;
+      showModal('Daten importieren?',`${d.entries.length} Einträge${fileCount?' und '+fileCount+' Belege':''} werden zu deinen bestehenden hinzugefügt.`,async ()=>{
+        // restore files first
+        if(d.files && Array.isArray(d.files)){
+          for(const fr of d.files){
+            try{
+              const resp = await fetch(fr.dataUrl);
+              const blob = await resp.blob();
+              await saveFile({
+                id: fr.id, blob,
+                name: fr.name, type: fr.type, size: fr.size, created: fr.created||Date.now()
+              });
+            }catch(err){ console.error('File restore failed',err); }
+          }
+        }
+        // merge entries by id, prefer imported
+        const existing = new Map(state.entries.map(e=>[e.id,e]));
+        d.entries.forEach(e=>{ if(!e.id) e.id=uid(); existing.set(e.id,e); });
+        state.entries = [...existing.values()];
+        migrateEntries();
+        if(d.settings) state.settings = Object.assign(state.settings,d.settings);
+        persist();
+        renderEntries();
+        updateUserChip();
+        renderAddressChips();
+        updateStorageInfo();
+        toast(`${d.entries.length} Einträge${fileCount?' + '+fileCount+' Belege':''} importiert`,'success');
+      });
+    }catch(err){ toast('Import-Fehler: '+err.message,'error'); }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+function confirmReset(){
+  showModal('Wirklich alle Einträge löschen?','Diese Aktion kann nicht rückgängig gemacht werden. Alle Einträge UND Belege werden entfernt. Erstelle vorher ein JSON-Backup!', async ()=>{
+    // delete all files
+    try{
+      const files = await listAllFiles();
+      for(const f of files){
+        try{ await deleteFileFromDB(f.id); }catch(e){}
+      }
+    }catch(e){}
+    state.entries = [];
+    persist();
+    renderEntries();
+    updateStorageInfo();
+    toast('Alle Einträge & Belege gelöscht','success');
+  });
+}
+
+/* ---------- TOAST / MODAL ---------- */
+let toastTimer;
+function toast(msg, kind=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show '+kind;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function showModal(title,text,onConfirm){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  const btn = document.getElementById('modalConfirm');
+  const fresh = btn.cloneNode(true);
+  btn.parentNode.replaceChild(fresh, btn);
+  fresh.addEventListener('click',()=>{ closeModal(); onConfirm(); });
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', e=>{
+  if(e.target.id==='modal') closeModal();
+});
+
+/* ---------- INIT ---------- */
+(async function init(){
+  try{ await openDB(); }
+  catch(e){ console.error('IndexedDB error',e); toast('Belegspeicher nicht verfügbar','error'); }
+  load();
+  updateUserChip();
+  refreshAddrList();
+  resetWizard();
+
+  // Set sensible export defaults: current month
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const last = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  document.getElementById('exportFrom').value = first.toISOString().slice(0,10);
+  document.getElementById('exportTo').value = last.toISOString().slice(0,10);
+
+  // First-run: prompt for name if not set
+  if(!state.settings.name){
+    setTimeout(()=>{
+      toast('Tipp: Trage zuerst deinen Namen und die Adressen unter „Einstellungen" ein.','');
+    }, 800);
+  }
+})();
+
+// Keyboard shortcuts: Enter = next step in wizard (but not inside textareas)
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.target.tagName==='INPUT' && e.target.type!=='date' && e.target.type!=='file'){
+    const wv = document.getElementById('view-wizard');
+    if(wv.classList.contains('active')){
+      e.preventDefault();
+      if(currentStep<5) nextStep(); else saveEntry();
+    }
+  }
+});
+</script>
+</body>
+</html>
