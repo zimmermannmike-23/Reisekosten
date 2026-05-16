@@ -495,6 +495,95 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
 .fhf-entry-row .route{flex:1;font-size:13px;color:var(--text);min-width:120px;}
 .fhf-entry-row .meta{font-size:11px;color:var(--muted);}
 
+/* ------------- WORK FIELDS COLLAPSIBLE ------------- */
+.work-fields-collapsible{
+  transition:opacity .2s, max-height .3s;
+  overflow:hidden;
+}
+.work-fields-collapsible.hidden{
+  opacity:0;max-height:0;pointer-events:none;margin:0!important;
+}
+.daytype-info{
+  margin:14px 0;padding:14px 16px;
+  background:#f5f8fc;border:1px solid var(--line);border-radius:10px;
+  font-size:13px;color:var(--navy);line-height:1.5;
+  display:none;
+}
+.daytype-info.show{display:block;}
+.daytype-info b{color:var(--gold);}
+
+/* ------------- VERPFLEGUNG BLOCK ------------- */
+.verpflegung-block{
+  margin-top:14px;padding:14px 16px;
+  background:linear-gradient(135deg,#fff8e1,#fffdf5);
+  border:1.5px solid var(--gold);border-radius:12px;
+  display:none;
+}
+.verpflegung-block.show{display:block;animation:fadeUp .3s ease;}
+.verpflegung-block .lbl{
+  font-size:12px;font-weight:700;color:var(--navy);
+  letter-spacing:0.4px;text-transform:uppercase;margin-bottom:10px;
+}
+.verpflegung-block .options{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ------------- FOLDER PICKER ------------- */
+.folder-status{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:#fafaf3;
+  border:1px solid var(--line);border-radius:8px;
+  margin-bottom:14px;font-size:13px;
+}
+.folder-status.connected{background:var(--success-soft);border-color:var(--success);}
+.folder-status .icon{font-size:18px;}
+.folder-status .text{flex:1;}
+.folder-status .text b{color:var(--navy);display:block;font-size:13px;}
+.folder-status .text small{color:var(--muted);font-size:11px;}
+
+/* ------------- CATEGORY CHECKBOXES (PDF export) ------------- */
+.category-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:8px;margin-top:10px;
+}
+.category-check{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;background:#fff;border:1px solid var(--line);
+  border-radius:8px;cursor:pointer;font-size:13px;
+  transition:all .15s;
+}
+.category-check:hover{border-color:var(--navy);}
+.category-check input[type=checkbox]{
+  width:16px;height:16px;cursor:pointer;accent-color:var(--navy);
+}
+.category-check.checked{background:#f5f8fc;border-color:var(--navy);}
+.category-check .count{
+  margin-left:auto;background:var(--navy);color:#fff;
+  font-size:11px;padding:1px 7px;border-radius:99px;font-weight:700;
+}
+
+/* ------------- OVERVIEW STATS GRID ------------- */
+.overview-stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;margin-bottom:14px;
+}
+.overview-stat{
+  background:linear-gradient(135deg,#fafaf3,#fff);
+  border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;
+}
+.overview-stat .num{
+  font-family:'Playfair Display',serif;font-size:22px;
+  font-weight:700;color:var(--navy);line-height:1;
+}
+.overview-stat .lbl{
+  font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.8px;margin-top:6px;
+}
+.overview-stat.accent{
+  background:linear-gradient(135deg,#1a3a5c,#0d2238);color:#fff;
+}
+.overview-stat.accent .num{color:var(--gold);}
+.overview-stat.accent .lbl{color:rgba(255,255,255,0.7);}
+
 /* ------------- PRINT ------------- */
 .print-only{display:none;}
 
@@ -532,6 +621,36 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
   .print-segments-mini{font-size:7.5pt;line-height:1.4;}
   .print-segments-mini div{margin-bottom:0.8mm;}
   .print-segments-mini b{color:#1a3a5c;}
+
+  .print-overview{margin-bottom:6mm;page-break-inside:avoid;}
+  .print-overview h2{font-family:'Playfair Display',serif;font-size:12pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:2mm;margin-bottom:3mm;font-weight:600;}
+  .print-overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm;margin-bottom:3mm;}
+  .print-overview-stat{border:0.5px solid #c9a84c;padding:2.5mm;background:#fafaf3;}
+  .print-overview-stat .n{font-family:'Playfair Display',serif;font-size:14pt;color:#1a3a5c;font-weight:700;line-height:1;}
+  .print-overview-stat .l{font-size:7pt;color:#444;text-transform:uppercase;letter-spacing:0.3px;margin-top:1mm;}
+
+  .print-category-head{
+    background:#1a3a5c;color:#fff;padding:2mm 3mm;margin-top:5mm;
+    font-family:'Playfair Display',serif;font-size:10pt;font-weight:600;
+    page-break-after:avoid;border-radius:1mm;
+  }
+
+  .print-footer-note{
+    margin-top:8mm;padding:3mm 4mm;background:#fafaf3;
+    border-left:2mm solid #c9a84c;font-size:8.5pt;line-height:1.5;
+    page-break-inside:avoid;
+  }
+  .print-footer-note b{color:#1a3a5c;}
+
+  .print-stempel-box{
+    margin-top:14mm;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8mm;
+  }
+  .print-stempel-box > div{
+    border:0.5px dashed #888;min-height:25mm;padding:2mm;
+    font-size:8pt;color:#444;text-align:center;
+    display:flex;flex-direction:column;justify-content:flex-end;
+  }
+  .print-stempel-box > div b{display:block;border-top:0.5px solid #000;padding-top:1.5mm;color:#1a3a5c;margin-top:auto;}
 }
 
 /* Small adjustments */
@@ -656,10 +775,15 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
           <span class="name">Dienstreise</span>
           <span class="desc">Außenstelle</span>
         </button>
-        <button class="daytype" type="button" data-code="SG">
-          <span class="code">SG</span>
-          <span class="name">Sondergebühr</span>
-          <span class="desc">Lehrgang/Übung</span>
+        <button class="daytype" type="button" data-code="LG">
+          <span class="code">LG</span>
+          <span class="name">Lehrgang</span>
+          <span class="desc">Aus-/Fortbildung</span>
+        </button>
+        <button class="daytype" type="button" data-code="ÜB">
+          <span class="code">ÜB</span>
+          <span class="name">Übung</span>
+          <span class="desc">Truppen-/Gefechtsübung</span>
         </button>
       </div>
 
@@ -682,29 +806,56 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
       <h3>Schritt 2 · Arbeitszeiten</h3>
       <p class="sub">Beginn, Ende, Pause. Zeiten werden automatisch auf 5 Minuten gerundet.</p>
 
-      <div class="grid">
-        <div class="field">
-          <label for="workStart">Arbeitsbeginn</label>
-          <input type="time" id="workStart" step="300">
+      <div class="daytype-info" id="daytypeInfo">
+        <b id="daytypeInfoCode">U</b> – <span id="daytypeInfoText">Urlaub: An diesem Tag wurden keine Arbeitszeiten erfasst.</span>
+      </div>
+
+      <div id="workFields" class="work-fields-collapsible">
+        <div class="grid">
+          <div class="field">
+            <label for="workStart">Arbeitsbeginn</label>
+            <input type="time" id="workStart" step="300">
+          </div>
+          <div class="field">
+            <label for="workEnd">Arbeitsende</label>
+            <input type="time" id="workEnd" step="300">
+          </div>
+          <div class="field">
+            <label for="workBreak">Pausendauer (Min.)</label>
+            <input type="number" id="workBreak" min="0" step="5" value="30">
+          </div>
+          <div class="field">
+            <label for="workLocation">Dienstort</label>
+            <input type="text" id="workLocation" list="addrList" placeholder="z. B. Bad Reichenhall">
+            <span class="hint">Wähle aus gespeicherten Adressen oder gib einen neuen Ort ein.</span>
+          </div>
         </div>
-        <div class="field">
-          <label for="workEnd">Arbeitsende</label>
-          <input type="time" id="workEnd" step="300">
-        </div>
-        <div class="field">
-          <label for="workBreak">Pausendauer (Min.)</label>
-          <input type="number" id="workBreak" min="0" step="5" value="30">
-        </div>
-        <div class="field">
-          <label for="workLocation">Dienstort</label>
-          <input type="text" id="workLocation" list="addrList" placeholder="z. B. Bad Reichenhall">
-          <span class="hint">Wähle aus gespeicherten Adressen oder gib einen neuen Ort ein.</span>
+
+        <div class="fhf-toggle" style="background:linear-gradient(135deg,#f5f8fc,#fff);border-color:var(--navy)">
+          <input type="checkbox" id="presentNoWork">
+          <label class="lbl-wrap" for="presentNoWork">
+            <b>⏸ Anwesend, aber nicht gearbeitet</b>
+            <span class="desc">Anwesenheitspflicht ohne Dienstausübung (z. B. Rufbereitschaft, Stand-by, Wachzeit, Wartezeit). Wenn aktiviert, werden die Arbeitszeitfelder ausgeblendet.</span>
+          </label>
         </div>
       </div>
 
       <div class="field" style="margin-top:14px">
         <label for="workNotes">Bemerkung (optional)</label>
         <input type="text" id="workNotes" placeholder="z. B. Übergabegespräch, Lehrgangsteilnahme …">
+      </div>
+
+      <!-- Verpflegung-Abfrage für LG, DR, ÜB -->
+      <div class="verpflegung-block" id="verpflegungBlock">
+        <div class="lbl">🍽 Verpflegung wurde bereitgestellt?</div>
+        <div class="options">
+          <button type="button" class="chip" data-verpfl="">— Keine Angabe —</button>
+          <button type="button" class="chip" data-verpfl="vollständig">✓ Vollständig</button>
+          <button type="button" class="chip" data-verpfl="frühstück">Nur Frühstück</button>
+          <button type="button" class="chip" data-verpfl="mittag">Nur Mittagessen</button>
+          <button type="button" class="chip" data-verpfl="abend">Nur Abendessen</button>
+          <button type="button" class="chip" data-verpfl="nein">✕ Nein, selbst</button>
+        </div>
       </div>
 
       <div class="wizard-actions">
@@ -732,11 +883,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
           <input type="text" id="tripTo" list="addrList" placeholder="z. B. Maria Alm">
           <div class="addr-chips" id="tripToChips"></div>
         </div>
-        <div class="field">
-          <label for="tripKm">Kilometer</label>
-          <input type="number" id="tripKm" min="0" step="0.1" placeholder="0">
-        </div>
-        <div class="field">
+        <div class="field" style="grid-column:span 2">
           <label>Fahrtrichtung</label>
           <div class="chip-group">
             <button type="button" class="chip selected" data-trip="einfach">Einfach</button>
@@ -754,10 +901,10 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
       </div>
     </div>
 
-    <!-- Step 3: Transport modes (multi-segment) -->
+    <!-- Step 3: Transport modes (multi-segment, NO receipts anymore) -->
     <div class="wizard-card" id="step-3" style="display:none">
       <h3>Schritt 4 · Reisemittel & Zeiten</h3>
-      <p class="sub">Mehrere Reisemittel pro Tag möglich. Pro Abschnitt: Verkehrsmittel, Kilometer, Zeiten und Belege.</p>
+      <p class="sub">Mehrere Reisemittel pro Tag möglich. Pro Abschnitt: Verkehrsmittel, Orte, Kilometer und Zeiten. Belege werden in Schritt 5 (Kosten) hochgeladen.</p>
 
       <div class="segments-list" id="segmentsList"></div>
       <button type="button" class="add-segment-btn" onclick="addSegment()">+ Reisemittel hinzufügen</button>
@@ -827,6 +974,20 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
       <div class="field" style="margin-top:14px">
         <label for="costDesc">Beschreibung</label>
         <textarea id="costDesc" placeholder="z. B. Mittagessen Bahnhofsrestaurant Salzburg, 2 Personen"></textarea>
+      </div>
+
+      <div class="receipts-section" style="margin-top:18px;padding-top:18px;border-top:1.5px dashed var(--gold)">
+        <div class="lbl" style="font-size:13px;margin-bottom:10px">
+          <span>📎 Belege & Rechnungen <span id="costReceiptsCount" style="color:var(--muted);font-weight:400"></span></span>
+          <label class="file-input-btn">
+            📎 Hinzufügen
+            <input type="file" id="costReceiptFiles" accept="image/*,application/pdf" multiple onchange="handleCostReceiptUpload(event)">
+          </label>
+        </div>
+        <div class="receipts-list" id="costReceiptsList"></div>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">
+          Belege werden lokal gespeichert und – falls verbunden – automatisch in den ausgewählten Ordner (z. B. iCloud Drive) kopiert.
+        </p>
       </div>
 
       <div class="wizard-actions">
@@ -932,12 +1093,31 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
           <label for="exportTitle">Titel (optional)</label>
           <input type="text" id="exportTitle" placeholder="z. B. Trennungsgeldnachweis Q1 2026">
         </div>
+        <div class="field">
+          <label for="exportSort">Sortierung</label>
+          <select id="exportSort">
+            <option value="date">Nach Datum</option>
+            <option value="code">Nach Tageskennzeichen</option>
+          </select>
+        </div>
       </div>
 
       <div class="export-summary" id="exportSummary"></div>
 
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-        <button class="btn btn-gold" onclick="prepareAndPrint()">🖨️ Drucken / Als PDF speichern</button>
+      <h3 style="font-family:'Playfair Display',serif;color:var(--navy);font-size:16px;margin-top:18px;margin-bottom:6px;font-weight:600">Kategorien auswählen</h3>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:6px">Wähle, welche Tageskennzeichen im PDF erscheinen sollen. Standardmäßig sind alle aktiviert.</p>
+      <div class="category-grid" id="categoryGrid"></div>
+
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-mini" onclick="toggleAllCategories(true)">Alle auswählen</button>
+        <button type="button" class="btn-mini" onclick="toggleAllCategories(false)">Keine</button>
+        <button type="button" class="btn-mini" onclick="presetCategories('arbeit')">Nur Arbeit (X, WFH, ÜB)</button>
+        <button type="button" class="btn-mini" onclick="presetCategories('reise')">Nur Reisen (HF, RF, DR, LG, ÜB)</button>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn btn-gold" onclick="prepareAndPrint()">🖨️ Vollständiges PDF (mit Belegen)</button>
+        <button class="btn btn-secondary" onclick="prepareAndPrint({slim:true})">📄 Schlankes PDF (ohne Belege)</button>
         <button class="btn btn-secondary" onclick="exportJSON()">📥 JSON-Backup</button>
         <label class="btn btn-secondary" style="cursor:pointer">
           📤 JSON laden
@@ -946,8 +1126,8 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
       </div>
 
       <p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6">
-        <b>Hinweis:</b> Die Druckansicht enthält Kopfzeile (Name & Zeitraum), Tabelle aller Einträge, Summen und Unterschriftsfeld.
-        Beim Drucken in Safari/Chrome → <i>„Als PDF sichern"</i> wählen für ein archivierungsfähiges Dokument.
+        <b>Hinweis:</b> Die Druckansicht enthält Kopfzeile (Name & Zeitraum), Übersichtstabelle, Detailliste (nach Datum oder Tageskennzeichen sortiert), Summen, Beleg-Anhang und Unterschriftsfeld.
+        Beim Drucken in Safari/Chrome → <i>„Als PDF sichern"</i> wählen.
       </p>
     </div>
   </section>
@@ -993,7 +1173,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
         <span class="hint">Ausgangspunkt für Familienheimfahrten</span>
       </div>
       <div class="field" style="margin-bottom:14px">
-        <label for="setAddrSecondary">🏡 Zweitwohnung (am Dienstort)</label>
+        <label for="setAddrSecondary">🏡 Trennungsgeldwohnung (am Dienstort)</label>
         <textarea id="setAddrSecondary" placeholder="Straße Nr., PLZ Ort" style="min-height:60px"></textarea>
         <span class="hint">Zweitwohnsitz am Dienstort — relevant für doppelte Haushaltsführung</span>
       </div>
@@ -1028,10 +1208,36 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
         <span class="hint" style="flex:1;min-width:200px">Beispiel: Bei Zähler "5" wird die nächste Datei <code>FHF-{Jahr}-006.pdf</code> heißen.</span>
       </div>
 
+      <h3 style="margin-top:28px">🎫 Deutschlandticket</h3>
+      <p>Monatliche Kosten für ÖPNV-Pauschalticket. Werden im PDF-Hinweis bei Fahrten Arbeitsstätte ↔ Trennungsgeldwohnung ausgewiesen.</p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:8px">
+        <div class="field" style="flex:0 0 auto;width:150px">
+          <label for="setDeutschlandticket">Kosten / Monat (€)</label>
+          <input type="number" id="setDeutschlandticket" min="0" step="0.01" placeholder="58.00">
+        </div>
+        <div class="field" style="flex:0 0 auto;width:150px">
+          <label for="setDeutschlandticketStart">Gültig ab</label>
+          <input type="month" id="setDeutschlandticketStart">
+        </div>
+        <span class="hint" style="flex:1;min-width:200px">Beispiel: 58 € × 12 Monate = 696 € jährlich. Wird im Steuer-PDF als Hinweis am Ende vermerkt.</span>
+      </div>
+
+      <h3 style="margin-top:28px">📁 Beleg-Ordner (z. B. iCloud Drive)</h3>
+      <p>Belege werden zusätzlich zur lokalen Speicherung automatisch in einen Ordner deiner Wahl gespeichert (z. B. iCloud Drive). Funktioniert nur in Chrome/Edge auf Desktop; auf iOS/Safari ist nur die lokale Speicherung möglich.</p>
+      <div id="folderStatus" class="folder-status">
+        <span class="icon">📁</span>
+        <div class="text"><b>Kein Ordner verbunden</b><small>Belege werden nur im Browser gespeichert.</small></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-icon" onclick="pickFolder()">📁 Ordner wählen</button>
+        <button class="btn btn-ghost btn-icon" onclick="disconnectFolder()">Verbindung trennen</button>
+      </div>
+
       <h3 style="margin-top:28px">Speicher</h3>
       <p>Belege werden lokal im Browser-Speicher (IndexedDB) abgelegt. Quota: typ. 50 MB – 1 GB je nach Browser.</p>
       <div id="storageInfo" style="font-size:13px;color:var(--muted)">Belege werden geladen…</div>
       <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
+      <div id="persistStatus" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
 
       <div class="settings-row" style="margin-top:18px">
         <div>
@@ -1084,10 +1290,11 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
 
 <script>
 /* ============================================================
-   ZIMMERMANN · TG/RB Nachweis · v3.0
+   ZIMMERMANN · TG/RB Nachweis · v4.0
    Single-file PWA · localStorage + IndexedDB · Print-to-PDF
-   v3: HF/RF/FHF · Adress-Dropdowns · Auto-Distanz (OSM/OSRM)
-       · Cost-Kategorien · FHF-Sammel-PDF (pdf-lib)
+   v4: LG/ÜB · Verpflegung · Folder picker · Address history
+       · Cost receipts · Overview stats · Category filter
+       · Deutschlandticket · Persistent storage
    ============================================================ */
 
 const STORAGE_KEY = 'zc-tgrb-tracker-v1';
@@ -1103,7 +1310,9 @@ const DAYTYPES = {
   'U':   {name:'Urlaub',            desc:'Erholungsurlaub'},
   'K':   {name:'Krankheit',         desc:'Arbeitsunfähig'},
   'DR':  {name:'Dienstreise',       desc:'Außenstelle'},
-  'SG':  {name:'Sondergebühr',      desc:'Lehrgang/Übung'}
+  'LG':  {name:'Lehrgang',          desc:'Aus-/Fortbildung'},
+  'ÜB':  {name:'Übung',             desc:'Truppen-/Gefechtsübung'},
+  'SG':  {name:'Sondergebühr',      desc:'Legacy'}
 };
 const DAYNAMES = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 
@@ -1115,7 +1324,11 @@ let state = {
     addrPrimary:'', addrSecondary:'', addrWork:'',
     addrPrimaryGeo:null, addrSecondaryGeo:null, addrWorkGeo:null,
     fhfCounter: 0,
-    fhfYear: new Date().getFullYear()
+    fhfYear: new Date().getFullYear(),
+    deutschlandticket: 0,      // monthly cost in EUR
+    deutschlandticketStart: '', // YYYY-MM
+    addressHistory: [],         // history of tripFrom/tripTo entries
+    selectedCategories: null    // null = all
   }
 };
 let wizardData = freshWizard();
@@ -1144,9 +1357,12 @@ function freshWizard(){
     date:'', vorhaben:'', dayCode:'X',
     isFamilienheimfahrt:false,
     workStart:'', workEnd:'', workBreak:30, workLocation:'', workNotes:'',
+    presentNoWork:false,
     tripFrom:'', tripTo:'', tripKm:'', tripType:'einfach',
-    travelSegments:[],   // {mode, fromLoc, toLoc, fromGeo, toGeo, km, kmSource, dep, arr, route, receiptIds[]}
-    costType:'', costAmount:'', costCurrency:'EUR', costReceipt:'', costDesc:''
+    travelSegments:[],
+    verpflegung:'', // for LG/DR/ÜB
+    costType:'', costAmount:'', costCurrency:'EUR', costReceipt:'', costDesc:'',
+    costReceiptIds:[]  // receipts attached to cost step
   };
 }
 function freshSegment(){
@@ -1158,15 +1374,21 @@ function freshSegment(){
   };
 }
 
-/* ---------- INDEXEDDB (FILES) ---------- */
+/* ---------- INDEXEDDB (FILES + STATE + FOLDER HANDLE) ---------- */
 let db = null;
 function openDB(){
   return new Promise((resolve, reject)=>{
-    const req = indexedDB.open('zc-tgrb-files-v1', 1);
+    const req = indexedDB.open('zc-tgrb-files-v1', 2);
     req.onupgradeneeded = e => {
       const d = e.target.result;
       if(!d.objectStoreNames.contains('files')){
         d.createObjectStore('files', {keyPath:'id'});
+      }
+      if(!d.objectStoreNames.contains('state')){
+        d.createObjectStore('state', {keyPath:'key'});
+      }
+      if(!d.objectStoreNames.contains('handles')){
+        d.createObjectStore('handles', {keyPath:'key'});
       }
     };
     req.onsuccess = e => { db = e.target.result; resolve(db); };
@@ -1203,6 +1425,24 @@ function listAllFiles(){
     const req = tx.objectStore('files').getAll();
     req.onsuccess = e => resolve(e.target.result||[]);
     req.onerror = e => reject(e.target.error);
+  });
+}
+
+/* State store helpers */
+function idbPut(store, key, value){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction([store],'readwrite');
+    tx.objectStore(store).put({key, value});
+    tx.oncomplete = () => resolve();
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+function idbGet(store, key){
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction([store],'readonly');
+    const r = tx.objectStore(store).get(key);
+    r.onsuccess = e => resolve(e.target.result ? e.target.result.value : null);
+    r.onerror = e => reject(e.target.error);
   });
 }
 
@@ -1243,23 +1483,355 @@ function fmtBytes(b){
   return b.toFixed(b<10?1:0)+' '+u[i];
 }
 
-/* ---------- STORAGE ---------- */
-function load(){
+/* ---------- FOLDER (File System Access API) ---------- */
+let folderHandle = null;
+
+async function pickFolder(){
+  if(!('showDirectoryPicker' in window)){
+    showModal('Nicht unterstützt', 'Die Ordner-Auswahl funktioniert nur in Chrome/Edge auf dem Desktop. Belege werden weiterhin lokal im Browser gespeichert.', ()=>{});
+    return;
+  }
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ state.entries = JSON.parse(raw) || []; }
-    const set = localStorage.getItem(SETTINGS_KEY);
-    if(set){ state.settings = Object.assign(state.settings, JSON.parse(set)); }
-    migrateEntries();
-  }catch(e){ console.error('Load error',e); }
+    const handle = await window.showDirectoryPicker({mode:'readwrite'});
+    folderHandle = handle;
+    await idbPut('handles', 'folder', handle);
+    updateFolderStatus();
+    toast(`Ordner verbunden: ${handle.name}`,'success');
+  }catch(e){
+    if(e.name !== 'AbortError') toast('Ordner-Auswahl: '+e.message, 'error');
+  }
 }
+async function disconnectFolder(){
+  folderHandle = null;
+  try{
+    const tx = db.transaction(['handles'],'readwrite');
+    tx.objectStore('handles').delete('folder');
+  }catch(e){}
+  updateFolderStatus();
+  toast('Ordner getrennt');
+}
+async function checkFolderPermission(){
+  if(!folderHandle) return false;
+  try{
+    const opts = {mode:'readwrite'};
+    const cur = await folderHandle.queryPermission(opts);
+    if(cur === 'granted') return true;
+    const req = await folderHandle.requestPermission(opts);
+    return req === 'granted';
+  }catch(e){ return false; }
+}
+async function saveToFolder(blob, filename){
+  if(!folderHandle) return false;
+  if(!(await checkFolderPermission())) return false;
+  try{
+    const safe = filename.replace(/[<>:"/\\|?*]/g,'_');
+    const fh = await folderHandle.getFileHandle(safe, {create:true});
+    const w = await fh.createWritable();
+    await w.write(blob);
+    await w.close();
+    return true;
+  }catch(e){
+    console.error('saveToFolder',e);
+    return false;
+  }
+}
+function updateFolderStatus(){
+  const el = document.getElementById('folderStatus');
+  if(!el) return;
+  if(folderHandle){
+    el.classList.add('connected');
+    el.innerHTML = `<span class="icon">✓</span><div class="text"><b>${escapeHtml(folderHandle.name)}</b><small>Belege werden automatisch dorthin kopiert.</small></div>`;
+  } else {
+    el.classList.remove('connected');
+    el.innerHTML = `<span class="icon">📁</span><div class="text"><b>Kein Ordner verbunden</b><small>Belege werden nur im Browser gespeichert.</small></div>`;
+  }
+}
+
+/* ---------- ADDRESS HISTORY ---------- */
+function addToAddressHistory(addr){
+  if(!addr || addr.length < 2) return;
+  if(!Array.isArray(state.settings.addressHistory)) state.settings.addressHistory = [];
+  const exists = state.settings.addressHistory.find(a => a.toLowerCase() === addr.toLowerCase());
+  if(exists) return;
+  state.settings.addressHistory.unshift(addr);
+  // Cap at 50
+  if(state.settings.addressHistory.length > 50) state.settings.addressHistory.length = 50;
+  persist();
+  refreshAddrList();
+}
+
+/* ---------- COST RECEIPTS ---------- */
+async function handleCostReceiptUpload(ev){
+  const files = Array.from(ev.target.files||[]);
+  ev.target.value = '';
+  if(!files.length) return;
+  if(!db){ toast('Speicher nicht bereit','error'); return; }
+  if(!Array.isArray(wizardData.costReceiptIds)) wizardData.costReceiptIds = [];
+
+  toast(`Verarbeite ${files.length} Datei(en)…`);
+  let folderOk = true;
+  for(const file of files){
+    try{
+      const blob = await compressImage(file);
+      const id = 'f_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+      const filename = `${wizardData.date||'undatiert'}_${file.name}`;
+      await saveFile({
+        id, blob,
+        name: file.name,
+        type: blob.type || file.type,
+        size: blob.size,
+        created: Date.now(),
+        filename
+      });
+      wizardData.costReceiptIds.push(id);
+      // Mirror to folder if connected
+      if(folderHandle){
+        const ok = await saveToFolder(blob, filename);
+        if(!ok) folderOk = false;
+      }
+    }catch(e){
+      console.error(e);
+      toast('Fehler beim Speichern: '+(e.message||'unbekannt'),'error');
+    }
+  }
+  await renderCostReceipts();
+  toast(folderHandle ? (folderOk?'Beleg(e) gespeichert ✓ (lokal + Ordner)':'Lokal gespeichert; Ordner-Zugriff verweigert') : 'Beleg(e) gespeichert ✓','success');
+}
+
+async function renderCostReceipts(){
+  const cont = document.getElementById('costReceiptsList');
+  const cnt = document.getElementById('costReceiptsCount');
+  if(!cont) return;
+  const ids = wizardData.costReceiptIds || [];
+  if(cnt) cnt.textContent = ids.length ? `(${ids.length})` : '';
+  if(!ids.length){ cont.innerHTML = ''; return; }
+  const parts = [];
+  for(const rid of ids){
+    try{
+      const rec = await getFile(rid);
+      if(!rec) continue;
+      const isImg = rec.type && rec.type.startsWith('image/');
+      const thumbHtml = isImg
+        ? `<img alt="" loading="lazy" data-rid="${rid}">`
+        : (rec.type==='application/pdf' ? '📄' : '📎');
+      parts.push(`
+        <div class="receipt-item">
+          <div class="receipt-thumb">${thumbHtml}</div>
+          <div class="receipt-info" onclick="viewReceipt('${rid}')" style="cursor:pointer">
+            <div class="nm">${escapeHtml(rec.name||'Beleg')}</div>
+            <div class="sz">${fmtBytes(rec.size||0)}</div>
+          </div>
+          <button class="receipt-rm" onclick="removeCostReceipt('${rid}')" title="Entfernen">×</button>
+        </div>`);
+    }catch(e){}
+  }
+  cont.innerHTML = parts.join('');
+  for(const img of cont.querySelectorAll('img[data-rid]')){
+    try{
+      const rec = await getFile(img.dataset.rid);
+      if(rec && rec.blob) img.src = URL.createObjectURL(rec.blob);
+    }catch(e){}
+  }
+}
+
+async function removeCostReceipt(rid){
+  wizardData.costReceiptIds = (wizardData.costReceiptIds||[]).filter(x => x!==rid);
+  try{ await deleteFileFromDB(rid); }catch(e){}
+  await renderCostReceipts();
+}
+
+/* ---------- DAYTYPE INFO / WORK FIELDS VISIBILITY ---------- */
+const NO_WORK_CODES = new Set(['U','WE','K']); // daytypes that don't take work times
+const VERPFLEGUNG_CODES = new Set(['LG','DR','ÜB']);
+
+function updateWorkFieldsVisibility(){
+  const code = wizardData.dayCode;
+  const dtNames = {'U':'Urlaub','WE':'Wochenende','K':'Krankheit'};
+  const info = document.getElementById('daytypeInfo');
+  const fields = document.getElementById('workFields');
+  const noWorkBox = document.getElementById('presentNoWork');
+  const verpflBox = document.getElementById('verpflegungBlock');
+
+  // Show info banner for non-work day codes
+  if(NO_WORK_CODES.has(code)){
+    document.getElementById('daytypeInfoCode').textContent = code;
+    document.getElementById('daytypeInfoText').textContent =
+      `${dtNames[code]||code}: An diesem Tag werden üblicherweise keine Arbeitszeiten erfasst.`;
+    info.classList.add('show');
+    fields.classList.add('hidden');
+  } else {
+    info.classList.remove('show');
+    // Hide work fields if presentNoWork is checked
+    if(noWorkBox && noWorkBox.checked) fields.classList.add('hidden');
+    else fields.classList.remove('hidden');
+  }
+  // Verpflegung block: only for LG, DR, ÜB
+  if(verpflBox){
+    if(VERPFLEGUNG_CODES.has(code)){
+      verpflBox.classList.add('show');
+    } else {
+      verpflBox.classList.remove('show');
+      wizardData.verpflegung = '';
+    }
+  }
+}
+
+/* ---------- CATEGORY GRID ---------- */
+const ALL_CATEGORIES = [
+  {code:'X',   name:'Anwesend'},
+  {code:'WFH', name:'Homeoffice'},
+  {code:'WE',  name:'Wochenende'},
+  {code:'HF',  name:'Heimfahrt'},
+  {code:'RF',  name:'Rückfahrt'},
+  {code:'U',   name:'Urlaub'},
+  {code:'K',   name:'Krankheit'},
+  {code:'DR',  name:'Dienstreise'},
+  {code:'LG',  name:'Lehrgang'},
+  {code:'ÜB',  name:'Übung'}
+];
+
+function initCategoryGrid(){
+  const grid = document.getElementById('categoryGrid');
+  if(!grid) return;
+  const sel = state.settings.selectedCategories;
+  const isSelected = code => !sel || sel.includes(code);
+  // Build initial counts
+  const counts = {};
+  state.entries.forEach(e => { counts[e.dayCode] = (counts[e.dayCode]||0)+1; });
+
+  grid.innerHTML = ALL_CATEGORIES.map(c => `
+    <label class="category-check ${isSelected(c.code)?'checked':''}" data-code="${c.code}">
+      <input type="checkbox" ${isSelected(c.code)?'checked':''} onchange="toggleCategory('${c.code}', this.checked)">
+      <span><span class="code-pill ${c.code}" style="font-size:10px;padding:1px 6px">${c.code}</span> ${c.name}</span>
+      <span class="count">${counts[c.code]||0}</span>
+    </label>
+  `).join('');
+}
+function toggleCategory(code, checked){
+  let sel = state.settings.selectedCategories;
+  if(sel === null){ sel = ALL_CATEGORIES.map(c=>c.code); }
+  sel = sel.filter(c => c !== code);
+  if(checked) sel.push(code);
+  state.settings.selectedCategories = sel;
+  persist();
+  initCategoryGrid();
+}
+function toggleAllCategories(allOn){
+  state.settings.selectedCategories = allOn ? null : [];
+  persist();
+  initCategoryGrid();
+}
+function presetCategories(preset){
+  if(preset==='arbeit') state.settings.selectedCategories = ['X','WFH','ÜB'];
+  else if(preset==='reise') state.settings.selectedCategories = ['HF','RF','DR','LG','ÜB'];
+  persist();
+  initCategoryGrid();
+}
+function isCategorySelected(code){
+  const sel = state.settings.selectedCategories;
+  return !sel || sel.length===0 || sel.includes(code);
+}
+
+/* ---------- VERPFLEGUNG CHIPS ---------- */
+function bindVerpflegungChips(){
+  document.querySelectorAll('[data-verpfl]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-verpfl]').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      wizardData.verpflegung = b.dataset.verpfl;
+    });
+  });
+}
+
+/* ---------- OVERVIEW STATS FOR EXPORT ---------- */
+function calcOverviewStats(list){
+  const stats = {
+    arbeitsTageAnArbeitsstaette: 0,
+    fahrtenArbeitHinUndRueck:    0,  // round-trips between addrSecondary/work and addrPrimary
+    fahrtenArbeitEinfach:        0,  // one-way trips
+    dienstreisen:    0,
+    lehrgaenge:      0,
+    uebungen:        0,
+    urlaub:          0,
+    fhf:             0,
+    hf:              0,
+    rf:              0,
+    krankheit:       0,
+    wochenenden:     0
+  };
+  const isWorkSite = (loc) => {
+    if(!loc) return false;
+    const s = state.settings;
+    const norm = x => (x||'').toLowerCase();
+    const t = norm(loc);
+    return [s.addrWork, s.addrSecondary].filter(Boolean).some(a => {
+      const lines = a.split('\n').map(l=>norm(l.trim()));
+      return lines.some(l => l && t.includes(l)) || t.includes(norm(firstLine(a)));
+    });
+  };
+  list.forEach(e => {
+    if(e.dayCode==='X' || (e.dayCode==='WFH' && isWorkSite(e.workLocation))) stats.arbeitsTageAnArbeitsstaette++;
+    if(e.dayCode==='DR') stats.dienstreisen++;
+    if(e.dayCode==='LG') stats.lehrgaenge++;
+    if(e.dayCode==='ÜB') stats.uebungen++;
+    if(e.dayCode==='U')  stats.urlaub++;
+    if(e.dayCode==='K')  stats.krankheit++;
+    if(e.dayCode==='WE') stats.wochenenden++;
+    if(e.isFamilienheimfahrt) stats.fhf++;
+    if(e.dayCode==='HF') stats.hf++;
+    if(e.dayCode==='RF') stats.rf++;
+    if(e.tripType==='hin_zurueck' && e.tripFrom && e.tripTo) stats.fahrtenArbeitHinUndRueck++;
+    else if(e.tripFrom && e.tripTo) stats.fahrtenArbeitEinfach++;
+  });
+  return stats;
+}
+
+/* ---------- STORAGE ---------- */
+async function load(){
+  // Strategy: prefer IndexedDB (more durable), fallback to localStorage
+  let loaded = false;
+  try{
+    if(db){
+      const entries = await idbGet('state', 'entries');
+      const settings = await idbGet('state', 'settings');
+      if(entries){ state.entries = entries; loaded = true; }
+      if(settings){ state.settings = Object.assign(state.settings, settings); loaded = true; }
+    }
+  }catch(e){ console.error('IDB load error',e); }
+  // If IDB had nothing, try localStorage
+  if(!loaded){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ state.entries = JSON.parse(raw) || []; }
+      const set = localStorage.getItem(SETTINGS_KEY);
+      if(set){ state.settings = Object.assign(state.settings, JSON.parse(set)); }
+    }catch(e){ console.error('LS load error',e); }
+  }
+  migrateEntries();
+  // Mirror to both stores after load for redundancy
+  persist();
+}
+let persistTimer = null;
 function persist(){
+  // localStorage immediately
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.entries));
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
   }catch(e){
-    toast('Speicherfehler: '+e.message,'error');
+    console.warn('LS persist failed', e);
   }
+  // IndexedDB (debounced)
+  if(persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(async () => {
+    if(!db) return;
+    try{
+      await idbPut('state', 'entries', state.entries);
+      await idbPut('state', 'settings', state.settings);
+    }catch(e){
+      console.error('IDB persist failed', e);
+      toast('Speicherfehler: '+e.message, 'error');
+    }
+  }, 300);
 }
 function migrateEntries(){
   // v1 → v2: convert single travelMode fields into travelSegments[]
@@ -1285,6 +1857,11 @@ function migrateEntries(){
       if(e.isFamilienheimfahrt === undefined) e.isFamilienheimfahrt = true;
     }
     if(typeof e.isFamilienheimfahrt !== 'boolean') e.isFamilienheimfahrt = false;
+    if(typeof e.presentNoWork !== 'boolean') e.presentNoWork = false;
+    if(typeof e.verpflegung !== 'string') e.verpflegung = '';
+    if(!Array.isArray(e.costReceiptIds)) e.costReceiptIds = [];
+    // v3 → v4: SG → LG (Sondergebühr → Lehrgang)
+    if(e.dayCode === 'SG') e.dayCode = 'LG';
     e.travelSegments.forEach(s => {
       if(!Array.isArray(s.receiptIds)) s.receiptIds = [];
       if(s.fromLoc === undefined) s.fromLoc = '';
@@ -1297,6 +1874,9 @@ function migrateEntries(){
   // settings defaults for new fields
   if(typeof state.settings.fhfCounter !== 'number') state.settings.fhfCounter = 0;
   if(!state.settings.fhfYear) state.settings.fhfYear = new Date().getFullYear();
+  if(typeof state.settings.deutschlandticket !== 'number') state.settings.deutschlandticket = 0;
+  if(typeof state.settings.deutschlandticketStart !== 'string') state.settings.deutschlandticketStart = '';
+  if(!Array.isArray(state.settings.addressHistory)) state.settings.addressHistory = [];
 }
 
 /* ---------- HELPERS ---------- */
@@ -1438,7 +2018,7 @@ async function geocodeAllAddresses(){
   if(el) el.textContent = 'Adressen werden verifiziert…';
   const targets = [
     {key:'addrPrimary',   geoKey:'addrPrimaryGeo',   label:'Erstwohnung'},
-    {key:'addrSecondary', geoKey:'addrSecondaryGeo', label:'Zweitwohnung'},
+    {key:'addrSecondary', geoKey:'addrSecondaryGeo', label:'Trennungsgeldwohnung'},
     {key:'addrWork',      geoKey:'addrWorkGeo',      label:'Arbeitsstätte'}
   ];
   // Pull latest from form (in case user changed without saving yet)
@@ -1469,20 +2049,24 @@ function refreshAddrList(){
   if(!dl) return;
   const s = state.settings;
   const opts = [];
-  // Both full and short forms for each address
   const entries = [
     {full:s.addrPrimary,   label:'Erstwohnung'},
-    {full:s.addrSecondary, label:'Zweitwohnung'},
+    {full:s.addrSecondary, label:'Trennungsgeldwohnung'},
     {full:s.addrWork,      label:'Arbeitsstätte'}
   ];
   entries.forEach(e => {
     if(!e.full) return;
     const short = firstLine(e.full);
     if(short) opts.push(`<option value="${escapeHtml(short)}">${escapeHtml(e.label)}</option>`);
-    // also a full-address variant
     const flat = e.full.replace(/\n/g,', ');
     if(flat && flat !== short) opts.push(`<option value="${escapeHtml(flat)}">${escapeHtml(e.label)} (vollständig)</option>`);
   });
+  // Add address history
+  if(Array.isArray(s.addressHistory)){
+    s.addressHistory.forEach(addr => {
+      opts.push(`<option value="${escapeHtml(addr)}">Verlauf</option>`);
+    });
+  }
   dl.innerHTML = opts.join('');
 }
 
@@ -1819,6 +2403,7 @@ function collectStep(step){
     wizardData.workBreak = parseInt(document.getElementById('workBreak').value)||0;
     wizardData.workLocation = document.getElementById('workLocation').value.trim();
     wizardData.workNotes = document.getElementById('workNotes').value.trim();
+    wizardData.presentNoWork = document.getElementById('presentNoWork').checked;
     // reflect rounding back
     if(wizardData.workStart) document.getElementById('workStart').value = wizardData.workStart;
     if(wizardData.workEnd)   document.getElementById('workEnd').value   = wizardData.workEnd;
@@ -1826,13 +2411,17 @@ function collectStep(step){
   if(step===2){
     wizardData.tripFrom = document.getElementById('tripFrom').value.trim();
     wizardData.tripTo = document.getElementById('tripTo').value.trim();
-    wizardData.tripKm = document.getElementById('tripKm').value;
+    // Save to history
+    if(wizardData.tripFrom) addToAddressHistory(wizardData.tripFrom);
+    if(wizardData.tripTo)   addToAddressHistory(wizardData.tripTo);
   }
   if(step===3){
     // Travel segments are kept in sync via the segment-editor handlers, so just round all times
     wizardData.travelSegments.forEach(s => {
       if(s.dep) s.dep = round5(s.dep);
       if(s.arr) s.arr = round5(s.arr);
+      if(s.fromLoc) addToAddressHistory(s.fromLoc);
+      if(s.toLoc)   addToAddressHistory(s.toLoc);
     });
     renderSegments(); // reflect any rounding back into DOM
   }
@@ -1848,11 +2437,16 @@ function collectStep(step){
 function renderReview(){
   const w = wizardData;
   const dt = DAYTYPES[w.dayCode] || {name:'—'};
-  const work = (w.workStart && w.workEnd)
-    ? `${w.workStart} – ${w.workEnd} (Pause ${w.workBreak} Min · ${fmtMinutes(calcWorkHours(w.workStart,w.workEnd,w.workBreak))})`
-    : '—';
-  const trip = (w.tripFrom||w.tripTo||w.tripKm)
-    ? `${escapeHtml(w.tripFrom||'?')} → ${escapeHtml(w.tripTo||'?')}${w.tripKm?` · ${w.tripKm} km`:''} · ${w.tripType==='hin_zurueck'?'Hin & Zurück':'Einfach'}`
+  const noWorkDay = NO_WORK_CODES.has(w.dayCode);
+  const work = noWorkDay
+    ? `— (${dt.name})`
+    : (w.presentNoWork
+      ? `<span style="background:#f5f8fc;color:var(--navy);padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600">⏸ Anwesend ohne Dienstausübung</span>`
+      : (w.workStart && w.workEnd
+        ? `${w.workStart} – ${w.workEnd} (Pause ${w.workBreak} Min · ${fmtMinutes(calcWorkHours(w.workStart,w.workEnd,w.workBreak))})`
+        : '—'));
+  const trip = (w.tripFrom||w.tripTo)
+    ? `${escapeHtml(w.tripFrom||'?')} → ${escapeHtml(w.tripTo||'?')} · ${w.tripType==='hin_zurueck'?'Hin & Zurück':'Einfach'}`
     : '—';
 
   let travelHtml = '—';
@@ -1864,26 +2458,30 @@ function renderReview(){
       if(s.km) parts.push(`${s.km} km${s.kmSource==='auto'?' 🗺️':''}`);
       if(s.dep || s.arr) parts.push(`${s.dep||'?'}–${s.arr||'?'}`);
       if(s.route) parts.push(escapeHtml(s.route));
-      const rec = (s.receiptIds&&s.receiptIds.length) ? ` <span style="color:var(--success)">📎 ${s.receiptIds.length} Beleg(e)</span>` : '';
-      return '<li>' + (parts.join(' · ') || '<i>Leer</i>') + rec + '</li>';
+      return '<li>' + (parts.join(' · ') || '<i>Leer</i>') + '</li>';
     }).join('') + '</ul>';
   }
 
   const cost = w.costType
-    ? `${escapeHtml(w.costType)} · ${fmtCurrency(w.costAmount,w.costCurrency)}${w.costDesc?` · ${escapeHtml(w.costDesc)}`:''}`
-    : '—';
+    ? `${escapeHtml(w.costType)} · ${fmtCurrency(w.costAmount,w.costCurrency)}${w.costDesc?` · ${escapeHtml(w.costDesc)}`:''}${(w.costReceiptIds&&w.costReceiptIds.length)?` <span style="color:var(--success);font-weight:600">📎 ${w.costReceiptIds.length} Beleg(e)</span>`:''}`
+    : ((w.costReceiptIds&&w.costReceiptIds.length) ? `<span style="color:var(--success);font-weight:600">📎 ${w.costReceiptIds.length} Beleg(e)</span>` : '—');
 
   const fhfBadge = w.isFamilienheimfahrt
     ? '<span style="background:var(--gold);color:var(--navy);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;margin-left:6px">👨‍👩‍👧 FHF</span>'
     : '';
 
+  const verpflLabel = {vollständig:'✓ Vollständig', frühstück:'Nur Frühstück', mittag:'Nur Mittag', abend:'Nur Abend', nein:'✕ Nein, selbst'}[w.verpflegung] || w.verpflegung;
+  const verpflRow = (VERPFLEGUNG_CODES.has(w.dayCode) && w.verpflegung)
+    ? `<div><b style="color:var(--navy)">Verpflegung:</b> ${escapeHtml(verpflLabel||'')}</div>` : '';
+
   document.getElementById('reviewBox').innerHTML = `
     <div><b style="color:var(--navy)">Datum:</b> ${fmtDateLong(w.date)}</div>
     <div><b style="color:var(--navy)">Tagesart:</b> <span class="code-pill ${w.dayCode}">${w.dayCode}</span> ${dt.name}${fhfBadge}${w.vorhaben?' · '+escapeHtml(w.vorhaben):''}</div>
-    <div><b style="color:var(--navy)">Arbeitszeit:</b> ${work}${w.workLocation?' · '+escapeHtml(w.workLocation):''}</div>
+    <div><b style="color:var(--navy)">Arbeitszeit:</b> ${work}${(!noWorkDay && !w.presentNoWork && w.workLocation)?' · '+escapeHtml(w.workLocation):''}</div>
     <div><b style="color:var(--navy)">Fahrt:</b> ${trip}</div>
     <div><b style="color:var(--navy)">Reisemittel:</b> ${travelHtml}</div>
     <div><b style="color:var(--navy)">Kosten:</b> ${cost}</div>
+    ${verpflRow}
     ${w.workNotes?`<div style="color:var(--muted);font-size:13px;margin-top:6px"><b>Bemerkung:</b> ${escapeHtml(w.workNotes)}</div>`:''}
   `;
 }
@@ -1916,9 +2514,9 @@ function resetWizard(){
   document.getElementById('workBreak').value = 30;
   document.getElementById('workLocation').value = '';
   document.getElementById('workNotes').value = '';
+  document.getElementById('presentNoWork').checked = false;
   document.getElementById('tripFrom').value = '';
   document.getElementById('tripTo').value = '';
-  document.getElementById('tripKm').value = '';
   document.getElementById('costType').value = '';
   document.getElementById('costAmount').value = '';
   document.getElementById('costCurrency').value = 'EUR';
@@ -1926,11 +2524,14 @@ function resetWizard(){
   document.getElementById('costDesc').value = '';
   document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>b.classList.toggle('selected', b.dataset.code==='X'));
   document.querySelectorAll('[data-trip]').forEach(b=>b.classList.toggle('selected', b.dataset.trip==='einfach'));
+  document.querySelectorAll('[data-verpfl]').forEach(b=>b.classList.toggle('selected', b.dataset.verpfl===''));
   document.getElementById('fhfCheckbox').checked = false;
   updateFhfToggleVisibility();
+  updateWorkFieldsVisibility();
   refreshAddrList();
   renderSegments();
   renderAddressChips();
+  renderCostReceipts();
   showStep(0);
 }
 
@@ -1941,6 +2542,7 @@ document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>{
     b.classList.add('selected');
     wizardData.dayCode = b.dataset.code;
     updateFhfToggleVisibility();
+    updateWorkFieldsVisibility();
   });
 });
 function updateFhfToggleVisibility(){
@@ -1964,6 +2566,13 @@ document.getElementById('fhfCheckbox').addEventListener('change', e => {
   wizardData.isFamilienheimfahrt = e.target.checked;
   wizardData._userTouchedFhf = true;
 });
+
+document.getElementById('presentNoWork').addEventListener('change', e => {
+  wizardData.presentNoWork = e.target.checked;
+  updateWorkFieldsVisibility();
+});
+
+bindVerpflegungChips();
 
 document.querySelectorAll('[data-trip]').forEach(b=>{
   b.addEventListener('click',()=>{
@@ -2072,23 +2681,9 @@ function renderSegments(){
               onchange="updateSegment(${i},'route',this.value.trim())"
               placeholder="z. B. ICE 525, Kennzeichen, Flugnr.">
           </div>
-
-          <div class="receipts-section">
-            <div class="lbl">
-              <span>Belege / Rechnungen ${s.receiptIds.length?'· '+s.receiptIds.length:''}</span>
-              <label class="file-input-btn">
-                📎 Hinzufügen
-                <input type="file" accept="image/*,application/pdf" multiple
-                  onchange="handleReceiptUpload(${i}, event)">
-              </label>
-            </div>
-            <div class="receipts-list" id="receipts-list-${i}"></div>
-          </div>
         </div>
       </div>`;
   }).join('');
-  // Render receipts asynchronously
-  wizardData.travelSegments.forEach((s,i) => renderReceiptList(i));
 }
 
 /* Try to resolve a segment from/to text to cached geo */
@@ -2257,13 +2852,13 @@ function renderAddressChips(){
     const target = id==='tripFromChips'?'tripFrom':'tripTo';
     const s = state.settings;
     const items = [];
-    if(s.addrPrimary)   items.push({label:'🏠 Erstwohnung',    val:firstLine(s.addrPrimary)});
-    if(s.addrSecondary) items.push({label:'🏡 Zweitwohnung',   val:firstLine(s.addrSecondary)});
-    if(s.addrWork)      items.push({label:'🏢 Arbeitsstätte',  val:firstLine(s.addrWork)});
-    el.innerHTML = items.map((it,i) =>
+    // Use FULL address (lines joined with comma) instead of just first line
+    if(s.addrPrimary)   items.push({label:'🏠 Erstwohnung',          val:fullAddr(s.addrPrimary)});
+    if(s.addrSecondary) items.push({label:'🏡 Trennungsgeldwohnung', val:fullAddr(s.addrSecondary)});
+    if(s.addrWork)      items.push({label:'🏢 Arbeitsstätte',        val:fullAddr(s.addrWork)});
+    el.innerHTML = items.map(it =>
       `<button type="button" class="addr-chip" data-target="${target}" data-val="${escapeHtml(it.val)}">${escapeHtml(it.label)}</button>`
     ).join('');
-    // attach listeners
     el.querySelectorAll('.addr-chip').forEach(btn => {
       btn.addEventListener('click', () => {
         const t = btn.dataset.target;
@@ -2274,6 +2869,10 @@ function renderAddressChips(){
       });
     });
   });
+}
+function fullAddr(s){
+  if(!s) return '';
+  return s.split('\n').map(l=>l.trim()).filter(Boolean).join(', ');
 }
 function firstLine(s){
   if(!s) return '';
@@ -2324,7 +2923,7 @@ function renderEntries(){
 
   tbody.innerHTML = list.map(e => {
     const work = (e.workStart && e.workEnd)
-      ? `${e.workStart}–${e.workEnd}<br><small style="color:var(--muted)">Pause ${e.workBreak||0}m</small>`
+      ? `${e.workStart}–${e.workEnd}${e.presentNoWork?' <small style="background:#f5f8fc;color:var(--navy);padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700">⏸</small>':''}<br><small style="color:var(--muted)">Pause ${e.workBreak||0}m${e.presentNoWork?' · ohne Dienst':''}</small>`
       : '<span style="color:var(--line)">—</span>';
     const trip = (e.tripFrom||e.tripTo)
       ? `${escapeHtml(e.tripFrom||'?')} → ${escapeHtml(e.tripTo||'?')}${e.tripKm?`<br><small style="color:var(--muted)">${e.tripKm} km · ${e.tripType==='hin_zurueck'?'H&R':'einfach'}</small>`:''}`
@@ -2386,30 +2985,34 @@ function editEntry(id){
   // deep clone to avoid mutating stored entry until save
   wizardData = JSON.parse(JSON.stringify({...freshWizard(), ...e}));
   if(!Array.isArray(wizardData.travelSegments)) wizardData.travelSegments = [];
+  if(!Array.isArray(wizardData.costReceiptIds)) wizardData.costReceiptIds = [];
   wizardData._userTouchedFhf = true; // suppress auto-toggle on edit
   // populate form fields
   document.getElementById('entryDate').value = e.date||'';
   document.getElementById('entryVorhaben').value = e.vorhaben||'';
   document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>b.classList.toggle('selected', b.dataset.code===(e.dayCode||'X')));
   document.getElementById('fhfCheckbox').checked = !!e.isFamilienheimfahrt;
-  updateFhfToggleVisibility();
   document.getElementById('workStart').value = e.workStart||'';
   document.getElementById('workEnd').value = e.workEnd||'';
   document.getElementById('workBreak').value = e.workBreak||0;
   document.getElementById('workLocation').value = e.workLocation||'';
   document.getElementById('workNotes').value = e.workNotes||'';
+  document.getElementById('presentNoWork').checked = !!e.presentNoWork;
   document.getElementById('tripFrom').value = e.tripFrom||'';
   document.getElementById('tripTo').value = e.tripTo||'';
-  document.getElementById('tripKm').value = e.tripKm||'';
   document.querySelectorAll('[data-trip]').forEach(b=>b.classList.toggle('selected', b.dataset.trip===(e.tripType||'einfach')));
+  document.querySelectorAll('[data-verpfl]').forEach(b=>b.classList.toggle('selected', b.dataset.verpfl===(e.verpflegung||'')));
   document.getElementById('costType').value = e.costType||'';
   document.getElementById('costAmount').value = e.costAmount||'';
   document.getElementById('costCurrency').value = e.costCurrency||'EUR';
   document.getElementById('costReceipt').value = e.costReceipt||'';
   document.getElementById('costDesc').value = e.costDesc||'';
+  updateFhfToggleVisibility();
+  updateWorkFieldsVisibility();
   refreshAddrList();
   renderSegments();
   renderAddressChips();
+  renderCostReceipts();
   switchView('wizard');
   showStep(0);
   toast('Bearbeitung gestartet');
@@ -2418,13 +3021,12 @@ function editEntry(id){
 function deleteEntry(id){
   showModal('Eintrag löschen?', 'Dieser Vorgang kann nicht rückgängig gemacht werden. Verknüpfte Belege werden ebenfalls gelöscht.', async ()=>{
     const e = state.entries.find(x=>x.id===id);
-    if(e && e.travelSegments){
-      for(const s of e.travelSegments){
-        if(s.receiptIds){
-          for(const rid of s.receiptIds){
-            try{ await deleteFileFromDB(rid); }catch(err){}
-          }
-        }
+    if(e){
+      const allRids = [];
+      (e.travelSegments||[]).forEach(s => (s.receiptIds||[]).forEach(r => allRids.push(r)));
+      (e.costReceiptIds||[]).forEach(r => allRids.push(r));
+      for(const rid of allRids){
+        try{ await deleteFileFromDB(rid); }catch(err){}
       }
     }
     state.entries = state.entries.filter(x=>x.id!==id);
@@ -2438,12 +3040,10 @@ function deleteEntry(id){
 function updateExportSummary(){
   const from = document.getElementById('exportFrom').value;
   const to = document.getElementById('exportTo').value;
-  const list = getRange(from,to);
-  // total km = max of (trip-km doubled if H&R) vs sum of segment-km — we add both as separate stats
-  const tripKm = list.reduce((s,e)=>{
-    const km = parseFloat(e.tripKm)||0;
-    return s + (e.tripType==='hin_zurueck'?km*2:km);
-  },0);
+  let list = getRange(from,to);
+  list = list.filter(e => isCategorySelected(e.dayCode));
+
+  const ov = calcOverviewStats(list);
   const segKm = list.reduce((s,e)=>{
     if(!e.travelSegments) return s;
     return s + e.travelSegments.reduce((ss,seg)=>ss+(parseFloat(seg.km)||0),0);
@@ -2451,6 +3051,7 @@ function updateExportSummary(){
   let receiptCount = 0;
   list.forEach(e=>{
     if(e.travelSegments) e.travelSegments.forEach(s=>{ if(s.receiptIds) receiptCount += s.receiptIds.length; });
+    if(e.costReceiptIds) receiptCount += e.costReceiptIds.length;
   });
   const costsByCur = {};
   list.forEach(e=>{
@@ -2459,28 +3060,42 @@ function updateExportSummary(){
       costsByCur[c] = (costsByCur[c]||0) + parseFloat(e.costAmount);
     }
   });
-  const workMins = list.reduce((s,e)=>{
-    const m = calcWorkHours(e.workStart, e.workEnd, e.workBreak);
-    return s + (m||0);
-  },0);
-  const drDays = list.filter(e=>e.dayCode==='DR').length;
-  const fhDays = list.filter(e=>e.dayCode==='FH').length;
+  let workMins = 0, presenceOnlyMins = 0;
+  list.forEach(e => {
+    const m = calcWorkHours(e.workStart, e.workEnd, e.workBreak) || 0;
+    if(e.presentNoWork) presenceOnlyMins += m;
+    else                workMins += m;
+  });
 
   const costsHtml = Object.keys(costsByCur).length
-    ? Object.entries(costsByCur).map(([c,v])=>`<span class="num" style="font-size:18px;display:block">${v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${c}</span>`).join('')
-    : '<span class="num" style="font-size:18px">0,00 €</span>';
+    ? Object.entries(costsByCur).map(([c,v])=>`<span class="num" style="font-size:16px;display:block">${v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${c}</span>`).join('')
+    : '<span class="num" style="font-size:16px">0,00 €</span>';
 
   document.getElementById('exportSummary').innerHTML = `
-    <div class="summary-stat"><div class="num">${list.length}</div><div class="lbl">Einträge</div></div>
-    <div class="summary-stat"><div class="num">${tripKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</div><div class="lbl">Fahrt-km gesamt</div></div>
-    <div class="summary-stat"><div class="num">${segKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</div><div class="lbl">Reisemittel-km</div></div>
-    <div class="summary-stat"><div class="num">${(workMins/60).toLocaleString('de-DE',{maximumFractionDigits:1})}</div><div class="lbl">Arbeits&shy;stunden</div></div>
-    <div class="summary-stat"><div class="num">${drDays}</div><div class="lbl">Dienstreise-Tage</div></div>
-    <div class="summary-stat"><div class="num">${fhDays}</div><div class="lbl">Heim&shy;fahrten</div></div>
+    <div class="summary-stat accent"><div class="num">${list.length}</div><div class="lbl">Einträge</div></div>
+    <div class="summary-stat"><div class="num">${ov.arbeitsTageAnArbeitsstaette}</div><div class="lbl">Tage Arbeitsstätte</div></div>
+    <div class="summary-stat"><div class="num">${ov.fahrtenArbeitHinUndRueck}</div><div class="lbl">Fahrten Arb. (H&R)</div></div>
+    <div class="summary-stat"><div class="num">${ov.fahrtenArbeitEinfach}</div><div class="lbl">Fahrten Arb. (einfach)</div></div>
+    <div class="summary-stat"><div class="num">${ov.dienstreisen}</div><div class="lbl">Dienstreisen</div></div>
+    <div class="summary-stat"><div class="num">${ov.lehrgaenge}</div><div class="lbl">Lehrgänge</div></div>
+    <div class="summary-stat"><div class="num">${ov.uebungen}</div><div class="lbl">Übungen</div></div>
+    <div class="summary-stat"><div class="num">${ov.urlaub}</div><div class="lbl">Urlaub</div></div>
+    <div class="summary-stat"><div class="num">${ov.fhf}</div><div class="lbl">FHF</div></div>
+    <div class="summary-stat"><div class="num">${ov.hf}</div><div class="lbl">HF</div></div>
+    <div class="summary-stat"><div class="num">${ov.rf}</div><div class="lbl">RF</div></div>
+    <div class="summary-stat"><div class="num">${segKm.toLocaleString('de-DE',{maximumFractionDigits:0})}</div><div class="lbl">Reisemittel-km</div></div>
+    <div class="summary-stat"><div class="num">${(workMins/60).toLocaleString('de-DE',{maximumFractionDigits:0})}h</div><div class="lbl">Arbeits&shy;stunden</div></div>
     <div class="summary-stat"><div class="num">${receiptCount}</div><div class="lbl">Belege</div></div>
-    <div class="summary-stat" style="grid-column:span 2">${costsHtml}<div class="lbl" style="margin-top:6px">Kosten gesamt</div></div>
+    <div class="summary-stat" style="grid-column:span 2">${costsHtml}<div class="lbl" style="margin-top:6px">Kosten</div></div>
   `;
 }
+
+const summaryStyleCSS = `.summary-stat.accent{background:linear-gradient(135deg,#1a3a5c,#0d2238);color:#fff;border-color:#1a3a5c}.summary-stat.accent .num{color:var(--gold)}.summary-stat.accent .lbl{color:rgba(255,255,255,0.7)}`;
+(function injectSummaryStyles(){
+  const st = document.createElement('style');
+  st.textContent = summaryStyleCSS;
+  document.head.appendChild(st);
+})();
 
 function getRange(from,to){
   let list = [...state.entries].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -2489,26 +3104,40 @@ function getRange(from,to){
   return list;
 }
 
-['exportFrom','exportTo'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', updateExportSummary);
+['exportFrom','exportTo','exportSort'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('change', updateExportSummary);
 });
 
-async function prepareAndPrint(){
+async function prepareAndPrint(opts){
+  opts = opts || {};
+  const slim = !!opts.slim;
   const from = document.getElementById('exportFrom').value;
   const to = document.getElementById('exportTo').value;
-  const list = getRange(from,to);
+  const sortBy = document.getElementById('exportSort').value || 'date';
+  let list = getRange(from,to);
+  // Filter by selected categories
+  list = list.filter(e => isCategorySelected(e.dayCode));
   if(list.length===0){
-    toast('Keine Einträge im gewählten Zeitraum','error');
+    toast('Keine Einträge im gewählten Zeitraum / Auswahl','error');
     return;
+  }
+  // Sort
+  if(sortBy === 'date'){
+    list = [...list].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  } else {
+    list = [...list].sort((a,b) => {
+      const ca = (a.dayCode||'').localeCompare(b.dayCode||'');
+      if(ca!==0) return ca;
+      return (a.date||'').localeCompare(b.date||'');
+    });
   }
   const s = state.settings;
   const title = document.getElementById('exportTitle').value.trim()
                 || 'Reisekosten- & Arbeitszeit­nachweis';
 
-  const tripKm = list.reduce((sum,e)=>{
-    const km = parseFloat(e.tripKm)||0;
-    return sum + (e.tripType==='hin_zurueck'?km*2:km);
-  },0);
+  // Stats
+  const overview = calcOverviewStats(list);
   const segKm = list.reduce((sum,e)=>{
     if(!e.travelSegments) return sum;
     return sum + e.travelSegments.reduce((ss,seg)=>ss+(parseFloat(seg.km)||0),0);
@@ -2520,10 +3149,12 @@ async function prepareAndPrint(){
       costsByCur[c] = (costsByCur[c]||0) + parseFloat(e.costAmount);
     }
   });
-  const workMins = list.reduce((sum,e)=>{
-    const m = calcWorkHours(e.workStart,e.workEnd,e.workBreak);
-    return sum + (m||0);
-  },0);
+  let workMins = 0, presenceOnlyMins = 0;
+  list.forEach(e => {
+    const m = calcWorkHours(e.workStart,e.workEnd,e.workBreak) || 0;
+    if(e.presentNoWork) presenceOnlyMins += m;
+    else                workMins += m;
+  });
 
   const periodLabel = (from||to)
     ? `${from?fmtDate(from):'…'} – ${to?fmtDate(to):'…'}`
@@ -2531,27 +3162,39 @@ async function prepareAndPrint(){
 
   toast('PDF wird vorbereitet…');
 
-  // Collect all receipts referenced in the printed period for the appendix
+  // Collect all receipts (segment + cost) for the appendix
   const receiptManifest = [];
   let receiptCounter = 0;
+  list.forEach(e => {
+    (e.travelSegments||[]).forEach(seg => {
+      (seg.receiptIds||[]).forEach(rid => {
+        receiptCounter++;
+        receiptManifest.push({num:receiptCounter, rid, entry:e, source:'segment', segment:seg});
+      });
+    });
+    (e.costReceiptIds||[]).forEach(rid => {
+      receiptCounter++;
+      receiptManifest.push({num:receiptCounter, rid, entry:e, source:'cost'});
+    });
+  });
 
-  const rows = list.map(e=>{
-    const work = (e.workStart && e.workEnd)
-      ? `${e.workStart}–${e.workEnd}<br><span style="color:#666;font-size:7pt">P ${e.workBreak||0}m · ${fmtMinutes(calcWorkHours(e.workStart,e.workEnd,e.workBreak))}</span>`
-      : '—';
+  // Build row HTML
+  const buildRow = (e, segReceiptRefs) => {
+    const noWorkDay = NO_WORK_CODES.has(e.dayCode);
+    const work = noWorkDay
+      ? '<span style="color:#888">—</span>'
+      : (e.presentNoWork
+        ? '<b style="background:#1a3a5c;color:#fff;padding:0 4px;border-radius:2px;font-size:7pt">o.D.</b>'
+        : (e.workStart && e.workEnd
+          ? `${e.workStart}–${e.workEnd}<br><span style="color:#666;font-size:7pt">P ${e.workBreak||0}m · ${fmtMinutes(calcWorkHours(e.workStart,e.workEnd,e.workBreak))}</span>`
+          : '—'));
     const trip = (e.tripFrom||e.tripTo)
-      ? `${escapeHtml(e.tripFrom||'')} → ${escapeHtml(e.tripTo||'')}${e.tripKm?` <span style="color:#666">(${e.tripKm}km${e.tripType==='hin_zurueck'?' H&R':''})</span>`:''}`
+      ? `${escapeHtml(e.tripFrom||'')} → ${escapeHtml(e.tripTo||'')}<br><span style="color:#666;font-size:7pt">${e.tripType==='hin_zurueck'?'Hin & Zurück':'Einfach'}</span>`
       : '—';
-
     let travel = '—';
     if(e.travelSegments && e.travelSegments.length){
-      travel = `<div class="print-segments-mini">` + e.travelSegments.map(seg => {
-        const refs = [];
-        (seg.receiptIds||[]).forEach(rid => {
-          receiptCounter++;
-          receiptManifest.push({num:receiptCounter, rid, entry:e, segment:seg});
-          refs.push(`#${receiptCounter}`);
-        });
+      travel = '<div class="print-segments-mini">' + e.travelSegments.map((seg, segIdx) => {
+        const refs = segReceiptRefs[segIdx] || [];
         const parts = [];
         if(seg.mode) parts.push(`<b>${escapeHtml(seg.mode)}</b>`);
         if(seg.fromLoc || seg.toLoc) parts.push(`${escapeHtml(seg.fromLoc||'?')}→${escapeHtml(seg.toLoc||'?')}`);
@@ -2559,14 +3202,19 @@ async function prepareAndPrint(){
         if(seg.dep||seg.arr) parts.push(`${seg.dep||'?'}–${seg.arr||'?'}`);
         const head = parts.join(' · ');
         const route = seg.route ? `<br><span style="color:#666;font-size:7pt">${escapeHtml(seg.route)}</span>` : '';
-        const recHtml = refs.length ? ` <span style="color:#1a3a5c;font-size:7pt;font-weight:700">📎${refs.join(',')}</span>` : '';
+        const recHtml = refs.length ? ` <span style="color:#1a3a5c;font-size:7pt;font-weight:700">📎${refs.map(n=>'#'+n).join(',')}</span>` : '';
         return `<div>${head}${recHtml}${route}</div>`;
-      }).join('') + `</div>`;
+      }).join('') + '</div>';
     }
-
-    const cost = e.costType
-      ? `${escapeHtml(e.costType)}<br><b>${fmtCurrency(e.costAmount,e.costCurrency)}</b>${e.costReceipt?` <span style="color:#666;font-size:7pt">#${escapeHtml(e.costReceipt)}</span>`:''}`
+    let cost = e.costType
+      ? `${escapeHtml(e.costType)}<br><b>${fmtCurrency(e.costAmount,e.costCurrency)}</b>`
       : '—';
+    // Append cost receipt refs
+    const costRefs = receiptManifest.filter(m => m.source==='cost' && m.entry===e).map(m=>m.num);
+    if(costRefs.length){
+      cost += ` <span style="color:#1a3a5c;font-size:7pt;font-weight:700">📎${costRefs.map(n=>'#'+n).join(',')}</span>`;
+    }
+    const verpflInfo = e.verpflegung ? `<br><span style="color:#666;font-size:7pt">Verpflegung: ${escapeHtml(e.verpflegung)}</span>` : '';
     const fhfPrintBadge = e.isFamilienheimfahrt
       ? `<br><span style="background:#1a3a5c;color:#c9a84c;padding:0 4px;border-radius:2px;font-size:7pt;font-weight:700;letter-spacing:0.3px">FHF</span>`
       : '';
@@ -2574,33 +3222,65 @@ async function prepareAndPrint(){
       <tr>
         <td style="white-space:nowrap"><b>${fmtDate(e.date)}</b><br><span style="color:#666;font-size:7pt">${dayName(e.date)}</span></td>
         <td><b style="background:#c9a84c;color:#1a3a5c;padding:1px 4px;border-radius:3px;font-size:8pt">${e.dayCode||'X'}</b>${fhfPrintBadge}</td>
-        <td>${work}${e.workLocation?`<br><span style="color:#666;font-size:7pt">${escapeHtml(e.workLocation)}</span>`:''}</td>
+        <td>${work}${(!noWorkDay && !e.presentNoWork && e.workLocation)?`<br><span style="color:#666;font-size:7pt">${escapeHtml(e.workLocation)}</span>`:''}</td>
         <td>${trip}</td>
         <td>${travel}</td>
-        <td>${cost}</td>
+        <td>${cost}${verpflInfo}</td>
         <td style="font-size:7.5pt;color:#444">${escapeHtml(e.workNotes||e.costDesc||'')}</td>
       </tr>`;
-  }).join('');
+  };
+
+  // Compute segment receipt refs per entry
+  function getSegReceiptRefs(entry){
+    const refs = [];
+    (entry.travelSegments||[]).forEach((seg, segIdx) => {
+      const segRefs = receiptManifest
+        .filter(m => m.source==='segment' && m.entry===entry && m.segment===seg)
+        .map(m => m.num);
+      refs[segIdx] = segRefs;
+    });
+    return refs;
+  }
+
+  // Build table body, optionally grouped by code
+  let tableBody = '';
+  if(sortBy === 'code'){
+    // Group by dayCode
+    const groups = {};
+    list.forEach(e => { (groups[e.dayCode] = groups[e.dayCode]||[]).push(e); });
+    const order = ['X','WFH','HF','RF','DR','LG','ÜB','U','K','WE','FH','SG'];
+    Object.keys(groups).sort((a,b)=>{
+      const ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia===-1?99:ia)-(ib===-1?99:ib);
+    }).forEach(code => {
+      const dt = DAYTYPES[code] || {name:code};
+      tableBody += `<tr><td colspan="7" style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:600;font-size:8pt"><b style="background:#c9a84c;color:#1a3a5c;padding:0 5px;border-radius:2px;margin-right:6px">${code}</b> ${escapeHtml(dt.name)} · ${groups[code].length} Eintrag(e)</td></tr>`;
+      groups[code].forEach(e => { tableBody += buildRow(e, getSegReceiptRefs(e)); });
+    });
+  } else {
+    tableBody = list.map(e => buildRow(e, getSegReceiptRefs(e))).join('');
+  }
 
   const costsTotal = Object.entries(costsByCur).map(([c,v])=>`${v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} ${c}`).join(' · ') || '0,00 €';
 
-  // Render receipt appendix (load all images as data URLs so they survive the print dialog)
+  // Receipt appendix (skip if slim mode)
   let receiptsHtml = '';
-  if(receiptManifest.length){
+  if(!slim && receiptManifest.length){
     const pages = [];
     for(const m of receiptManifest){
       try{
         const rec = await getFile(m.rid);
         if(!rec){
-          pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(m.segment.mode||'')}</span><span>${escapeHtml(rec?.name||'fehlt')}</span></div><div class="pdf-note">Beleg nicht mehr im Speicher</div></div>`);
+          pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b> · ${fmtDate(m.entry.date)}</span><span>fehlt</span></div><div class="pdf-note">Beleg nicht mehr im Speicher</div></div>`);
           continue;
         }
         const dataUrl = await blobToDataUrl(rec.blob);
+        const sourceLabel = m.source==='cost' ? (m.entry.costType||'Kosten') : (m.segment?.mode||'Reisemittel');
         if(rec.type && rec.type.startsWith('image/')){
           pages.push(`
             <div class="receipt-page">
               <div class="receipt-page-head">
-                <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(m.segment.mode||'')}${m.segment.route?' · '+escapeHtml(m.segment.route):''}</span>
+                <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(sourceLabel)}</span>
                 <span>${escapeHtml(rec.name||'')}</span>
               </div>
               <img src="${dataUrl}" alt="Beleg ${m.num}">
@@ -2609,7 +3289,7 @@ async function prepareAndPrint(){
           pages.push(`
             <div class="receipt-page">
               <div class="receipt-page-head">
-                <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(m.segment.mode||'')}</span>
+                <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(sourceLabel)}</span>
                 <span>${escapeHtml(rec.name||'')}</span>
               </div>
               <div class="pdf-note">📄 PDF-Beleg: <b>${escapeHtml(rec.name||'')}</b> (${fmtBytes(rec.size||0)}) — separat dem Antrag beilegen.</div>
@@ -2624,13 +3304,58 @@ async function prepareAndPrint(){
       </div>`;
   }
 
-  // Address block (only if at least one address is set)
+  // Address block
   const addrBlock = (s.addrPrimary||s.addrSecondary||s.addrWork) ? `
     <div class="print-addr">
       ${s.addrPrimary?`<div><b>Erstwohnung</b><br>${escapeHtml(s.addrPrimary).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
-      ${s.addrSecondary?`<div><b>Zweitwohnung</b><br>${escapeHtml(s.addrSecondary).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
+      ${s.addrSecondary?`<div><b>Trennungsgeldwohnung</b><br>${escapeHtml(s.addrSecondary).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
       ${s.addrWork?`<div><b>Arbeitsstätte</b><br>${escapeHtml(s.addrWork).replace(/\n/g,'<br>')}</div>`:'<div></div>'}
     </div>` : '';
+
+  // Overview block
+  const ovStats = [
+    {n: overview.arbeitsTageAnArbeitsstaette, l: 'Tage Arbeitsstätte'},
+    {n: overview.fahrtenArbeitHinUndRueck,    l: 'Fahrten Arb. (H&R)'},
+    {n: overview.fahrtenArbeitEinfach,        l: 'Fahrten Arb. (Einfach)'},
+    {n: overview.dienstreisen,                l: 'Dienstreisen'},
+    {n: overview.lehrgaenge,                  l: 'Lehrgänge'},
+    {n: overview.uebungen,                    l: 'Übungen'},
+    {n: overview.urlaub,                      l: 'Urlaub'},
+    {n: overview.fhf,                         l: 'FHF'},
+    {n: overview.hf,                          l: 'HF'},
+    {n: overview.rf,                          l: 'RF'},
+    {n: overview.krankheit,                   l: 'Krankheit'},
+    {n: overview.wochenenden,                 l: 'Wochenenden'}
+  ];
+  const overviewBlock = `
+    <div class="print-overview">
+      <h2>Übersicht · Zeitraum ${periodLabel}</h2>
+      <div class="print-overview-grid">
+        ${ovStats.map(st => `<div class="print-overview-stat"><div class="n">${st.n}</div><div class="l">${st.l}</div></div>`).join('')}
+      </div>
+    </div>`;
+
+  // Deutschlandticket footnote
+  let dlTicketNote = '';
+  if(s.deutschlandticket && s.deutschlandticket > 0){
+    // Count months in range
+    let months = 0;
+    if(from && to){
+      const fd = new Date(from), td = new Date(to);
+      months = (td.getFullYear()-fd.getFullYear())*12 + (td.getMonth()-fd.getMonth()) + 1;
+    } else {
+      // assume 12 if no range
+      months = 12;
+    }
+    const total = s.deutschlandticket * months;
+    dlTicketNote = `
+      <div class="print-footer-note">
+        <b>Hinweis zu Fahrten Arbeitsstätte ↔ Trennungsgeldwohnung:</b><br>
+        Sämtliche regelmäßigen Fahrten zwischen Arbeitsstätte und Trennungsgeldwohnung erfolgten mit dem öffentlichen Personennahverkehr (ÖPNV) unter Nutzung des <b>Deutschlandtickets</b>.
+        <br><br>
+        Monatlicher Beitrag: <b>${s.deutschlandticket.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} €</b> · Zeitraum: ${months} Monat(e) · <b>Gesamtkosten: ${total.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} €</b>${s.deutschlandticketStart?` · Gültig ab: ${s.deutschlandticketStart}`:''}
+      </div>`;
+  }
 
   document.getElementById('printView').innerHTML = `
     <div class="print-header">
@@ -2645,8 +3370,10 @@ async function prepareAndPrint(){
       ${addrBlock}
     </div>
 
+    ${overviewBlock}
+
     <div class="print-section">
-      <h2>Nachweis · ${list.length} Einträge</h2>
+      <h2>Detail · ${list.length} Einträge · sortiert nach ${sortBy==='date'?'Datum':'Tageskennzeichen'}</h2>
       <table>
         <thead>
           <tr>
@@ -2659,28 +3386,36 @@ async function prepareAndPrint(){
             <th style="width:18%">Bemerkung</th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
+        <tbody>${tableBody}</tbody>
       </table>
 
       <div class="print-totals">
-        <span><b>Fahrt-Km:</b> ${tripKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</span>
         <span><b>Reisemittel-Km:</b> ${segKm.toLocaleString('de-DE',{maximumFractionDigits:1})}</span>
         <span><b>Arbeitsstunden:</b> ${(workMins/60).toLocaleString('de-DE',{maximumFractionDigits:2})} h</span>
+        ${presenceOnlyMins>0?`<span><b>Anwesend o. Dienst:</b> ${(presenceOnlyMins/60).toLocaleString('de-DE',{maximumFractionDigits:2})} h</span>`:''}
         <span><b>Kosten gesamt:</b> ${costsTotal}</span>
         <span><b>Belege:</b> ${receiptManifest.length}</span>
       </div>
 
+      ${dlTicketNote}
+
       <div class="print-sig">
         <div>Datum, Ort</div>
         <div>Unterschrift Antragsteller</div>
-        <div>Unterschrift Vorgesetzter</div>
+        <div>Unterschrift Bevollmächtigter</div>
+      </div>
+
+      <div class="print-stempel-box">
+        <div><b>Dienstsiegel</b></div>
+        <div><b>Stempel</b></div>
+        <div><b>Vermerk Dienststelle</b></div>
       </div>
     </div>
 
     ${receiptsHtml}
 
     <div class="print-footer">
-      ${escapeHtml(title.replace(/&shy;/g,''))} · ${escapeHtml((s.rank?s.rank+' ':'')+(s.name||''))}
+      ${escapeHtml(title.replace(/&shy;/g,''))} · ${escapeHtml((s.rank?s.rank+' ':'')+(s.name||''))}${slim?' · Schlanke Version':''}
     </div>
   `;
   setTimeout(()=>window.print(), 200);
@@ -2707,16 +3442,18 @@ function loadSettingsForm(){
   document.getElementById('setAddrWork').value = s.addrWork||'';
   document.getElementById('setFhfYear').value = s.fhfYear || new Date().getFullYear();
   document.getElementById('setFhfCounter').value = s.fhfCounter || 0;
-  // show geo status
+  document.getElementById('setDeutschlandticket').value = s.deutschlandticket || '';
+  document.getElementById('setDeutschlandticketStart').value = s.deutschlandticketStart || '';
   const geo = el => el ? `${el.lat.toFixed(4)}, ${el.lng.toFixed(4)}` : '–';
   const statusEl = document.getElementById('geoStatus');
   if(statusEl){
     statusEl.innerHTML = [
       s.addrPrimary   ? `Erstwohnung: ${s.addrPrimaryGeo?'<span style="color:var(--success)">✓ '+geo(s.addrPrimaryGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : '',
-      s.addrSecondary ? `Zweitwohnung: ${s.addrSecondaryGeo?'<span style="color:var(--success)">✓ '+geo(s.addrSecondaryGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : '',
+      s.addrSecondary ? `Trennungsgeldwohnung: ${s.addrSecondaryGeo?'<span style="color:var(--success)">✓ '+geo(s.addrSecondaryGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : '',
       s.addrWork      ? `Arbeitsstätte: ${s.addrWorkGeo?'<span style="color:var(--success)">✓ '+geo(s.addrWorkGeo)+'</span>':'<span style="color:var(--muted)">nicht verifiziert</span>'}` : ''
     ].filter(Boolean).join('<br>');
   }
+  updateFolderStatus();
   updateStorageInfo();
 }
 function saveSettings(){
@@ -2732,12 +3469,16 @@ function saveSettings(){
     addrPrimary: newAddrPrimary,
     addrSecondary: newAddrSecondary,
     addrWork: newAddrWork,
-    // Invalidate geo cache if address changed
     addrPrimaryGeo:   newAddrPrimary   === prev.addrPrimary   ? prev.addrPrimaryGeo   : null,
     addrSecondaryGeo: newAddrSecondary === prev.addrSecondary ? prev.addrSecondaryGeo : null,
     addrWorkGeo:      newAddrWork      === prev.addrWork      ? prev.addrWorkGeo      : null,
     fhfYear: parseInt(document.getElementById('setFhfYear').value) || new Date().getFullYear(),
-    fhfCounter: Math.max(0, parseInt(document.getElementById('setFhfCounter').value) || 0)
+    fhfCounter: Math.max(0, parseInt(document.getElementById('setFhfCounter').value) || 0),
+    deutschlandticket: parseFloat(document.getElementById('setDeutschlandticket').value) || 0,
+    deutschlandticketStart: document.getElementById('setDeutschlandticketStart').value || '',
+    // preserve non-form fields
+    addressHistory: prev.addressHistory || [],
+    selectedCategories: prev.selectedCategories
   };
   persist();
   updateUserChip();
@@ -2891,10 +3632,22 @@ document.getElementById('modal').addEventListener('click', e=>{
 (async function init(){
   try{ await openDB(); }
   catch(e){ console.error('IndexedDB error',e); toast('Belegspeicher nicht verfügbar','error'); }
-  load();
+  await load();
+  // Request persistent storage so the browser doesn't evict our data
+  if(navigator.storage && navigator.storage.persist){
+    try{
+      const isPersisted = await navigator.storage.persisted();
+      if(!isPersisted) await navigator.storage.persist();
+    }catch(e){ console.warn('Persistence request failed', e); }
+  }
+  // Restore folder handle
+  if(db){
+    try{ folderHandle = await idbGet('handles', 'folder'); }catch(e){}
+  }
   updateUserChip();
   refreshAddrList();
   resetWizard();
+  initCategoryGrid();
 
   // Set sensible export defaults: current month
   const now = new Date();
