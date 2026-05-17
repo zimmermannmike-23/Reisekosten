@@ -589,6 +589,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
 
 @media print{
   @page{size:A4 portrait;margin:14mm 12mm 18mm 12mm;}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
   body{background:#fff;color:#000;font-size:9pt;}
   .topbar,.tabs,.filters,.actions-cell,.wizard-actions,.btn,.no-print{display:none !important;}
   main{padding:0;max-width:none;}
@@ -613,10 +614,11 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
   .print-addr b{color:#1a3a5c;display:block;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:0.5mm;}
   .print-receipts{page-break-before:always;}
   .print-receipts h2{font-family:'Playfair Display',serif;font-size:13pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:2mm;margin-bottom:4mm;font-weight:600;}
-  .receipt-page{page-break-inside:avoid;margin-bottom:6mm;border:0.5px solid #ccc;padding:3mm;border-radius:2mm;}
-  .receipt-page-head{font-size:8.5pt;color:#444;margin-bottom:2mm;display:flex;justify-content:space-between;border-bottom:0.5px solid #eee;padding-bottom:1.5mm;}
+  .receipt-page{page-break-inside:avoid;page-break-after:always;margin-bottom:6mm;border:0.5px solid #ccc;padding:3mm;border-radius:2mm;}
+  .receipt-page:last-child{page-break-after:auto;}
+  .receipt-page-head{font-size:8.5pt;color:#444;margin-bottom:2mm;display:flex;justify-content:space-between;border-bottom:0.5px solid #eee;padding-bottom:1.5mm;flex-wrap:wrap;gap:3mm;}
   .receipt-page-head b{color:#1a3a5c;}
-  .receipt-page img{max-width:100%;max-height:130mm;display:block;margin:0 auto;}
+  .receipt-page img{max-width:100%;max-height:230mm;display:block;margin:0 auto;object-fit:contain;}
   .receipt-page .pdf-note{padding:8mm;text-align:center;color:#666;font-size:9pt;font-style:italic;background:#f5f5ee;}
   .print-segments-mini{font-size:7.5pt;line-height:1.4;}
   .print-segments-mini div{margin-bottom:0.8mm;}
@@ -1290,11 +1292,10 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px;}
 
 <script>
 /* ============================================================
-   ZIMMERMANN · TG/RB Nachweis · v4.0
+   ZIMMERMANN · TG/RB Nachweis · v4.1
    Single-file PWA · localStorage + IndexedDB · Print-to-PDF
-   v4: LG/ÜB · Verpflegung · Folder picker · Address history
-       · Cost receipts · Overview stats · Category filter
-       · Deutschlandticket · Persistent storage
+   v4.1: Auto-Fahrt bei X · iOS-Persistenz-Hinweise
+         · Robusteres Beleg-Embedding im PDF (HEIC-Fallback)
    ============================================================ */
 
 const STORAGE_KEY = 'zc-tgrb-tracker-v1';
@@ -2489,12 +2490,15 @@ function renderReview(){
 function saveEntry(){
   collectStep(currentStep);
   if(!wizardData.date){ toast('Datum fehlt','error'); return; }
+  // Strip internal/temp fields
+  const cleanData = {...wizardData};
+  delete cleanData._userTouchedFhf;
   if(editId){
     const i = state.entries.findIndex(e=>e.id===editId);
-    if(i>=0){ state.entries[i] = {...wizardData, id:editId, updated:Date.now()}; }
+    if(i>=0){ state.entries[i] = {...cleanData, id:editId, updated:Date.now()}; }
     editId = null;
   }else{
-    state.entries.push({...wizardData, id:uid(), created:Date.now()});
+    state.entries.push({...cleanData, id:uid(), created:Date.now()});
   }
   persist();
   toast(editId?'Aktualisiert':'Eintrag gespeichert ✓','success');
@@ -2538,13 +2542,58 @@ function resetWizard(){
 /* Chip selectors */
 document.querySelectorAll('#daytypeGrid .daytype').forEach(b=>{
   b.addEventListener('click',()=>{
+    const prevCode = wizardData.dayCode;
     document.querySelectorAll('#daytypeGrid .daytype').forEach(x=>x.classList.remove('selected'));
     b.classList.add('selected');
     wizardData.dayCode = b.dataset.code;
     updateFhfToggleVisibility();
     updateWorkFieldsVisibility();
+    // Auto-fill trip Trennungsgeldwohnung → Arbeitsstätte when X is clicked
+    // (fire on every X-click, not just when switching from another code,
+    //  but only if the trip is still empty)
+    if(wizardData.dayCode === 'X' && !wizardData.tripFrom && !wizardData.tripTo && wizardData.travelSegments.length === 0){
+      autoFillWorkdayTrip();
+    }
   });
 });
+
+/* Auto-fill trip & travel segment for a regular workday (Code X) */
+function autoFillWorkdayTrip(){
+  const s = state.settings;
+  if(!s.addrSecondary || !s.addrWork){
+    // Need both addresses to auto-fill — show a friendly hint
+    toast('Hinweis: Trennungsgeldwohnung und Arbeitsstätte zuerst in den Einstellungen hinterlegen','');
+    return;
+  }
+
+  const fromAddr = fullAddr(s.addrSecondary);
+  const toAddr   = fullAddr(s.addrWork);
+  wizardData.tripFrom = fromAddr;
+  wizardData.tripTo   = toAddr;
+  wizardData.tripType = 'hin_zurueck';
+
+  // Reflect in DOM
+  const tf = document.getElementById('tripFrom');
+  const tt = document.getElementById('tripTo');
+  if(tf) tf.value = fromAddr;
+  if(tt) tt.value = toAddr;
+  document.querySelectorAll('[data-trip]').forEach(x=>x.classList.toggle('selected', x.dataset.trip==='hin_zurueck'));
+
+  // Add a default segment: ÖPNV with Deutschlandticket reference
+  const seg = freshSegment();
+  seg.mode = 'ÖPNV';
+  seg.fromLoc = fromAddr;
+  seg.toLoc = toAddr;
+  seg.dep = wizardData.workStart || '';
+  seg.arr = wizardData.workEnd || '';
+  seg.route = 'Deutschlandticket';
+  seg.fromGeo = s.addrSecondaryGeo || null;
+  seg.toGeo = s.addrWorkGeo || null;
+  wizardData.travelSegments = [seg];
+  renderSegments();
+
+  toast('🚍 Standard-Fahrt Trennungsgeldwohnung → Arbeitsstätte angelegt','success');
+}
 function updateFhfToggleVisibility(){
   const block = document.getElementById('fhfToggleBlock');
   if(!block) return;
@@ -3265,18 +3314,21 @@ async function prepareAndPrint(opts){
 
   // Receipt appendix (skip if slim mode)
   let receiptsHtml = '';
+  let renderedReceiptCount = 0;
   if(!slim && receiptManifest.length){
     const pages = [];
     for(const m of receiptManifest){
       try{
         const rec = await getFile(m.rid);
-        if(!rec){
-          pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b> · ${fmtDate(m.entry.date)}</span><span>fehlt</span></div><div class="pdf-note">Beleg nicht mehr im Speicher</div></div>`);
+        if(!rec || !rec.blob){
+          pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b> · ${fmtDate(m.entry.date)}</span><span>fehlt</span></div><div class="pdf-note">⚠ Beleg nicht mehr im Speicher (Datei-ID: ${escapeHtml(m.rid)})</div></div>`);
           continue;
         }
-        const dataUrl = await blobToDataUrl(rec.blob);
         const sourceLabel = m.source==='cost' ? (m.entry.costType||'Kosten') : (m.segment?.mode||'Reisemittel');
-        if(rec.type && rec.type.startsWith('image/')){
+        // Detect type from blob if rec.type is missing
+        const recType = (rec.type && rec.type !== '') ? rec.type : (rec.blob.type || '');
+        if(recType.startsWith('image/') || (!recType && rec.name && /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(rec.name))){
+          const dataUrl = await blobToDataUrl(rec.blob);
           pages.push(`
             <div class="receipt-page">
               <div class="receipt-page-head">
@@ -3285,21 +3337,43 @@ async function prepareAndPrint(opts){
               </div>
               <img src="${dataUrl}" alt="Beleg ${m.num}">
             </div>`);
-        } else if(rec.type === 'application/pdf'){
+          renderedReceiptCount++;
+        } else if(recType === 'application/pdf' || (rec.name && /\.pdf$/i.test(rec.name))){
           pages.push(`
             <div class="receipt-page">
               <div class="receipt-page-head">
                 <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(sourceLabel)}</span>
                 <span>${escapeHtml(rec.name||'')}</span>
               </div>
-              <div class="pdf-note">📄 PDF-Beleg: <b>${escapeHtml(rec.name||'')}</b> (${fmtBytes(rec.size||0)}) — separat dem Antrag beilegen.</div>
+              <div class="pdf-note">📄 PDF-Beleg: <b>${escapeHtml(rec.name||'')}</b> (${fmtBytes(rec.size||0)})<br>PDF-Belege können dem PDF nicht inline angehängt werden — bitte separat einreichen oder über die FHF-Sammel-PDF-Funktion zusammenfügen.</div>
             </div>`);
+          renderedReceiptCount++;
+        } else {
+          // Unknown type — try as image anyway
+          try{
+            const dataUrl = await blobToDataUrl(rec.blob);
+            pages.push(`
+              <div class="receipt-page">
+                <div class="receipt-page-head">
+                  <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${fmtDate(m.entry.date)} · ${escapeHtml(sourceLabel)}</span>
+                  <span>${escapeHtml(rec.name||'')}</span>
+                </div>
+                <img src="${dataUrl}" alt="Beleg ${m.num}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <div class="pdf-note" style="display:none">⚠ Beleg-Typ unbekannt: ${escapeHtml(recType||'kein Typ')} · ${escapeHtml(rec.name||'')}</div>
+              </div>`);
+            renderedReceiptCount++;
+          }catch(err){
+            pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b></span></div><div class="pdf-note">⚠ Beleg konnte nicht gelesen werden: ${escapeHtml(err.message||'Unbekannt')}</div></div>`);
+          }
         }
-      }catch(e){ console.error(e); }
+      }catch(e){
+        console.error('Receipt render error',e);
+        pages.push(`<div class="receipt-page"><div class="receipt-page-head"><span><b>Beleg #${m.num}</b></span></div><div class="pdf-note">⚠ Fehler: ${escapeHtml(e.message||'Unbekannt')}</div></div>`);
+      }
     }
     receiptsHtml = `
       <div class="print-receipts">
-        <h2>Belegsammlung · ${receiptManifest.length} Belege</h2>
+        <h2>Belegsammlung · ${pages.length} Beleg-Seiten (von ${receiptManifest.length} insgesamt)</h2>
         ${pages.join('')}
       </div>`;
   }
@@ -3418,7 +3492,23 @@ async function prepareAndPrint(opts){
       ${escapeHtml(title.replace(/&shy;/g,''))} · ${escapeHtml((s.rank?s.rank+' ':'')+(s.name||''))}${slim?' · Schlanke Version':''}
     </div>
   `;
-  setTimeout(()=>window.print(), 200);
+  // Wait for all images to load before triggering print
+  const allImgs = document.getElementById('printView').querySelectorAll('img');
+  if(allImgs.length){
+    await Promise.all(Array.from(allImgs).map(img => {
+      if(img.complete && img.naturalWidth) return Promise.resolve();
+      return new Promise(resolve => {
+        const done = () => resolve();
+        img.addEventListener('load', done, {once:true});
+        img.addEventListener('error', done, {once:true});
+        // Safety timeout
+        setTimeout(done, 5000);
+      });
+    }));
+  }
+  // Small additional delay for Safari layout pass
+  await new Promise(r => setTimeout(r, 300));
+  window.print();
 }
 
 function blobToDataUrl(blob){
@@ -3493,6 +3583,7 @@ function updateUserChip(){
 }
 async function updateStorageInfo(){
   const el = document.getElementById('storageInfo');
+  const persEl = document.getElementById('persistStatus');
   const fill = document.getElementById('storageFill');
   if(!el) return;
   try{
@@ -3505,14 +3596,29 @@ async function updateStorageInfo(){
       const quota = est.quota || 0;
       const usage = est.usage || 0;
       percent = quota ? (usage/quota*100) : 0;
-      quotaInfo = ` · gesamtes Browser-Kontingent: ${fmtBytes(usage)} / ${fmtBytes(quota)} (${percent.toFixed(1)}%)`;
+      quotaInfo = ` · Browser-Kontingent: ${fmtBytes(usage)} / ${fmtBytes(quota)} (${percent.toFixed(1)}%)`;
     }
-    el.textContent = `${files.length} Beleg(e), ${fmtBytes(totalBytes)}${quotaInfo}`;
+    el.textContent = `${files.length} Beleg(e) · ${fmtBytes(totalBytes)}${quotaInfo}`;
     fill.style.width = Math.min(100,percent)+'%';
     fill.classList.toggle('warn', percent>70);
     fill.classList.toggle('danger', percent>90);
   }catch(e){
     el.textContent = 'Speicherinfo nicht verfügbar.';
+  }
+  // Persistence status
+  if(persEl && navigator.storage){
+    try{
+      const isPersisted = navigator.storage.persisted ? await navigator.storage.persisted() : null;
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      if(isPersisted === true){
+        persEl.innerHTML = '<span style="color:var(--success)">✓ Persistent Storage aktiv</span> — Daten werden vom Browser nicht automatisch gelöscht.';
+      } else if(isIOS || isSafari){
+        persEl.innerHTML = '<span style="color:var(--warn)">⚠ iOS/Safari</span> — Daten werden lokal gespeichert (IndexedDB). Empfehlung: App über Safari-Teilen → „Zum Home-Bildschirm" als PWA installieren, dann werden die Daten länger erhalten. Außerdem regelmäßig JSON-Backup erstellen.';
+      } else if(isPersisted === false){
+        persEl.innerHTML = '<span style="color:var(--muted)">Persistent Storage nicht angefragt — Daten könnten bei Speichermangel evictet werden. Versuche die App als PWA zu installieren.</span>';
+      }
+    }catch(e){}
   }
 }
 
