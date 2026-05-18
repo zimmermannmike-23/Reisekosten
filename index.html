@@ -302,7 +302,7 @@ datalist{display:none;}
 </div>
 <nav class="tabs no-print">
   <div class="tabs-i">
-    <button class="tab on" data-v="wizard">+ Eintrag</button>
+    <button class="tab on" data-v="wizard">Eintrag</button>
     <button class="tab" data-v="overview">Übersicht</button>
     <button class="tab" data-v="receipts">Belege</button>
     <button class="tab" data-v="export">PDF/Druck</button>
@@ -363,10 +363,11 @@ datalist{display:none;}
     </tr></thead><tbody id="tbody"></tbody></table>
     <div id="emptyMsg" style="display:none;padding:50px;text-align:center;color:var(--muted)">
       <div style="font-size:19px;font-weight:700;color:var(--navy);margin-bottom:5px">Noch keine Einträge</div>
-      <div style="font-size:13px">Lege im Reiter &bdquo;+ Eintrag&ldquo; los.</div>
+      <div style="font-size:13px">Lege im Reiter &bdquo;Eintrag&ldquo; los.</div>
     </div>
   </div>
   <div id="ppSummary" style="margin-top:14px"></div>
+  <div id="costsSummary" style="margin-top:0"></div>
   <div id="wsSummary" style="margin-top:14px"></div>
 </section>
 <!-- RECEIPTS -->
@@ -383,7 +384,7 @@ datalist{display:none;}
       <option value="07">Juli</option><option value="08">August</option><option value="09">September</option>
       <option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
     </select>
-    <button class="btn btn-p btn-sm" onclick="renderReceipts()">Laden</button>
+
   </div>
   <div class="card" style="margin-bottom:12px">
     <h3 style="font-size:15px;margin-bottom:4px">&#128203; Bundeswehr Reisekostenabrechnung</h3>
@@ -429,7 +430,8 @@ datalist{display:none;}
     <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:16px">
       <button class="btn btn-gold" onclick="doPrint(false)">&#128438; PDF mit Belegen</button>
       <button class="btn btn-s" onclick="doPrint(true)">&#128196; Schlankes PDF</button>
-      <button class="btn btn-s" onclick="doLandscape()">&#128202; Monatsbericht (Quer)</button>
+      <button class="btn btn-s" onclick="doLandscape()">&#128202; Monatsbericht drucken</button>
+      <button class="btn btn-s" onclick="saveLandscape()">&#128190; Monatsbericht speichern</button>
       <button class="btn btn-s btn-sm" onclick="doExport()">&#128229; JSON-Backup</button>
       <label class="btn btn-s btn-sm" style="cursor:pointer">&#128228; JSON laden<input type="file" accept="application/json" onchange="doImport(event)" style="display:none"></label>
     </div>
@@ -650,6 +652,21 @@ function calcPP(mode,km){
   const m=MODES.find(x=>x.v===mode);
   if(!m||!m.pp)return{ppKm:k,ppTotal:0,ppN:'',auto:false};
   return{ppKm:k,ppTotal:k*m.pp,ppN:m.ppN,auto:true};
+}
+
+/* PP PAIRING LOCK – HF+RF same week cannot both claim PP; TGW-route is separate */
+function ppAlreadyForPair(dayCode, date){
+  if(dayCode!=='HF'&&dayCode!=='RF')return{locked:false};
+  const paired=dayCode==='HF'?'RF':'HF';
+  const d=new Date(date+'T00:00');
+  // Search ±8 days for paired entry with PP
+  for(let i=-8;i<=8;i++){
+    const iso=new Date(d.getTime()+i*86400000).toISOString().slice(0,10);
+    const e=state.entries.find(x=>x.date===iso&&x.dayCode===paired&&x.id!==editId);
+    if(e&&(e.segs||[]).some(s=>s.enabled!==false&&parseFloat(s.ppTotal)>0))
+      return{locked:true,msg:`${paired}-Eintrag (${iso}) hat bereits Pendlerpauschale. Pro Wegstrecke (Hin + Rück) wird PP nur einmal angesetzt.`};
+  }
+  return{locked:false};
 }
 
 /* IMAGE COMPRESSION */
@@ -1023,7 +1040,7 @@ function buildSeg(s,i){
   const aItems=[{l:'🏠 EW',v:fullA(ss.addrPrimary)},{l:'🏡 TGW',v:fullA(ss.addrSecondary)},{l:'🏢 Arb.',v:fullA(ss.addrWork)}].filter(x=>x.v);
   const fc=aItems.map(a=>`<button class="achip" type="button" onclick="setSA(${i},'from','${esc(a.v)}')">${esc(a.l)}</button>`).join('');
   const tc=aItems.map(a=>`<button class="achip" type="button" onclick="setSA(${i},'to','${esc(a.v)}')">${esc(a.l)}</button>`).join('');
-  const pp=s.ppTotal>0?`<span class="badge ok">💶 ${fmtM(s.ppTotal)}</span>`:'';
+  const pp=s.ppTotal>0?`<span class="badge ok">${fmtM(s.ppTotal)}</span>`:'';
   const kmB=s.km?(s.kmSrc==='auto'?`<span class="badge ok">🗺️ ${s.km}km</span>`:`<span class="badge mu">manuell</span>`):'';
   return`<div class="seg" id="seg_${i}">
     <div class="seg-h">
@@ -1081,7 +1098,7 @@ function updatePP(i){
   const pp=calcPP(s.mode,s.km);s.ppKm=pp.ppKm;s.ppTotal=pp.ppTotal;
   const bd=document.getElementById('segBadge_'+i);
   if(bd){const kmB=s.km?(s.kmSrc==='auto'?`<span class="badge ok">🗺️ ${s.km}km</span>`:`<span class="badge mu">manuell</span>`):'';
-    const ppB=pp.auto?`<span class="badge ok">💶 ${fmtM(pp.ppTotal)}</span>`:'';bd.innerHTML=kmB+ppB;}
+    const ppB=pp.auto?`<span class="badge ok">${fmtM(pp.ppTotal)}</span>`:'';bd.innerHTML=kmB+ppB;}
 }
 function addSeg(){wiz.segs.push(freshSeg());const sl=document.getElementById('segList');if(sl)sl.innerHTML=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');}
 function rmSeg(i){wiz.segs.splice(i,1);const sl=document.getElementById('segList');if(sl)sl.innerHTML=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');}
@@ -1093,7 +1110,7 @@ async function autoRoute(i){
     let tg=s.toGeo||lookupGeo(s.toLoc);if(!tg){tg=await geocode(s.toLoc);s.toGeo=tg;}
     const r=await calcRoute(fg,tg);s.km=r.km.toFixed(1);s.kmSrc='auto';
     const pp=calcPP(s.mode,s.km);s.ppKm=pp.ppKm;s.ppTotal=pp.ppTotal;
-    if(bd)bd.innerHTML=`<span class="badge ok">🗺️ ${s.km}km · ~${r.min}min</span>${pp.auto?`<span class="badge ok">💶 ${fmtM(pp.ppTotal)}</span>`:''}`;
+    if(bd)bd.innerHTML=`<span class="badge ok">${s.km}km · ~${r.min}min</span>${pp.auto?`<span class="badge ok">${fmtM(pp.ppTotal)}</span>`:''}`;
     const ki=document.querySelector(`#seg_${i} input[type="number"]`);if(ki)ki.value=s.km;
     toast('Route berechnet ✓','ok');
   }catch(e){if(bd)bd.innerHTML=`<span class="badge err">✕ ${esc(e.message)}</span>`;toast('Fehler: '+e.message,'err');}
@@ -1107,8 +1124,11 @@ function buildCosts(){
   const segBlocks=activeSeg.map((s,rawIdx)=>{
     const realIdx=wiz.segs.indexOf(s);
     const pp=calcPP(s.mode,s.km);
-    const ppHtml=pp.auto?`<div class="pp-box"><b>💶 Pendlerpauschale (automatisch berechnet):</b><br>${esc(pp.ppN)}<br><b>Betrag: ${fmtM(pp.ppTotal)}</b>
-      <button class="rbtn" style="margin-left:9px;margin-top:4px" onclick="applyPP(${realIdx})">Übernehmen</button></div>`:'';
+    const ppPair=ppAlreadyForPair(wiz.dayCode,wiz.date);
+    const ppHtml=pp.auto?(ppPair.locked?
+      `<div class="pp-box" style="background:#fff3cd;border-color:#e6af2e"><b>Pendlerpauschale gesperrt</b><br><small style="color:#6c4a00">${esc(ppPair.msg)}</small></div>`:
+      `<div class="pp-box"><b>Pendlerpauschale (automatisch berechnet):</b><br>${esc(pp.ppN)}<br><b>Betrag: ${fmtM(pp.ppTotal)}</b>
+      <button class="rbtn" style="margin-left:9px;margin-top:4px" onclick="applyPP(${realIdx})">Übernehmen</button></div>`):'';
     const mOpts=['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Pendlerpauschale','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${s.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('');
     return`<div class="cblock">
       <div class="cblock-h"><span class="cblock-t">Abschnitt ${rawIdx+1}: ${esc(s.mode)}${s.fromLoc&&s.toLoc?' · '+esc(s.fromLoc)+' → '+esc(s.toLoc):''}</span></div>
@@ -1149,7 +1169,7 @@ function buildCosts(){
         <div class="g">
           <div class="f"><label>Art</label>
             <select id="genType" onchange="wiz.costType=this.value">
-              ${['','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${wiz.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('')}
+              ${['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Pendlerpauschale','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${wiz.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('')}
             </select>
           </div>
           <div class="f"><label>Betrag</label>
@@ -1191,7 +1211,7 @@ function buildSave(){
   if(w.costAmt){const c=w.costCurr||'EUR';ttlCur[c]=(ttlCur[c]||0)+parseFloat(w.costAmt);}
   const costs=Object.entries(ttlCur).map(([c,v])=>fmtM(v,c)).join(' + ')||'—';
   const ppSum=w.segs.filter(s=>s.enabled!==false).reduce((a,s)=>a+(parseFloat(s.ppTotal)||0),0);
-  const segsStr=w.segs.filter(s=>s.enabled!==false&&s.mode).map(s=>`${s.mode}${s.km?' · '+s.km+'km':''}${s.ppTotal>0?' · 💶'+fmtM(s.ppTotal):''}`).join('; ')||'—';
+  const segsStr=w.segs.filter(s=>s.enabled!==false&&s.mode).map(s=>`${s.mode}${s.km?' · '+s.km+'km':''}${s.ppTotal>0?' · '+fmtM(s.ppTotal):''}`).join('; ')||'—';
   return`<div class="wcard">
     <div class="wcard-head"><h3>Speichern · Zusammenfassung</h3><div class="sub">Bitte prüfen.</div></div>
     <div class="wact">
@@ -1331,23 +1351,23 @@ function renderOverview(){
     const costStr=Object.entries(ttlCur).map(([c,v])=>fmtM(v,c)).join(' + ')||'—';
     const ppSum=(e.segs||[]).reduce((a,s)=>a+(s.enabled!==false?parseFloat(s.ppTotal)||0:0),0);
     const segsStr=(e.segs||[]).filter(s=>s.enabled!==false&&s.mode).map(s=>{
-      const pp=s.ppTotal>0?` <span style="color:var(--ok);font-size:10px">💶${fmtM(s.ppTotal)}</span>`:'';
+      const pp=s.ppTotal>0?` <span style="color:var(--ok);font-size:10px">${fmtM(s.ppTotal)}</span>`:'';
       return`${esc(s.mode)}${s.km?' '+s.km+'km':''}${pp}`;
     }).join('<br>')||'—';
     const rc=(e.segs||[]).reduce((a,s)=>a+(s.recIds?.length||0),0)+(e.recIds?.length||0);
     return`<tr>
-      <td><div class="dcell">${fmtD(e.date)}<small>${dayN(e.date)}</small></div></td>
+      <td><div class="dcell">${fmtD(e.date)}<small>${dayN(e.date)}</small>
+        <div class="acts" style="margin-top:5px">
+          ${e.isFHF?`<button class="btn-xs" onclick="dlFhf('${e.id}')">PDF</button> `:''}
+          <button class="btn-xs" onclick="editEntry('${e.id}')">✎</button>
+          <button class="btn-xs d" onclick="deleteEntry('${e.id}')">✕</button>
+        </div></div></td>
       <td><span class="cpill ${e.dayCode}">${e.dayCode}</span>${e.isFHF?'<span class="ftag">FHF</span>':''}</td>
       <td>${loc}</td>
-      <td style="font-size:11px">${segsStr}${costStr!=='—'?`<br><b style="color:var(--warn)">${costStr}</b>`:''}${ppSum>0?`<br><span style="color:var(--ok);font-size:10px">PP:${fmtM(ppSum)}</span>`:''}${rc>0?`<br><span style="color:var(--muted);font-size:10px">📎${rc}</span>`:''}</td>
-      <td class="acts">
-        ${e.isFHF?`<button class="btn-xs" onclick="dlFhf('${e.id}')">📦</button> `:''}
-        <button class="btn-xs" onclick="editEntry('${e.id}')">✎</button>
-        <button class="btn-xs d" onclick="deleteEntry('${e.id}')">✕</button>
-      </td>
+      <td style="font-size:11px">${segsStr}${costStr!=='—'?`<br><b style="color:var(--warn)">${costStr}</b>`:''}${ppSum>0?`<br><span style="color:var(--ok);font-size:10px">PP: ${fmtM(ppSum)}</span>`:''}${rc>0?`<br><span style="color:var(--muted);font-size:10px">📎${rc}</span>`:''}</td>
     </tr>`;
   }).join('');
-  renderPPSummary(list);renderWSSummary(list);
+  renderPPSummary(list);renderCostsSummary(list);renderWSSummary(list);
   const w=check28W();
   const ob=document.getElementById('ov28');const ot=document.getElementById('ov28txt');
   if(ob)ob.style.display=w.triggered?'flex':'none';if(ot&&w.triggered)ot.textContent=w.msg;
@@ -1378,47 +1398,97 @@ function renderOvStats(list){
   ].map(s=>`<div class="sbox${s.ac?' ac':''}"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('');
 }
 function calcSt(list){
-  let arb=0,hr=0,ef=0,dr=0,lg=0,ub=0,ur=0,fhf=0,hf=0,pp=0;
+  let arb=0,hr=0,ef=0,dr=0,lg=0,ub=0,ur=0,fhf=0,hf=0,pp=0,ppHF=0,ppTGW=0;
   list.forEach(e=>{
+    const dtc=DT[e.dayCode]||{};
     if(isWSDay(e))arb++;if(e.dayCode==='DR')dr++;if(e.dayCode==='LG')lg++;
     if(e.dayCode==='ÜB')ub++;if(e.dayCode==='UR')ur++;if(e.isFHF)fhf++;
     if(e.dayCode==='HF'||e.dayCode==='RF')hf++;
-    if(e.tripType==='hin_zurueck'&&(e.tripFrom||e.tripTo))hr++;
-    else if(e.tripFrom||e.tripTo)ef++;
-    (e.segs||[]).forEach(s=>{if(s.enabled!==false&&s.ppTotal)pp+=parseFloat(s.ppTotal)||0;});
+    // Trips only counted for non-noT days (not UR/WE/KR)
+    if(!dtc.noT){
+      if(e.tripType==='hin_zurueck'&&(e.tripFrom||e.tripTo))hr++;
+      else if(e.tripFrom||e.tripTo)ef++;
+    }
+    (e.segs||[]).forEach(s=>{
+      if(s.enabled!==false&&s.ppTotal){
+        const v=parseFloat(s.ppTotal)||0;pp+=v;
+        if(e.dayCode==='HF'||e.dayCode==='RF')ppHF+=v;else ppTGW+=v;
+      }
+    });
   });
-  return{arb,hr,ef,dr,lg,ub,ur,fhf,hf,pp};
+  return{arb,hr,ef,dr,lg,ub,ur,fhf,hf,pp,ppHF,ppTGW};
 }
 function renderPPSummary(list){
   const el=document.getElementById('ppSummary');if(!el)return;
-  const items=[];let total=0;
+  const hfItems=[],twgItems=[];let hfTot=0,twgTot=0;
   list.forEach(e=>(e.segs||[]).filter(s=>s.enabled!==false&&s.ppTotal>0).forEach(s=>{
-    items.push({date:e.date,mode:s.mode,km:s.km,pp:s.ppTotal});total+=parseFloat(s.ppTotal)||0;
+    const v=parseFloat(s.ppTotal)||0;
+    if(e.dayCode==='HF'||e.dayCode==='RF'){hfItems.push({date:e.date,code:e.dayCode,mode:s.mode,km:s.km,pp:v});hfTot+=v;}
+    else{twgItems.push({date:e.date,code:e.dayCode,mode:s.mode,km:s.km,pp:v});twgTot+=v;}
   }));
-  if(!items.length){el.innerHTML='';return;}
-  el.innerHTML=`<div class="card"><h3 style="font-size:15px;margin-bottom:10px">💶 Pendlerpauschale Übersicht (§9 EStG 2026: 0,38 €/km)</h3>
-    <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Modus</th><th style="padding:7px;text-align:right">km</th><th style="padding:7px;text-align:right">Pauschale</th></tr></thead>
-      <tbody>${items.map(p=>`<tr style="border-bottom:1px solid var(--lsoft)">
-        <td style="padding:6px 7px">${fmtD(p.date)}</td><td style="padding:6px 7px">${esc(p.mode)}</td>
-        <td style="padding:6px 7px;text-align:right">${p.km||'—'}</td>
-        <td style="padding:6px 7px;text-align:right;font-weight:600;color:var(--ok)">${fmtM(p.pp)}</td>
-      </tr>`).join('')}</tbody>
+  if(!hfItems.length&&!twgItems.length){el.innerHTML='';return;}
+  const ppRow=p=>`<tr style="border-bottom:1px solid var(--lsoft)">
+    <td style="padding:6px 7px">${fmtD(p.date)}</td>
+    <td style="padding:6px 7px"><span class="cpill ${p.code}" style="font-size:9px;padding:1px 5px">${p.code}</span></td>
+    <td style="padding:6px 7px">${esc(p.mode)}</td>
+    <td style="padding:6px 7px;text-align:right">${p.km||'—'}</td>
+    <td style="padding:6px 7px;text-align:right;font-weight:600;color:var(--ok)">${fmtM(p.pp)}</td>
+  </tr>`;
+  const thead=`<thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Code</th><th style="padding:7px">Modus</th><th style="padding:7px;text-align:right">km</th><th style="padding:7px;text-align:right">Pauschale</th></tr></thead>`;
+  const tbl=(items,tot,label)=>items.length?`
+    <h4 style="font-size:13px;color:var(--navy);margin:10px 0 5px">${label}</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">${thead}
+      <tbody>${items.map(ppRow).join('')}</tbody>
       <tfoot><tr style="background:var(--lsoft);font-weight:700">
-        <td colspan="3" style="padding:7px">Gesamt</td>
-        <td style="padding:7px;text-align:right;color:var(--ok)">${fmtM(total)}</td>
+        <td colspan="4" style="padding:7px">Summe</td>
+        <td style="padding:7px;text-align:right;color:var(--ok)">${fmtM(tot)}</td>
       </tr></tfoot>
+    </table>`:''
+  const grandTot=hfTot+twgTot;
+  el.innerHTML=`<div class="card"><h3 style="font-size:15px;margin-bottom:6px">Pendlerpauschale (§9 EStG 2026: 0,38 €/km)</h3>
+    ${tbl(hfItems,hfTot,'Heimfahrten / Rückfahrten (HF/RF)')}
+    ${tbl(twgItems,twgTot,'Trennungsgeldwohnung → Arbeitsstätte (AW)')}
+    ${hfItems.length&&twgItems.length?`<div style="margin-top:8px;padding:7px 9px;background:var(--lsoft);border-radius:var(--r);display:flex;justify-content:space-between;font-weight:700"><span>Gesamt Pendlerpauschale</span><span style="color:var(--ok)">${fmtM(grandTot)}</span></div>`:''}
+  </div>`;
+}
+function renderCostsSummary(list){
+  const el=document.getElementById('costsSummary');if(!el)return;
+  const items=[];
+  list.forEach(e=>{
+    (e.segs||[]).filter(s=>s.enabled!==false&&s.costAmt&&s.costType!=='Pendlerpauschale').forEach(s=>{
+      items.push({date:e.date,code:e.dayCode,type:s.costType||'Sonstiges',amt:parseFloat(s.costAmt)||0,curr:s.costCurr||'EUR',desc:s.costDesc||''});
+    });
+    if(e.costAmt&&e.costType!=='Pendlerpauschale')
+      items.push({date:e.date,code:e.dayCode,type:e.costType||'Sonstiges',amt:parseFloat(e.costAmt)||0,curr:e.costCurr||'EUR',desc:e.costDesc||''});
+  });
+  if(!items.length){el.innerHTML='';return;}
+  const totByC={};items.forEach(i=>{totByC[i.curr]=(totByC[i.curr]||0)+i.amt;});
+  el.innerHTML=`<div class="card" style="margin-top:12px"><h3 style="font-size:15px;margin-bottom:8px">Sonstige Kosten</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Code</th><th style="padding:7px">Art</th><th style="padding:7px">Beschreibung</th><th style="padding:7px;text-align:right">Betrag</th></tr></thead>
+      <tbody>${items.map(i=>`<tr style="border-bottom:1px solid var(--lsoft)">
+        <td style="padding:6px 7px">${fmtD(i.date)}</td>
+        <td style="padding:6px 7px"><span class="cpill ${i.code}" style="font-size:9px;padding:1px 5px">${i.code}</span></td>
+        <td style="padding:6px 7px">${esc(i.type)}</td>
+        <td style="padding:6px 7px;color:var(--muted)">${esc(i.desc)}</td>
+        <td style="padding:6px 7px;text-align:right;font-weight:600">${fmtM(i.amt,i.curr)}</td>
+      </tr>`).join('')}</tbody>
+      <tfoot>${Object.entries(totByC).map(([c,v])=>`<tr style="background:var(--lsoft);font-weight:700">
+        <td colspan="4" style="padding:7px">Gesamt (${c})</td>
+        <td style="padding:7px;text-align:right;color:var(--warn)">${fmtM(v,c)}</td>
+      </tr>`).join('')}</tfoot>
     </table></div>`;
 }
 function renderWSSummary(list){
   const el=document.getElementById('wsSummary');if(!el)return;
   const wdays=list.filter(e=>isWSDay(e));
   if(!wdays.length){el.innerHTML='';return;}
-  el.innerHTML=`<div class="card" style="margin-top:12px"><h3 style="font-size:15px;margin-bottom:8px">🏢 Tage an Arbeitsstätte / TGW · ${wdays.length}</h3>
+  el.innerHTML=`<div class="card" style="margin-top:12px"><h3 style="font-size:15px;margin-bottom:8px">Tage an Arbeitsstätte / TGW · ${wdays.length}</h3>
     <div style="display:flex;flex-wrap:wrap;gap:5px">${wdays.map(e=>`<span style="background:var(--oks);color:var(--ok);padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600">${fmtD(e.date)} ${e.dayCode}</span>`).join('')}</div>
   </div>`;
 }
 ['ovY','ovM','ovQ'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('change',renderOverview);if(id==='ovQ')el.addEventListener('input',renderOverview);}});
+['rcY','rcM'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',renderReceipts);});
 /* RECEIPTS VIEW */
 async function renderReceipts(){
   fillYrSel('rcY');
@@ -1635,7 +1705,6 @@ async function doPrint(slim){
       const rids=[...(e.recIds||[])];(e.segs||[]).forEach(sg=>(sg.recIds||[]).forEach(r=>rids.push(r)));
       rids.forEach(rid=>{rctr++;recs.push({num:rctr,rid,entry:e,lbl:`${fmtD(e.date)} · ${DT[e.dayCode]?.n||e.dayCode}`});});
     });}
-  toast('PDF wird vorbereitet…');
   const buildRow=e=>{
     const dt=DT[e.dayCode]||{n:'—'};const noW=dt.noW||dt.noT;
     const dParts=[];
@@ -1647,17 +1716,20 @@ async function doPrint(slim){
     if(e.workNotes)dParts.push(`<i style="color:#888;font-size:7pt">${esc(e.workNotes)}</i>`);
     const dCell=dParts.join('<br>')||'—';
     const rParts=[];
-    if(e.tripFrom||e.tripTo)rParts.push(`<b>${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}</b> <span style="color:#888;font-size:7pt">(${e.tripType==='hin_zurueck'?'H&R':'einf.'})</span>`);
-    (e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode).forEach((sg,si)=>{
-      const segParts=[];
-      if(sg.mode)segParts.push(`<b>${esc(sg.mode)}</b>`);
-      if(sg.km)segParts.push(`${sg.km}km`);
-      if(sg.fromLoc||sg.toLoc)segParts.push(`${esc(sg.fromLoc||'?')}→${esc(sg.toLoc||'?')}`);
-      if(sg.dep||sg.arr)segParts.push(`${sg.dep||'?'}–${sg.arr||'?'}`);
-      if(sg.costAmt)segParts.push(`<b style="color:#2d6a4f">${fmtM(parseFloat(sg.costAmt),sg.costCurr)}</b>`);
-      if(sg.ppTotal>0)segParts.push(`<span style="color:#2d6a4f;font-size:7pt">PP:${fmtM(sg.ppTotal)}</span>`);
-      rParts.push(segParts.join(' · '));
-    });
+    // No trip display for noT days (UR/KR/WE)
+    if(!dt.noT){
+      if(e.tripFrom||e.tripTo)rParts.push(`<b>${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}</b> <span style="color:#888;font-size:7pt">(${e.tripType==='hin_zurueck'?'H&R':'einf.'})</span>`);
+      (e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode).forEach((sg,si)=>{
+        const segParts=[];
+        if(sg.mode)segParts.push(`<b>${esc(sg.mode)}</b>`);
+        if(sg.km)segParts.push(`${sg.km}km`);
+        if(sg.fromLoc||sg.toLoc)segParts.push(`${esc(sg.fromLoc||'?')}→${esc(sg.toLoc||'?')}`);
+        if(sg.dep||sg.arr)segParts.push(`${sg.dep||'?'}–${sg.arr||'?'}`);
+        if(sg.costAmt)segParts.push(`<b style="color:#2d6a4f">${fmtM(parseFloat(sg.costAmt),sg.costCurr)}</b>`);
+        if(sg.ppTotal>0)segParts.push(`<span style="color:#2d6a4f;font-size:7pt">PP:${fmtM(sg.ppTotal)}</span>`);
+        rParts.push(segParts.join(' · '));
+      });
+    }
     if(e.costAmt){const c=e.costCurr||'EUR';rParts.push(`Allg.: <b style="color:#a86b1f">${fmtM(parseFloat(e.costAmt),c)}</b>${e.costType?' ('+esc(e.costType)+')':''}`);}
     const rCell=rParts.join('<br>')||'—';
     const numRefs=recs.filter(r=>r.entry===e).map(r=>`#${r.num}`).join(',');
@@ -1676,15 +1748,25 @@ async function doPrint(slim){
   if(sort==='code'){const grps={};list.forEach(e=>(grps[e.dayCode]=grps[e.dayCode]||[]).push(e));
     Object.keys(grps).sort().forEach(c=>{tbody+=`<tr><td colspan="4" style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt"><span style="background:#c9a84c;color:#1a3a5c;padding:0 5px;border-radius:2px;margin-right:5px">${c}</span>${esc(DT[c]?.n||c)} · ${grps[c].length}</td></tr>`;grps[c].forEach(e=>{tbody+=buildRow(e);});});}
   else tbody=list.map(buildRow).join('');
-  const ppItems=[];let ppTot=0;
-  list.forEach(e=>(e.segs||[]).filter(s=>s.enabled!==false&&s.ppTotal>0).forEach(s=>{ppItems.push({date:e.date,mode:s.mode,km:s.km,pp:s.ppTotal});ppTot+=parseFloat(s.ppTotal)||0;}));
-  const ppHtml=ppItems.length?`<div style="margin-top:3mm;page-break-inside:avoid">
-    <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Pendlerpauschale 2026 · 0,38 €/km ab km 1 (§9 EStG)</div>
-    <table style="width:100%;border-collapse:collapse;font-size:7.5pt">
-      <tr style="background:#f5f5ee"><th style="padding:1.5mm;text-align:left">Datum</th><th style="padding:1.5mm;text-align:left">Modus</th><th style="padding:1.5mm;text-align:right">km</th><th style="padding:1.5mm;text-align:right">Pauschale</th></tr>
-      ${ppItems.map(p=>`<tr style="border-bottom:.5px solid #ddd"><td style="padding:1.2mm">${fmtD(p.date)}</td><td style="padding:1.2mm">${esc(p.mode)}</td><td style="padding:1.2mm;text-align:right">${p.km||'—'}</td><td style="padding:1.2mm;text-align:right;font-weight:700;color:#2d6a4f">${fmtM(p.pp)}</td></tr>`).join('')}
-      <tr style="background:#fafaf3;font-weight:700"><td colspan="3" style="padding:1.5mm">Gesamt</td><td style="padding:1.5mm;text-align:right;color:#2d6a4f">${fmtM(ppTot)}</td></tr>
+  const ppHF=[],ppTGW=[];let ppTotHF=0,ppTotTGW=0;
+  list.forEach(e=>(e.segs||[]).filter(s=>s.enabled!==false&&s.ppTotal>0).forEach(s=>{
+    const v=parseFloat(s.ppTotal)||0;const item={date:e.date,code:e.dayCode,mode:s.mode,km:s.km,pp:v};
+    if(e.dayCode==='HF'||e.dayCode==='RF'){ppHF.push(item);ppTotHF+=v;}else{ppTGW.push(item);ppTotTGW+=v;}
+  }));
+  const ppTot=ppTotHF+ppTotTGW;
+  const ppTbl=(items,tot,label)=>items.length?`<div style="margin-top:2mm">
+    <div style="font-size:7pt;font-weight:700;color:#1a3a5c;margin-bottom:1mm;text-transform:uppercase;letter-spacing:.3px">${label}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:7pt">
+      <tr style="background:#f5f5ee"><th style="padding:1.2mm;text-align:left">Datum</th><th style="padding:1.2mm;text-align:left">Code</th><th style="padding:1.2mm;text-align:left">Modus</th><th style="padding:1.2mm;text-align:right">km</th><th style="padding:1.2mm;text-align:right">Pauschale</th></tr>
+      ${items.map(p=>`<tr style="border-bottom:.5px solid #ddd"><td style="padding:1mm">${fmtD(p.date)}</td><td style="padding:1mm;font-weight:700">${p.code}</td><td style="padding:1mm">${esc(p.mode)}</td><td style="padding:1mm;text-align:right">${p.km||'—'}</td><td style="padding:1mm;text-align:right;font-weight:700;color:#2d6a4f">${fmtM(p.pp)}</td></tr>`).join('')}
+      <tr style="background:#fafaf3;font-weight:700"><td colspan="4" style="padding:1.2mm">Summe</td><td style="padding:1.2mm;text-align:right;color:#2d6a4f">${fmtM(tot)}</td></tr>
     </table></div>`:'';
+  const ppHtml=(ppHF.length||ppTGW.length)?`<div style="margin-top:3mm;page-break-inside:avoid">
+    <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Pendlerpauschale 2026 · 0,38 €/km (§9 EStG)</div>
+    ${ppTbl(ppHF,ppTotHF,'Heimfahrten / Rückfahrten (HF/RF)')}
+    ${ppTbl(ppTGW,ppTotTGW,'Trennungsgeldwohnung → Arbeitsstätte (AW)')}
+    ${ppHF.length&&ppTGW.length?`<div style="background:#e6efe9;padding:1.5mm 2mm;margin-top:1.5mm;font-weight:700;font-size:8pt;display:flex;justify-content:space-between"><span>Gesamt Pendlerpauschale</span><span style="color:#2d6a4f">${fmtM(ppTot)}</span></div>`:''}
+  </div>`:'';
   const wsDays=list.filter(e=>isWSDay(e));
   const wsHtml=wsDays.length?`<div style="margin-top:3mm;page-break-inside:avoid">
     <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Tage an Arbeitsstätte / TGW · ${wsDays.length}</div>
@@ -1707,33 +1789,21 @@ async function doPrint(slim){
   </div>`:'';
   let recHtml='';
   if(!slim&&recs.length){
-    toast(`Lade ${recs.length} Beleg(e)…`);const pages=[];
+    // Load filenames for Belegübersicht
+    for(const m of recs){try{const r=await idbGetF(m.rid);m.fname=r?.name||m.rid;}catch(ex){m.fname=m.rid;}}
     const recOverview=`<div style="page-break-before:always;margin-bottom:4mm">
       <div style="font-family:serif;font-size:11pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:1.5mm;margin-bottom:2mm;font-weight:600">Belegübersicht · ${recs.length} Belege (chronologisch)</div>
       <table style="width:100%;border-collapse:collapse;font-size:8pt">
-        <tr style="background:#1a3a5c;color:#fff"><th style="padding:1.5mm">Nr.</th><th style="padding:1.5mm">Datum</th><th style="padding:1.5mm">Bezeichnung</th><th style="padding:1.5mm">Datei</th></tr>
+        <tr style="background:#1a3a5c;color:#fff"><th style="padding:1.5mm">Nr.</th><th style="padding:1.5mm">Datum</th><th style="padding:1.5mm">Bezeichnung</th><th style="padding:1.5mm">Dateiname</th></tr>
         ${recs.map(r=>`<tr style="border-bottom:.5px solid #ddd">
           <td style="padding:1.2mm;font-weight:700;color:#1a3a5c">#${r.num}</td>
           <td style="padding:1.2mm">${fmtD(r.entry.date)}</td>
           <td style="padding:1.2mm">${esc(r.lbl)}</td>
-          <td style="padding:1.2mm;color:#888;font-size:7pt">${esc(r.rid)}</td>
+          <td style="padding:1.2mm;color:#555;font-size:7.5pt">${esc(r.fname||'—')}</td>
         </tr>`).join('')}
       </table>
     </div>`;
-    pages.push(recOverview);
-    for(const m of recs){try{
-      const r=await idbGetF(m.rid);if(!r||!r.blob)continue;
-      const recType=r.type||r.blob.type||'';
-      const hd=`<div style="display:flex;justify-content:space-between;border-bottom:.5px solid #c9a84c;padding-bottom:1.5mm;margin-bottom:2mm;font-size:8pt">
-        <span><b style="color:#1a3a5c">Beleg #${m.num}</b> · ${esc(m.lbl)}</span><span style="color:#888">${esc(r.name||'')}</span></div>`;
-      if(recType.startsWith('image/')||(r.name&&/\.(jpe?g|png|gif|webp|heic)$/i.test(r.name))){
-        const du=await toDataURL(r.blob);
-        pages.push(`<div style="page-break-inside:avoid;page-break-after:always;border:.5px solid #ccc;padding:3mm;margin-bottom:3mm">${hd}<img src="${du}" style="max-width:100%;max-height:230mm;display:block;margin:0 auto"></div>`);
-      }else if(recType==='application/pdf'||(r.name&&/\.pdf$/i.test(r.name))){
-        pages.push(`<div style="page-break-inside:avoid;page-break-after:always;border:.5px solid #ccc;padding:3mm">${hd}<div style="padding:12mm;text-align:center;background:#f5f5ee;color:#666;font-style:italic">📄 ${esc(r.name)} (${fmtBytes(r.size)}) — separat beilegen.</div></div>`);
-      }
-    }catch(ex){console.error(ex);}}
-    recHtml=`<div>${pages.join('')}</div>`;
+    recHtml=`<div>${recOverview}</div>`;
   }
   document.getElementById('pv').innerHTML=`
     <style>body{font-family:'Helvetica Neue',Arial,sans-serif;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c;color:#fff;text-align:left;padding:2mm;font-size:7.5pt;text-transform:uppercase;}.pfooter{position:fixed;bottom:5mm;left:0;right:0;text-align:center;font-size:7pt;color:#999;border-top:.5px solid #ddd;padding-top:1.5mm;}</style>
@@ -1770,7 +1840,11 @@ async function doPrint(slim){
     if(img.complete&&img.naturalWidth)return Promise.resolve();
     return new Promise(res=>{img.addEventListener('load',res,{once:true});img.addEventListener('error',res,{once:true});setTimeout(res,5000);});
   }));
+  const _oldTitle=document.title;
+  const _yr=from?from.slice(0,4):String(new Date().getFullYear());
+  document.title=`${_yr} ${title}`;
   await new Promise(r=>setTimeout(r,300));window.print();
+  setTimeout(()=>{document.title=_oldTitle;},1500);
 }
 
 /* LANDSCAPE MONTHLY REPORT */
@@ -1795,7 +1869,7 @@ async function doLandscape(){
       <td style="padding:1.2mm 2mm;font-size:7.5pt">${esc(dt.n)}</td>
       <td style="padding:1.2mm 2mm;font-size:7pt;text-align:center">${ws}</td>
       <td style="padding:1.2mm 2mm;font-size:7pt">${e.workStart&&e.workEnd?e.workStart+'–'+e.workEnd:e.presentNoWork?'o.D.':e.stayLocation?esc(e.stayLocation):'—'}</td>
-      <td style="padding:1.2mm 2mm;font-size:7pt">${esc((e.tripFrom&&e.tripTo)?e.tripFrom+' → '+e.tripTo:(e.stayLocation||'—'))}</td>
+      <td style="padding:1.2mm 2mm;font-size:7pt">${esc((e.tripFrom&&e.tripTo)?e.tripFrom+' → '+e.tripTo:'—')}</td>
       <td style="padding:1.2mm 2mm;font-size:7pt">${esc(segsStr)}</td>
       <td style="padding:1.2mm 2mm;font-size:7.5pt;text-align:right">${costStr!=='—'?costStr:'—'}</td>
       <td style="padding:1.2mm 2mm;font-size:7.5pt;text-align:right;color:#2d6a4f">${ppSum>0?fmtM(ppSum):'—'}</td>
@@ -1803,14 +1877,16 @@ async function doLandscape(){
     </tr>`;
   }).join('');
   document.getElementById('pv').innerHTML=`
-    <style>@page{size:A4 landscape;margin:9mm 11mm 12mm 11mm;}body{font-family:'Helvetica Neue',Arial,sans-serif;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c;color:#fff;text-align:left;padding:2mm;font-size:7pt;text-transform:uppercase;}</style>
+    <style>@page{size:A4 landscape;margin:10mm 12mm 12mm 12mm;}body{font-family:'Helvetica Neue',Arial,sans-serif;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c;color:#fff;text-align:left;padding:2mm;font-size:7pt;text-transform:uppercase;}</style>
     <div style="border-bottom:2px solid #1a3a5c;padding-bottom:3mm;margin-bottom:3mm;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap">
       <div><div style="font-family:serif;font-size:15pt;color:#1a3a5c;font-weight:600">Monatsbericht · ${period}</div>
         <div style="font-size:8.5pt;color:#444;margin-top:1mm">${esc((s.rank?s.rank+' ':'')+s.name||'—')} ${s.unit?'· '+esc(s.unit):''}</div>
       </div>
       <div style="display:flex;gap:4mm;font-size:8pt;flex-wrap:wrap">
         ${[{n:list.length,l:'Einträge'},{n:ov.arb,l:'Arb.-Tage'},{n:ov.dr,l:'DR'},{n:ov.lg,l:'LG'},{n:ov.ub,l:'ÜB'},{n:ov.ur,l:'Urlaub'},{n:ov.fhf,l:'FHF'}].map(x=>`<span><b>${x.n}</b> ${x.l}</span>`).join('')}
-        ${ppTot>0?`<span style="color:#2d6a4f"><b>PP: ${fmtM(ppTot)}</b></span>`:''}
+        ${ov.ppHF>0?`<span style="color:#2d6a4f"><b>PP HF/RF: ${fmtM(ov.ppHF)}</b></span>`:''}
+        ${ov.ppTGW>0?`<span style="color:#2d6a4f"><b>PP TGW: ${fmtM(ov.ppTGW)}</b></span>`:''}
+        ${ppTot>0?`<span style="color:#2d6a4f;font-weight:700">PP gesamt: ${fmtM(ppTot)}</span>`:''}
       </div>
     </div>
     <table><thead><tr>
@@ -1876,6 +1952,166 @@ async function reencJpeg(blob){return new Promise((res,rej)=>{
     c.toBlob(b=>{URL.revokeObjectURL(url);res(b);},'image/jpeg',0.85);};
   img.onerror=e=>{URL.revokeObjectURL(url);rej(e);};img.src=url;
 });}
+
+/* SAVE LANDSCAPE TO BELEGE */
+async function saveLandscape(){
+  const from=document.getElementById('exFrom')?.value||'';
+  const to=document.getElementById('exTo')?.value||'';
+  const d=from?new Date(from+'T00:00'):new Date();
+  const yr=d.getFullYear();const mo=pad(d.getMonth()+1);
+  const key=`${yr}-${mo}`;
+  let list=getRange(from,to).filter(e=>isCatOn(e.dayCode)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(!list.length){toast('Keine Einträge im Zeitraum','err');return;}
+  toast('PDF wird erstellt...');
+  try{
+    const pdfBytes=await genMonthPdf(list,yr,mo);
+    const blob=new Blob([pdfBytes],{type:'application/pdf'});
+    const fname=`${yr}-${mo}_Monatsbericht.pdf`;
+    const fid=await storeFile(new File([blob],fname,{type:'application/pdf'}),`mb_${key}`);
+    if(!state.settings.bwReceipts)state.settings.bwReceipts={};
+    if(!state.settings.bwReceipts[key])state.settings.bwReceipts[key]=[];
+    if(!state.settings.bwReceipts[key].includes(fid))state.settings.bwReceipts[key].push(fid);
+    persist();
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    document.querySelector('[data-v="receipts"]')?.classList.add('on');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    document.getElementById('view-receipts')?.classList.add('on');
+    const rcY=document.getElementById('rcY');const rcM2=document.getElementById('rcM');
+    if(rcY)rcY.value=String(yr);if(rcM2)rcM2.value=mo;
+    await renderReceipts();
+    toast(`${fname} gespeichert`,'ok');
+  }catch(e){toast('PDF-Fehler: '+e.message,'err');console.error(e);}
+}
+
+/* MONATSBERICHT PDF GENERATION (A4 landscape, pdf-lib) */
+async function genMonthPdf(list,yr,mo){
+  await loadPdfLib();
+  const{PDFDocument,StandardFonts,rgb}=window.PDFLib;
+  const doc=await PDFDocument.create();
+  const fb=await doc.embedFont(StandardFonts.HelveticaBold);
+  const f=await doc.embedFont(StandardFonts.Helvetica);
+  const NAV=rgb(0.102,0.227,0.361),GLD=rgb(0.788,0.659,0.188);
+  const GRN=rgb(0.18,0.42,0.31),GRY=rgb(0.5,0.5,0.5),WHT=rgb(1,1,1),LGRY=rgb(0.96,0.96,0.96);
+  // A4 landscape
+  const PW=841.89,PH=595.28,ML=22,MR=22,MT=22,MB=22;
+  const TW=PW-ML-MR; // ~797.89
+  // columns: widths sum to TW
+  const COLS=[
+    {l:'Datum',      w:80, align:'left'},
+    {l:'Code',       w:28, align:'center'},
+    {l:'Art',        w:65, align:'left'},
+    {l:'AS',         w:20, align:'center'},
+    {l:'Dienst',     w:62, align:'left'},
+    {l:'Fahrt',      w:148, align:'left'},
+    {l:'Reisemittel',w:145, align:'left'},
+    {l:'Kosten',     w:82, align:'right'},
+    {l:'PP',         w:68, align:'right'},
+    {l:'FHF',        w:30, align:'center'},
+  ]; // sum=728; remaining=797.89-728=69.89 → distribute to Fahrt+Reisemittel
+  // adjust Fahrt +35, Reisemittel +35 → Fahrt=183, Reisemittel=180; total=798
+  COLS[5].w=183;COLS[6].w=180;
+  const RH=13,HDRH=15,TITLEH=36,SUMH=20;
+  const s=state.settings;const ov=calcSt(list);
+  // helper: safe text (replace non-latin chars)
+  function st(v){return String(v||'').replace(/\u2192/g,'->').replace(/\u2013|\u2014/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[^\x00-\xFF]/g,'?');}
+  // helper: fit text to width
+  function fit(txt,maxW,font,sz){
+    let t=txt;let tw=font.widthOfTextAtSize(t,sz);
+    if(tw<=maxW)return t;
+    while(t.length>1&&font.widthOfTextAtSize(t+'..',sz)>maxW)t=t.slice(0,-1);
+    return t+'..';
+  }
+  let page,y;
+  function newPage(){
+    page=doc.addPage([PW,PH]);y=PH-MT;
+    // draw thin border
+    page.drawRectangle({x:ML-2,y:MB-2,width:TW+4,height:PH-MT-MB+4,borderColor:GLD,borderWidth:0.5,color:rgb(1,1,1)});
+  }
+  function drawTableHeader(){
+    page.drawRectangle({x:ML,y:y-HDRH,width:TW,height:HDRH,color:NAV});
+    let x=ML;
+    COLS.forEach(col=>{
+      const txt=fit(st(col.l),col.w-4,fb,7);
+      page.drawText(txt,{x:x+2,y:y-HDRH+4,size:7,font:fb,color:WHT});
+      x+=col.w;
+    });
+    y-=HDRH;
+  }
+  // Title page header
+  newPage();
+  // Title bar
+  page.drawRectangle({x:ML,y:y-TITLEH,width:TW,height:TITLEH,color:NAV});
+  const titleStr=st(`${yr}-${mo} Monatsbericht`);
+  page.drawText(titleStr,{x:ML+8,y:y-TITLEH+12,size:16,font:fb,color:WHT});
+  const nameStr=st((s.rank?s.rank+' ':'')+s.name+(s.unit?' · '+s.unit:''));
+  page.drawText(nameStr,{x:ML+8,y:y-TITLEH+3,size:7.5,font:f,color:GLD});
+  y-=TITLEH+3;
+  // Stats row
+  const stats=[
+    `Einträge: ${list.length}`,
+    `Arb.-Tage: ${ov.arb}`,
+    `DR: ${ov.dr}`,`LG: ${ov.lg}`,`UEB: ${ov.ub}`,`Urlaub: ${ov.ur}`,`FHF: ${ov.fhf}`,
+    ov.ppHF>0?`PP HF/RF: ${fmtM(ov.ppHF)}`:'',
+    ov.ppTGW>0?`PP TGW: ${fmtM(ov.ppTGW)}`:'',
+    ov.pp>0?`PP gesamt: ${fmtM(ov.pp)}`:'',
+  ].filter(Boolean);
+  page.drawRectangle({x:ML,y:y-SUMH,width:TW,height:SUMH,color:LGRY});
+  let sx=ML+4;stats.forEach(st2=>{
+    page.drawText(st(st2),{x:sx,y:y-SUMH+5,size:7,font:f,color:NAV});
+    sx+=f.widthOfTextAtSize(st(st2),7)+14;
+  });
+  y-=SUMH+4;
+  // Table
+  drawTableHeader();
+  let rowIdx=0;
+  for(const e of list){
+    if(y-RH<MB+12){newPage();drawTableHeader();}
+    // alternating row bg
+    if(rowIdx%2===1)page.drawRectangle({x:ML,y:y-RH,width:TW,height:RH,color:LGRY});
+    const dt=DT[e.dayCode]||{n:''};
+    const segsStr=(e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode).map(sg=>sg.mode+(sg.km?' '+sg.km+'km':'')).join(', ')||'';
+    const totC={};
+    (e.segs||[]).forEach(sg=>{if(sg.enabled!==false&&sg.costAmt){const c=sg.costCurr||'EUR';totC[c]=(totC[c]||0)+parseFloat(sg.costAmt);}});
+    if(e.costAmt){const c=e.costCurr||'EUR';totC[c]=(totC[c]||0)+parseFloat(e.costAmt);}
+    const costStr=Object.entries(totC).map(([c,v])=>fmtM(v,c)).join(' + ')||'';
+    const ppSum=(e.segs||[]).reduce((a,sg)=>a+(sg.enabled!==false?parseFloat(sg.ppTotal)||0:0),0);
+    const ws=isWSDay(e)?'x':'';
+    const fahrt=(e.tripFrom&&e.tripTo)?e.tripFrom+' -> '+e.tripTo:'';
+    const dienst=e.workStart&&e.workEnd?e.workStart+'-'+e.workEnd:e.presentNoWork?'o.D.':e.stayLocation||'';
+    const cells=[
+      fmtD(e.date)+' '+dayN(e.date).slice(0,2),
+      e.dayCode,
+      dt.n||'',
+      ws,
+      dienst,
+      fahrt,
+      segsStr,
+      costStr,
+      ppSum>0?fmtM(ppSum):'',
+      e.isFHF?'FHF':'',
+    ];
+    let x=ML;
+    cells.forEach((cell,ci)=>{
+      const col=COLS[ci];
+      const txt=fit(st(cell),col.w-4,f,7.5);
+      const cx=col.align==='right'?x+col.w-f.widthOfTextAtSize(txt,7.5)-2:col.align==='center'?x+(col.w-f.widthOfTextAtSize(txt,7.5))/2:x+2;
+      const color=ci===8&&ppSum>0?GRN:ci===1?NAV:GRY;
+      try{page.drawText(txt,{x:cx,y:y-RH+3.5,size:7.5,font:ci===1?fb:f,color});}catch(er){}
+      x+=col.w;
+    });
+    // bottom border
+    page.drawLine({start:{x:ML,y:y-RH},end:{x:ML+TW,y:y-RH},thickness:0.3,color:rgb(0.85,0.85,0.85)});
+    y-=RH;rowIdx++;
+  }
+  // Footer on all pages
+  const pageCount=doc.getPageCount();
+  for(let pi=0;pi<pageCount;pi++){
+    const pg=doc.getPage(pi);
+    const footTxt=st(`${yr}-${mo} Monatsbericht  ·  ${(s.rank?s.rank+' ':'')+s.name||''}  ·  Seite ${pi+1}/${pageCount}  ·  ${new Date().toLocaleDateString('de-DE')}`);
+    pg.drawText(footTxt,{x:ML,y:MB-8,size:6,font:f,color:GRY});
+  }
+  return doc.save();
+}
 
 /* INIT */
 (async()=>{
