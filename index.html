@@ -2095,14 +2095,7 @@ async function saveLandscape(){
 }
 
 /* MONATSBERICHT PDF GENERATION (A4 landscape, pdf-lib) */
-function plzOrt(addr){
-  if(!addr||!addr.trim())return'—';
-  const m=(addr||'').match(/(\d{4,5})[,\s]+([^,
-]+)/);
-  if(m)return(m[1]+' '+m[2].trim()).slice(0,28);
-  return addr.replace(/
-/g,' ').slice(0,28);
-}
+function plzOrt(addr){if(!addr||!addr.trim())return'';var parts=(addr||'').split(/[,\n]/);var plz='';var ort='';for(var i=0;i<parts.length;i++){var p=parts[i].trim();if(!plz&&/^\d{4,5}$/.test(p))plz=p;else if(plz&&!ort&&p)ort=p;}if(plz&&ort)return(plz+' '+ort).slice(0,30);return parts[0].trim().slice(0,30);}
 
 async function genMonthPdf(list,yr,mo){
   await loadPdfLib();
