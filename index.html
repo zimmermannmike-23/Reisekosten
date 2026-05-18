@@ -276,7 +276,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 80px;}
   @page:first{margin-top:9mm;}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   body{background:#fff;color:#000;font-size:8.5pt;font-family:'Helvetica Neue',Arial,sans-serif;}
-  .topbar,.tabs,.no-print,.acts,.wact,.btn{display:none!important;}
+  .topbar,.tabs,.no-print,.acts,.wact,.btn,.toast,.modal,.overlay,.modal-box{display:none!important;}
   main{padding:0;max-width:none;}
   .view{display:none!important;}
   .print-only{display:block!important;}
@@ -394,6 +394,11 @@ datalist{display:none;}
       &#128206; BW-Beleg hochladen
       <input type="file" id="bwInput" accept="image/*,application/pdf" multiple onchange="handleBwUpload(event)">
     </label>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="font-size:15px;margin-bottom:4px">&#128196; Monatsberichte</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:8px">Gespeicherte Monatsübersichten (PDF). Automatisch gespeichert zum Monatsende.</p>
+    <div id="mbArea"></div>
   </div>
   <div id="rcList"></div>
 </section>
@@ -557,7 +562,7 @@ let state={entries:[],settings:{
 let wiz=freshW(), curStep=0, editId=null, calY=new Date().getFullYear(), calM=new Date().getMonth();
 let lastNom=0, folderHandle=null;
 
-function freshW(){return{
+function freshW(){return{costEnabled:true,
   date:todayISO(),dayCode:'AW',vorhaben:'',isFHF:false,presentNoWork:false,
   workStart:'',workEnd:'',workLocation:'',workNotes:'',
   verpflegung:'',stayLocation:'',
@@ -635,13 +640,17 @@ function migrate(){
       if(Array.isArray(e.segments)){e.segs=e.segments.map(s=>({...freshSeg(),mode:s.mode||'',fromLoc:s.fromLoc||'',toLoc:s.toLoc||'',km:s.km||'',kmSrc:s.kmSrc||s.kmSource||'',dep:s.dep||'',arr:s.arr||'',detail:s.route||'',recIds:s.receiptIds||s.costRecIds||[]}));}
       else if(Array.isArray(e.travelSegments)){e.segs=e.travelSegments.map(s=>({...freshSeg(),mode:s.mode||'',fromLoc:s.fromLoc||'',toLoc:s.toLoc||'',km:s.km||'',kmSrc:s.kmSource||'',dep:s.dep||'',arr:s.arr||'',detail:s.route||'',recIds:s.receiptIds||[]}));}
     }
-    e.segs.forEach(s=>{if(!Array.isArray(s.recIds))s.recIds=s.costRecIds||s.receiptIds||[];if(typeof s.enabled!=='boolean')s.enabled=true;if(!s.ppKm)s.ppKm=0;if(!s.ppTotal)s.ppTotal=0;if(!s.costCurr)s.costCurr='EUR';});
+    e.segs.forEach(s=>{if(!Array.isArray(s.recIds))s.recIds=s.costRecIds||s.receiptIds||[];if(typeof s.enabled!=='boolean')s.enabled=true;if(!s.ppKm)s.ppKm=0;if(!s.ppTotal)s.ppTotal=0;if(!s.costCurr)s.costCurr='EUR';
+      // Recalculate ppTotal if never set (ppKm===0) but mode+km present
+      if(s.mode&&s.km&&s.ppKm===0){const ppr=MODES.find(x=>x.v===s.mode);if(ppr&&ppr.pp){s.ppKm=parseFloat(s.km)||0;s.ppTotal=s.ppKm*ppr.pp;}}
+    });
     if(!Array.isArray(e.recIds))e.recIds=e.costRecIds||e.costReceiptIds||[];
     if(!e.stayLocation)e.stayLocation='';if(!e.verpflegung)e.verpflegung='';
     if(!e.tripType)e.tripType='einfach';
   });
   if(!state.settings.addressHistory)state.settings.addressHistory=[];
   if(!state.settings.bwReceipts)state.settings.bwReceipts={};
+  if(!state.settings.mbReceipts)state.settings.mbReceipts={};
   if(!state.settings.dtKosten)state.settings.dtKosten=0;
   if(!state.settings.dtStart)state.settings.dtStart='';
 }
@@ -660,7 +669,7 @@ function ppAlreadyForPair(dayCode, date){
   const paired=dayCode==='HF'?'RF':'HF';
   const d=new Date(date+'T00:00');
   // Search ±8 days for paired entry with PP
-  for(let i=-8;i<=8;i++){
+  for(let i=-5;i<=5;i++){
     const iso=new Date(d.getTime()+i*86400000).toISOString().slice(0,10);
     const e=state.entries.find(x=>x.date===iso&&x.dayCode===paired&&x.id!==editId);
     if(e&&(e.segs||[]).some(s=>s.enabled!==false&&parseFloat(s.ppTotal)>0))
@@ -1130,15 +1139,15 @@ function buildCosts(){
       `<div class="pp-box"><b>Pendlerpauschale (automatisch berechnet):</b><br>${esc(pp.ppN)}<br><b>Betrag: ${fmtM(pp.ppTotal)}</b>
       <button class="rbtn" style="margin-left:9px;margin-top:4px" onclick="applyPP(${realIdx})">Übernehmen</button></div>`):'';
     const mOpts=['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Pendlerpauschale','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${s.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('');
-    return`<div class="cblock">
+    return`<div class="cblock" data-segidx="${realIdx}">
       <div class="cblock-h"><span class="cblock-t">Abschnitt ${rawIdx+1}: ${esc(s.mode)}${s.fromLoc&&s.toLoc?' · '+esc(s.fromLoc)+' → '+esc(s.toLoc):''}</span></div>
       ${ppHtml}
       <div class="g">
         <div class="f"><label>Art der Kosten</label>
-          <select onchange="setSeg(${realIdx},'costType',this.value)">${mOpts}</select>
+          <select class="seg-cost-type" onchange="setSeg(${realIdx},'costType',this.value)">${mOpts}</select>
         </div>
         <div class="f"><label>Betrag</label>
-          <input type="number" min="0" step="0.01" value="${esc(s.costAmt)}" onchange="setSeg(${realIdx},'costAmt',this.value)" placeholder="0,00">
+          <input class="seg-cost-amt" type="number" min="0" step="0.01" value="${esc(s.costAmt)}" onchange="setSeg(${realIdx},'costAmt',this.value)" placeholder="0,00">
         </div>
         <div class="f"><label>Währung</label>
           <select onchange="setSeg(${realIdx},'costCurr',this.value)">
@@ -1148,7 +1157,7 @@ function buildCosts(){
       </div>
       <div class="f" style="margin-top:9px">
         <label>Beschreibung</label>
-        <input type="text" value="${esc(s.costDesc)}" onchange="setSeg(${realIdx},'costDesc',this.value)" placeholder="z. B. ICE München – Salzburg">
+        <input class="seg-cost-desc" type="text" value="${esc(s.costDesc)}" onchange="setSeg(${realIdx},'costDesc',this.value)" placeholder="z. B. ICE München – Salzburg">
       </div>
       <div class="rec-sec">
         <div class="rec-lbl"><span>Belege (${s.recIds.length})</span>
@@ -1165,7 +1174,13 @@ function buildCosts(){
     <div class="wbody">
       ${segBlocks||'<p style="color:var(--muted);font-size:13px;margin-bottom:14px">Keine aktiven Reisemittel erfasst.</p>'}
       <div class="cblock" style="margin-top:10px">
-        <div class="cblock-h"><span class="cblock-t">Allgemeine Kosten</span></div>
+        <div class="cblock-h" style="display:flex;align-items:center;gap:10px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="checkbox" id="genEnabled" ${wiz.costEnabled!==false?'checked':''} onchange="wiz.costEnabled=this.checked;document.getElementById('genBody').style.display=this.checked?'':'none'">
+            <span class="cblock-t">Allgemeine Kosten aktivieren</span>
+          </label>
+        </div>
+        <div id="genBody" style="display:${wiz.costEnabled!==false?'':'none'}">
         <div class="g">
           <div class="f"><label>Art</label>
             <select id="genType" onchange="wiz.costType=this.value">
@@ -1191,6 +1206,7 @@ function buildCosts(){
           </div>
           <div class="rec-list" id="genRL"></div>
         </div>
+        </div>
       </div>
     </div>
   </div>`;
@@ -1198,9 +1214,21 @@ function buildCosts(){
 function applyPP(i){
   const s=wiz.segs[i];if(!s)return;
   const pp=calcPP(s.mode,s.km);const m=MODES.find(x=>x.v===s.mode);
+  const desc=`${m?.ppN||''} · ${pp.ppKm}km × ${(m?.pp||PP26).toLocaleString('de-DE',{minimumFractionDigits:2})}€/km = ${fmtM(pp.ppTotal)}`;
   setSeg(i,'costType','Pendlerpauschale');setSeg(i,'costAmt',pp.ppTotal.toFixed(2));
-  setSeg(i,'costDesc',`${m?.ppN||''} · ${pp.ppKm}km × ${(m?.pp||PP26).toLocaleString('de-DE',{minimumFractionDigits:2})}€/km = ${fmtM(pp.ppTotal)}`);
-  toast('Pendlerpauschale übernommen','ok');
+  setSeg(i,'costDesc',desc);
+  // Update DOM fields directly without full re-render
+  const block=document.querySelector(`[data-segidx="${i}"]`);
+  if(block){
+    const typeEl=block.querySelector('.seg-cost-type');if(typeEl)typeEl.value='Pendlerpauschale';
+    const amtEl=block.querySelector('.seg-cost-amt');if(amtEl)amtEl.value=pp.ppTotal.toFixed(2);
+    const descEl=block.querySelector('.seg-cost-desc');if(descEl)descEl.value=desc;
+    const ppBox=block.querySelector('.pp-box');if(ppBox)ppBox.style.background='#e6efe9';
+  } else {
+    // fallback: re-render whole step
+    renderStep(curStep);
+  }
+  toast('Pendlerpauschale übernommen ✓','ok');
 }
 
 /* STEP 6: SAVE */
@@ -1477,7 +1505,21 @@ function renderCostsSummary(list){
         <td colspan="4" style="padding:7px">Gesamt (${c})</td>
         <td style="padding:7px;text-align:right;color:var(--warn)">${fmtM(v,c)}</td>
       </tr>`).join('')}</tfoot>
-    </table></div>`;
+    </table>
+    <h4 style="font-size:13px;color:var(--navy);margin:12px 0 6px">Aufschlüsselung nach Art</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Art</th><th style="padding:7px;text-align:right">Anzahl</th><th style="padding:7px;text-align:right">Gesamt</th></tr></thead>
+      <tbody>${(()=>{
+        const byType={};
+        items.forEach(i=>{const k=i.type||'Sonstiges';if(!byType[k])byType[k]={n:0,amt:0,curr:i.curr};byType[k].n++;byType[k].amt+=i.amt;});
+        return Object.entries(byType).sort((a,b)=>b[1].amt-a[1].amt).map(([t,v])=>`<tr style="border-bottom:1px solid var(--lsoft)">
+          <td style="padding:6px 7px">${esc(t)}</td>
+          <td style="padding:6px 7px;text-align:right;color:var(--muted)">${v.n}×</td>
+          <td style="padding:6px 7px;text-align:right;font-weight:600;color:var(--warn)">${fmtM(v.amt,v.curr)}</td>
+        </tr>`).join('');
+      })()}</tbody>
+    </table>
+  </div>`;
 }
 function renderWSSummary(list){
   const el=document.getElementById('wsSummary');if(!el)return;
@@ -1502,6 +1544,15 @@ async function renderReceipts(){
         <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Beleg')}</div><small>${fmtBytes(r.size)}</small></div>
         <button class="btn-xs d" onclick="rmBw('${key}','${rid}')">✕</button></div>`);}catch(e){}}
     bwEl.innerHTML=p.join('')||'<div style="color:var(--muted);font-size:12px;margin-bottom:6px">Noch kein BW-Beleg hochgeladen.</div>';}
+  // Monatsberichte box
+  const mbEl=document.getElementById('mbArea');
+  if(mbEl){const mbrids=(state.settings.mbReceipts||{})[key]||[];
+    const mp=[];for(const rid of mbrids){try{const r=await idbGetF(rid);if(!r)continue;
+      const aTag=r.blob?`<a href="${URL.createObjectURL(r.blob)}" download="${esc(r.name||'Monatsbericht.pdf')}" style="font-size:11px;color:var(--navy)">Download</a>`:'';
+      mp.push(`<div class="rc-row"><span class="rd">MB</span>
+        <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Monatsbericht')}</div><small>${fmtBytes(r.size)}</small></div>
+        ${aTag}<button class="btn-xs d" onclick="rmMb('${key}','${rid}')">✕</button></div>`);}catch(e){}}
+    mbEl.innerHTML=mp.join('')||'<div style="color:var(--muted);font-size:12px">Kein Monatsbericht gespeichert.</div>';}
   const rcList=document.getElementById('rcList');if(!rcList)return;
   const entries=state.entries.filter(e=>e.date&&e.date.startsWith(key)).sort((a,b)=>a.date.localeCompare(b.date));
   if(!entries.length){rcList.innerHTML='<div style="color:var(--muted);font-size:13px;padding:30px;text-align:center">Keine Einträge im gewählten Monat.</div>';return;}
@@ -1531,6 +1582,7 @@ async function handleBwUpload(ev){
   const mo=document.getElementById('rcM')?.value||pad(new Date().getMonth()+1);
   const key=`${yr}-${mo}`;
   if(!state.settings.bwReceipts)state.settings.bwReceipts={};
+  if(!state.settings.mbReceipts)state.settings.mbReceipts={};
   if(!state.settings.bwReceipts[key])state.settings.bwReceipts[key]=[];
   for(const f of files){try{const id=await storeFile(f,'bw_'+key);state.settings.bwReceipts[key].push(id);}catch(e){toast('Fehler: '+e.message,'err');}}
   persist();renderReceipts();toast('BW-Beleg gespeichert','ok');
@@ -1540,7 +1592,11 @@ async function rmBw(key,rid){
   state.settings.bwReceipts[key]=state.settings.bwReceipts[key].filter(x=>x!==rid);
   try{await idbDelF(rid);}catch(e){}persist();renderReceipts();
 }
-
+async function rmMb(key,rid){
+  if(!state.settings.mbReceipts?.[key])return;
+  state.settings.mbReceipts[key]=state.settings.mbReceipts[key].filter(x=>x!==rid);
+  try{await idbDelF(rid);}catch(e){}persist();renderReceipts();
+}
 /* CATEGORY GRID */
 const ALL_CATS=Object.keys(DT);
 function initCatGrid(){
@@ -1705,48 +1761,48 @@ async function doPrint(slim){
       const rids=[...(e.recIds||[])];(e.segs||[]).forEach(sg=>(sg.recIds||[]).forEach(r=>rids.push(r)));
       rids.forEach(rid=>{rctr++;recs.push({num:rctr,rid,entry:e,lbl:`${fmtD(e.date)} · ${DT[e.dayCode]?.n||e.dayCode}`});});
     });}
+  const TD='padding:1.2mm 2mm;border-bottom:.5px solid #ddd;vertical-align:top;font-size:7pt;';
   const buildRow=e=>{
     const dt=DT[e.dayCode]||{n:'—'};const noW=dt.noW||dt.noT;
-    const dParts=[];
-    if(!noW){if(e.presentNoWork)dParts.push('<b style="background:#1a3a5c;color:#fff;padding:0 4px;border-radius:2px;font-size:7pt">o.D.</b>');
-      else if(e.workStart&&e.workEnd)dParts.push(`${e.workStart}–${e.workEnd}`);}
-    if(e.stayLocation)dParts.push(`Aufenthalt: ${esc(e.stayLocation)}`);
-    if(e.workLocation&&!e.stayLocation)dParts.push(esc(e.workLocation));
-    if(e.verpflegung)dParts.push(`Verpfl.: ${esc(e.verpflegung)}`);
-    if(e.workNotes)dParts.push(`<i style="color:#888;font-size:7pt">${esc(e.workNotes)}</i>`);
-    const dCell=dParts.join('<br>')||'—';
-    const rParts=[];
-    // No trip display for noT days (UR/KR/WE)
-    if(!dt.noT){
-      if(e.tripFrom||e.tripTo)rParts.push(`<b>${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}</b> <span style="color:#888;font-size:7pt">(${e.tripType==='hin_zurueck'?'H&R':'einf.'})</span>`);
-      (e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode).forEach((sg,si)=>{
-        const segParts=[];
-        if(sg.mode)segParts.push(`<b>${esc(sg.mode)}</b>`);
-        if(sg.km)segParts.push(`${sg.km}km`);
-        if(sg.fromLoc||sg.toLoc)segParts.push(`${esc(sg.fromLoc||'?')}→${esc(sg.toLoc||'?')}`);
-        if(sg.dep||sg.arr)segParts.push(`${sg.dep||'?'}–${sg.arr||'?'}`);
-        if(sg.costAmt)segParts.push(`<b style="color:#2d6a4f">${fmtM(parseFloat(sg.costAmt),sg.costCurr)}</b>`);
-        if(sg.ppTotal>0)segParts.push(`<span style="color:#2d6a4f;font-size:7pt">PP:${fmtM(sg.ppTotal)}</span>`);
-        rParts.push(segParts.join(' · '));
-      });
-    }
-    if(e.costAmt){const c=e.costCurr||'EUR';rParts.push(`Allg.: <b style="color:#a86b1f">${fmtM(parseFloat(e.costAmt),c)}</b>${e.costType?' ('+esc(e.costType)+')':''}`);}
-    const rCell=rParts.join('<br>')||'—';
+    const fhfTag=e.isFHF?`<span style="background:#1a3a5c;color:#c9a84c;padding:0 3px;border-radius:2px;font-size:6.5pt;font-weight:700">FHF</span>`:'—';
+    const dienst=noW?'':e.presentNoWork?'o.D.':e.workStart&&e.workEnd?`${e.workStart}–${e.workEnd}`:'';
+    const arbSt=e.workLocation||e.stayLocation||(e.workStart?'✓':'');
+    const fahrt=!dt.noT&&(e.tripFrom||e.tripTo)?`${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}<br><span style="color:#888;font-size:6.5pt">(${e.tripType==='hin_zurueck'?'H&R':'einf.'})</span>`:e.stayLocation?esc(e.stayLocation):'—';
     const numRefs=recs.filter(r=>r.entry===e).map(r=>`#${r.num}`).join(',');
-    const fhfB=e.isFHF?`<span style="background:#1a3a5c;color:#c9a84c;padding:0 4px;border-radius:2px;font-size:7pt;font-weight:700;margin-left:2px">FHF</span>`:'';
-    return`<tr><td style="padding:1.5mm 2mm;border-bottom:.5px solid #ddd;vertical-align:top;white-space:nowrap">
-        <b style="font-size:8.5pt">${fmtD(e.date)}</b><br><span style="color:#888;font-size:7pt">${dayN(e.date)}</span>
+    const activeSegs=dt.noT?[]:(e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode);
+    // Hauptzeile (entry info) + sub-rows per segment
+    const mainBg='';
+    let rows=`<tr>
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}white-space:nowrap;background:#fafaf3">
+        <b style="font-size:8pt">${fmtD(e.date)}</b><br><span style="color:#888;font-size:6.5pt">${dayN(e.date)}</span>
       </td>
-      <td style="padding:1.5mm 2mm;border-bottom:.5px solid #ddd;vertical-align:top">
-        <span style="background:#c9a84c;color:#1a3a5c;padding:1px 5px;border-radius:3px;font-size:8pt;font-weight:700">${e.dayCode}</span>${fhfB}
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}text-align:center">
+        <span style="background:#c9a84c;color:#1a3a5c;padding:0 4px;border-radius:2px;font-size:7.5pt;font-weight:700">${e.dayCode}</span>
       </td>
-      <td style="padding:1.5mm 2mm;border-bottom:.5px solid #ddd;vertical-align:top;font-size:8pt">${dCell}</td>
-      <td style="padding:1.5mm 2mm;border-bottom:.5px solid #ddd;vertical-align:top;font-size:7.5pt">${rCell}${numRefs?` <span style="color:#1a3a5c;font-size:7pt">📎${numRefs}</span>`:''}</td>
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}text-align:center;font-size:7.5pt">${fhfTag}</td>
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}font-size:7.5pt">${esc(dt.n)}</td>
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}font-size:7pt">${esc(arbSt)}</td>
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}font-size:7pt">${esc(dienst)}</td>
+      <td rowspan="${Math.max(1,activeSegs.length)+1}" style="${TD}font-size:7pt">${fahrt}${numRefs?`<br><span style="color:#1a3a5c;font-size:6.5pt">📎${numRefs}</span>`:''}</td>
+      <td colspan="4" style="${TD}color:var(--muted);font-size:6.5pt">${activeSegs.length?'':'—'}</td>
     </tr>`;
+    activeSegs.forEach(sg=>{
+      const ppVal=sg.ppTotal>0?sg.ppTotal:calcPP(sg.mode,sg.km).ppTotal;
+      rows+=`<tr>
+        <td style="${TD}">${esc(sg.mode)}</td>
+        <td style="${TD}text-align:right">${sg.km||'—'}</td>
+        <td style="${TD}text-align:right;color:#a86b1f">${sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr):'—'}</td>
+        <td style="${TD}text-align:right;color:#2d6a4f">${ppVal>0?fmtM(ppVal):'—'}</td>
+      </tr>`;
+    });
+    if(e.costAmt&&e.costType!=='Pendlerpauschale'){
+      rows+=`<tr><td colspan="3" style="${TD}font-size:6.5pt;color:#a86b1f">Allg. Kosten (${esc(e.costType||'Sonstiges')}): ${fmtM(parseFloat(e.costAmt),e.costCurr)}</td><td style="${TD}"></td></tr>`;
+    }
+    return rows;
   };
   let tbody='';
   if(sort==='code'){const grps={};list.forEach(e=>(grps[e.dayCode]=grps[e.dayCode]||[]).push(e));
-    Object.keys(grps).sort().forEach(c=>{tbody+=`<tr><td colspan="4" style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt"><span style="background:#c9a84c;color:#1a3a5c;padding:0 5px;border-radius:2px;margin-right:5px">${c}</span>${esc(DT[c]?.n||c)} · ${grps[c].length}</td></tr>`;grps[c].forEach(e=>{tbody+=buildRow(e);});});}
+    Object.keys(grps).sort().forEach(c=>{tbody+=`<tr><td colspan="11" style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt"><span style="background:#c9a84c;color:#1a3a5c;padding:0 5px;border-radius:2px;margin-right:5px">${c}</span>${esc(DT[c]?.n||c)} · ${grps[c].length}</td></tr>`;grps[c].forEach(e=>{tbody+=buildRow(e);});});}
   else tbody=list.map(buildRow).join('');
   const ppHF=[],ppTGW=[];let ppTotHF=0,ppTotTGW=0;
   list.forEach(e=>(e.segs||[]).filter(s=>s.enabled!==false&&s.ppTotal>0).forEach(s=>{
@@ -1766,6 +1822,28 @@ async function doPrint(slim){
     ${ppTbl(ppHF,ppTotHF,'Heimfahrten / Rückfahrten (HF/RF)')}
     ${ppTbl(ppTGW,ppTotTGW,'Trennungsgeldwohnung → Arbeitsstätte (AW)')}
     ${ppHF.length&&ppTGW.length?`<div style="background:#e6efe9;padding:1.5mm 2mm;margin-top:1.5mm;font-weight:700;font-size:8pt;display:flex;justify-content:space-between"><span>Gesamt Pendlerpauschale</span><span style="color:#2d6a4f">${fmtM(ppTot)}</span></div>`:''}
+  </div>`:'';
+  // Gesamtkosten section (after PP)
+  const costItems=[];
+  list.forEach(e=>{
+    (e.segs||[]).filter(s=>s.enabled!==false&&s.costAmt&&s.costType!=='Pendlerpauschale').forEach(s=>{
+      costItems.push({date:e.date,code:e.dayCode,type:s.costType||'Sonstiges',amt:parseFloat(s.costAmt)||0,curr:s.costCurr||'EUR',desc:s.costDesc||''});
+    });
+    if(e.costAmt&&e.costType!=='Pendlerpauschale')
+      costItems.push({date:e.date,code:e.dayCode,type:e.costType||'Sonstiges',amt:parseFloat(e.costAmt)||0,curr:e.costCurr||'EUR',desc:e.costDesc||''});
+  });
+  const byType={};costItems.forEach(i=>{const k=(i.curr||'EUR')+'_'+(i.type||'Sonstiges');if(!byType[k])byType[k]={type:i.type,curr:i.curr,amt:0,n:0};byType[k].amt+=i.amt;byType[k].n++;});
+  const costTotByC={};costItems.forEach(i=>{costTotByC[i.curr]=(costTotByC[i.curr]||0)+i.amt;});
+  const costsHtml=costItems.length?`<div style="margin-top:3mm;page-break-inside:avoid">
+    <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Gesamtkosten (ohne Pendlerpauschale)</div>
+    <table style="width:100%;border-collapse:collapse;font-size:7pt">
+      <tr style="background:#f5f5ee"><th style="padding:1.2mm;text-align:left">Datum</th><th style="padding:1.2mm;text-align:left">Code</th><th style="padding:1.2mm;text-align:left">Art</th><th style="padding:1.2mm">Beschreibung</th><th style="padding:1.2mm;text-align:right">Betrag</th></tr>
+      ${costItems.map(i=>`<tr style="border-bottom:.5px solid #ddd"><td style="padding:1mm">${fmtD(i.date)}</td><td style="padding:1mm;font-weight:700">${i.code}</td><td style="padding:1mm">${esc(i.type)}</td><td style="padding:1mm;color:#888;font-size:6.5pt">${esc(i.desc)}</td><td style="padding:1mm;text-align:right;font-weight:700;color:#a86b1f">${fmtM(i.amt,i.curr)}</td></tr>`).join('')}
+    </table>
+    <div style="margin-top:1.5mm">
+      ${Object.entries(byType).sort((a,b)=>b[1].amt-a[1].amt).map(([k,v])=>`<span style="display:inline-block;margin:1mm;background:#fafaf3;border:.5px solid #c9a84c;padding:.8mm 2mm;font-size:7pt"><b>${esc(v.type)}</b>: ${fmtM(v.amt,v.curr)} (${v.n}×)</span>`).join('')}
+    </div>
+    ${Object.entries(costTotByC).map(([c,v])=>`<div style="background:#fff8e6;padding:1.5mm 2mm;margin-top:1.5mm;font-weight:700;font-size:8pt;display:flex;justify-content:space-between"><span>Gesamt Kosten (${c})</span><span style="color:#a86b1f">${fmtM(v,c)}</span></div>`).join('')}
   </div>`:'';
   const wsDays=list.filter(e=>isWSDay(e));
   const wsHtml=wsDays.length?`<div style="margin-top:3mm;page-break-inside:avoid">
@@ -1821,10 +1899,12 @@ async function doPrint(slim){
     <div style="margin-bottom:4mm">
       <div style="font-family:serif;font-size:11pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:1.5mm;margin-bottom:2mm;font-weight:600">Detail · ${list.length} Einträge · ${sort==='date'?'nach Datum':'nach Kennzeichen'}</div>
       <table><thead><tr>
-        <th style="width:10%">Datum</th><th style="width:6%">Code</th>
-        <th style="width:27%">Dienst / Aufenthalt</th><th style="width:57%">Fahrt · Reisemittel · Kosten</th>
+        <th style="width:8%">Datum</th><th style="width:5%">Code</th><th style="width:4%">FHF</th>
+        <th style="width:7%">Art</th><th style="width:8%">Arb.-Stätte</th><th style="width:7%">Dienstzeit</th>
+        <th style="width:18%">Fahrtstrecke/Aufenthalt</th>
+        <th style="width:14%">Reisemittel</th><th style="width:7%">km</th><th style="width:11%">Kosten</th><th style="width:11%">PP</th>
       </tr></thead><tbody>${tbody}</tbody></table>
-      ${ppHtml}${wsHtml}${dtNote}${warnHtml}
+      ${ppHtml}${costsHtml}${wsHtml}${dtNote}${warnHtml}
     </div>
     <div style="margin-top:10mm;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7mm">
       ${['Datum, Ort','Unterschrift Antragsteller','Unterschrift Bevollmächtigter'].map(l=>`<div style="border:.5px dashed #888;min-height:20mm;padding:2mm;text-align:center;display:flex;flex-direction:column;justify-content:flex-end"><b style="border-top:.5px solid #000;padding-top:1.5mm;display:block;color:#1a3a5c;font-size:7.5pt">${l}</b></div>`).join('')}
@@ -1843,8 +1923,16 @@ async function doPrint(slim){
   const _oldTitle=document.title;
   const _yr=from?from.slice(0,4):String(new Date().getFullYear());
   document.title=`${_yr} ${title}`;
-  await new Promise(r=>setTimeout(r,300));window.print();
-  setTimeout(()=>{document.title=_oldTitle;},1500);
+  // Hide toast and modals before printing
+  const _toast=document.getElementById('toast');
+  if(_toast){_toast.classList.remove('show');_toast.style.display='none';}
+  document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='none');
+  await new Promise(r=>setTimeout(r,400));window.print();
+  setTimeout(()=>{
+    document.title=_oldTitle;
+    if(_toast)_toast.style.display='';
+    document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='');
+  },1500);
 }
 
 /* LANDSCAPE MONTHLY REPORT */
@@ -1854,27 +1942,42 @@ async function doLandscape(){
   if(!list.length){toast('Keine Einträge','err');return;}
   const s=state.settings;const ov=calcSt(list);const ppTot=ov.pp;
   const period=(from||to)?`${from?fmtD(from):'…'} – ${to?fmtD(to):'…'}`:'gesamter Zeitraum';
-  const rows=list.map(e=>{
+  const R='padding:1.2mm 2mm;border-bottom:.5px solid #ddd;vertical-align:top;font-size:7pt;';
+  const rows=list.flatMap(e=>{
     const dt=DT[e.dayCode]||{n:'—'};
-    const segsStr=(e.segs||[]).filter(s=>s.enabled!==false&&s.mode).map(s=>`${s.mode}${s.km?' '+s.km+'km':''}`).join(', ')||'—';
-    const totC={};
-    (e.segs||[]).forEach(s=>{if(s.enabled!==false&&s.costAmt){const c=s.costCurr||'EUR';totC[c]=(totC[c]||0)+parseFloat(s.costAmt);}});
-    if(e.costAmt){const c=e.costCurr||'EUR';totC[c]=(totC[c]||0)+parseFloat(e.costAmt);}
-    const costStr=Object.entries(totC).map(([c,v])=>fmtM(v,c)).join(' + ')||'—';
-    const ppSum=(e.segs||[]).reduce((a,s)=>a+(s.enabled!==false?parseFloat(s.ppTotal)||0:0),0);
-    const ws=isWSDay(e)?'✓':'';
-    return`<tr style="border-bottom:.5px solid #ddd">
-      <td style="padding:1.2mm 2mm;font-size:7.5pt;white-space:nowrap"><b>${fmtD(e.date)}</b> ${dayN(e.date)}</td>
-      <td style="padding:1.2mm 2mm"><span style="background:#c9a84c;color:#1a3a5c;padding:0 4px;border-radius:2px;font-size:7.5pt;font-weight:700">${e.dayCode}</span></td>
-      <td style="padding:1.2mm 2mm;font-size:7.5pt">${esc(dt.n)}</td>
-      <td style="padding:1.2mm 2mm;font-size:7pt;text-align:center">${ws}</td>
-      <td style="padding:1.2mm 2mm;font-size:7pt">${e.workStart&&e.workEnd?e.workStart+'–'+e.workEnd:e.presentNoWork?'o.D.':e.stayLocation?esc(e.stayLocation):'—'}</td>
-      <td style="padding:1.2mm 2mm;font-size:7pt">${esc((e.tripFrom&&e.tripTo)?e.tripFrom+' → '+e.tripTo:'—')}</td>
-      <td style="padding:1.2mm 2mm;font-size:7pt">${esc(segsStr)}</td>
-      <td style="padding:1.2mm 2mm;font-size:7.5pt;text-align:right">${costStr!=='—'?costStr:'—'}</td>
-      <td style="padding:1.2mm 2mm;font-size:7.5pt;text-align:right;color:#2d6a4f">${ppSum>0?fmtM(ppSum):'—'}</td>
-      <td style="padding:1.2mm 2mm;font-size:7pt">${e.isFHF?'<span style="background:#1a3a5c;color:#c9a84c;padding:0 3px;border-radius:2px;font-size:6.5pt">FHF</span>':''}</td>
-    </tr>`;
+    const aSegs=dt.noT?[]:(e.segs||[]).filter(s=>s.enabled!==false&&s.mode);
+    const nRows=Math.max(1,aSegs.length);
+    const dienst=dt.noT?'':e.presentNoWork?'o.D.':e.workStart&&e.workEnd?`${e.workStart}–${e.workEnd}`:'';
+    const reisestrecke=!dt.noT?(e.tripFrom&&e.tripTo?plzOrt(e.tripFrom)+' → '+plzOrt(e.tripTo):e.stayLocation?plzOrt(e.stayLocation):''):'';
+    const arbSt=e.workLocation||e.stayLocation||(isWSDay(e)?'✓':'');
+    const result=[];
+    for(let ri=0;ri<nRows;ri++){
+      const sg=aSegs[ri];
+      const ppV=sg?(sg.ppTotal>0?sg.ppTotal:calcPP(sg.mode,sg.km).ppTotal):0;
+      if(ri===0){
+        result.push(`<tr>
+          <td rowspan="${nRows}" style="${R}white-space:nowrap"><b>${fmtD(e.date)}</b> ${dayN(e.date)}</td>
+          <td rowspan="${nRows}" style="${R}text-align:center"><span style="background:#c9a84c;color:#1a3a5c;padding:0 4px;border-radius:2px;font-size:7.5pt;font-weight:700">${e.dayCode}</span></td>
+          <td rowspan="${nRows}" style="${R}text-align:center">${e.isFHF?'<span style="background:#1a3a5c;color:#c9a84c;padding:0 3px;border-radius:2px;font-size:6.5pt;font-weight:700">FHF</span>':''}</td>
+          <td rowspan="${nRows}" style="${R}">${esc(dt.n)}</td>
+          <td rowspan="${nRows}" style="${R}">${esc(arbSt)}</td>
+          <td rowspan="${nRows}" style="${R}">${esc(dienst)}</td>
+          <td rowspan="${nRows}" style="${R}">${esc(reisestrecke)||'—'}</td>
+          <td style="${R}">${sg?esc(sg.mode):'—'}</td>
+          <td style="${R}text-align:right">${sg&&sg.km?sg.km:'—'}</td>
+          <td style="${R}text-align:right;color:#a86b1f">${sg&&sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr||'EUR'):'—'}</td>
+          <td style="${R}text-align:right;color:#2d6a4f">${ppV>0?fmtM(ppV):'—'}</td>
+        </tr>`);
+      } else {
+        result.push(`<tr>
+          <td style="${R}">${sg?esc(sg.mode):''}</td>
+          <td style="${R}text-align:right">${sg&&sg.km?sg.km:''}</td>
+          <td style="${R}text-align:right;color:#a86b1f">${sg&&sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr||'EUR'):''}</td>
+          <td style="${R}text-align:right;color:#2d6a4f">${ppV>0?fmtM(ppV):''}</td>
+        </tr>`);
+      }
+    }
+    return result;
   }).join('');
   document.getElementById('pv').innerHTML=`
     <style>@page{size:A4 landscape;margin:10mm 12mm 12mm 12mm;}body{font-family:'Helvetica Neue',Arial,sans-serif;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c;color:#fff;text-align:left;padding:2mm;font-size:7pt;text-transform:uppercase;}</style>
@@ -1890,13 +1993,21 @@ async function doLandscape(){
       </div>
     </div>
     <table><thead><tr>
-      <th style="width:9%">Datum</th><th style="width:5%">Code</th><th style="width:9%">Art</th>
-      <th style="width:4%">Arb.St.</th><th style="width:8%">Dienst</th><th style="width:18%">Fahrt/Aufenthalt</th>
-      <th style="width:18%">Reisemittel</th><th style="width:10%">Kosten</th><th style="width:10%">PP</th><th style="width:9%">Flags</th>
+      <th style="width:8%">Datum</th><th style="width:5%">Code</th><th style="width:4%">FHF</th>
+      <th style="width:7%">Art</th><th style="width:7%">Arb.-St.</th><th style="width:6%">Dienstzeit</th>
+      <th style="width:22%">Reisestrecke/Aufenthalt</th>
+      <th style="width:12%">Reisemittel</th><th style="width:6%">km</th><th style="width:11%">Kosten</th><th style="width:12%">PP</th>
     </tr></thead><tbody>${rows}</tbody></table>
     <div style="position:fixed;bottom:4mm;left:0;right:0;text-align:center;font-size:6.5pt;color:#999;border-top:.5px solid #ddd;padding-top:1.5mm">Monatsbericht ${period} · ${esc((s.rank?s.rank+' ':'')+s.name||'')} · ${new Date().toLocaleDateString('de-DE')}</div>
   `;
-  await new Promise(r=>setTimeout(r,300));window.print();
+  const _lt=document.getElementById('toast');
+  if(_lt){_lt.classList.remove('show');_lt.style.display='none';}
+  document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='none');
+  await new Promise(r=>setTimeout(r,400));window.print();
+  setTimeout(()=>{
+    if(_lt)_lt.style.display='';
+    document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='');
+  },1500);
 }
 
 /* FHF PDF */
@@ -1968,9 +2079,9 @@ async function saveLandscape(){
     const blob=new Blob([pdfBytes],{type:'application/pdf'});
     const fname=`${yr}-${mo}_Monatsbericht.pdf`;
     const fid=await storeFile(new File([blob],fname,{type:'application/pdf'}),`mb_${key}`);
-    if(!state.settings.bwReceipts)state.settings.bwReceipts={};
-    if(!state.settings.bwReceipts[key])state.settings.bwReceipts[key]=[];
-    if(!state.settings.bwReceipts[key].includes(fid))state.settings.bwReceipts[key].push(fid);
+    if(!state.settings.mbReceipts)state.settings.mbReceipts={};
+    if(!state.settings.mbReceipts[key])state.settings.mbReceipts[key]=[];
+    if(!state.settings.mbReceipts[key].includes(fid))state.settings.mbReceipts[key].push(fid);
     persist();
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
     document.querySelector('[data-v="receipts"]')?.classList.add('on');
@@ -1984,6 +2095,15 @@ async function saveLandscape(){
 }
 
 /* MONATSBERICHT PDF GENERATION (A4 landscape, pdf-lib) */
+function plzOrt(addr){
+  if(!addr||!addr.trim())return'—';
+  const m=(addr||'').match(/(\d{4,5})[,\s]+([^,
+]+)/);
+  if(m)return(m[1]+' '+m[2].trim()).slice(0,28);
+  return addr.replace(/
+/g,' ').slice(0,28);
+}
+
 async function genMonthPdf(list,yr,mo){
   await loadPdfLib();
   const{PDFDocument,StandardFonts,rgb}=window.PDFLib;
@@ -1995,21 +2115,21 @@ async function genMonthPdf(list,yr,mo){
   // A4 landscape
   const PW=841.89,PH=595.28,ML=22,MR=22,MT=22,MB=22;
   const TW=PW-ML-MR; // ~797.89
-  // columns: widths sum to TW
+  // Columns: Datum | Code | FHF | Art | AS | Dienstzeit | Reisestrecke(PLZ+Ort) | Reisemittel | km | Kosten | PP
   const COLS=[
-    {l:'Datum',      w:80, align:'left'},
-    {l:'Code',       w:28, align:'center'},
-    {l:'Art',        w:65, align:'left'},
-    {l:'AS',         w:20, align:'center'},
-    {l:'Dienst',     w:62, align:'left'},
-    {l:'Fahrt',      w:148, align:'left'},
-    {l:'Reisemittel',w:145, align:'left'},
-    {l:'Kosten',     w:82, align:'right'},
-    {l:'PP',         w:68, align:'right'},
-    {l:'FHF',        w:30, align:'center'},
-  ]; // sum=728; remaining=797.89-728=69.89 → distribute to Fahrt+Reisemittel
-  // adjust Fahrt +35, Reisemittel +35 → Fahrt=183, Reisemittel=180; total=798
-  COLS[5].w=183;COLS[6].w=180;
+    {l:'Datum',       w:74, align:'left'},
+    {l:'Code',        w:25, align:'center'},
+    {l:'FHF',         w:22, align:'center'},
+    {l:'Art',         w:55, align:'left'},
+    {l:'Arbeitsstätte', w:55, align:'left'},
+    {l:'Dienstzeit',  w:45, align:'left'},
+    {l:'Reisestrecke/Aufenthalt', w:155, align:'left'},
+    {l:'Reisemittel', w:80, align:'left'},
+    {l:'km',          w:36, align:'right'},
+    {l:'Kosten',      w:72, align:'right'},
+    {l:'PP',          w:72, align:'right'},
+  ]; // total=691; TW≈798 → add 107 to Reisestrecke
+  COLS[6].w=262;
   const RH=13,HDRH=15,TITLEH=36,SUMH=20;
   const s=state.settings;const ov=calcSt(list);
   // helper: safe text (replace non-latin chars)
@@ -2069,39 +2189,43 @@ async function genMonthPdf(list,yr,mo){
     // alternating row bg
     if(rowIdx%2===1)page.drawRectangle({x:ML,y:y-RH,width:TW,height:RH,color:LGRY});
     const dt=DT[e.dayCode]||{n:''};
-    const segsStr=(e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode).map(sg=>sg.mode+(sg.km?' '+sg.km+'km':'')).join(', ')||'';
-    const totC={};
-    (e.segs||[]).forEach(sg=>{if(sg.enabled!==false&&sg.costAmt){const c=sg.costCurr||'EUR';totC[c]=(totC[c]||0)+parseFloat(sg.costAmt);}});
-    if(e.costAmt){const c=e.costCurr||'EUR';totC[c]=(totC[c]||0)+parseFloat(e.costAmt);}
-    const costStr=Object.entries(totC).map(([c,v])=>fmtM(v,c)).join(' + ')||'';
-    const ppSum=(e.segs||[]).reduce((a,sg)=>a+(sg.enabled!==false?parseFloat(sg.ppTotal)||0:0),0);
-    const ws=isWSDay(e)?'x':'';
-    const fahrt=(e.tripFrom&&e.tripTo)?e.tripFrom+' -> '+e.tripTo:'';
-    const dienst=e.workStart&&e.workEnd?e.workStart+'-'+e.workEnd:e.presentNoWork?'o.D.':e.stayLocation||'';
-    const cells=[
+    // Build per-segment rows (multi-row per entry)
+    const aSegs=dt.noT?[]:(e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode);
+    const nRows=Math.max(1,aSegs.length);
+    // shared cells (span all seg rows)
+    const sharedCells=[
       fmtD(e.date)+' '+dayN(e.date).slice(0,2),
       e.dayCode,
-      dt.n||'',
-      ws,
-      dienst,
-      fahrt,
-      segsStr,
-      costStr,
-      ppSum>0?fmtM(ppSum):'',
       e.isFHF?'FHF':'',
+      dt.n||'',
+      e.workLocation||e.stayLocation||(e.workStart?'✓':''),
+      !dt.noT&&(e.workStart&&e.workEnd)?e.workStart+'-'+e.workEnd:dt.noT?'':'',
+      !dt.noT?(e.tripFrom&&e.tripTo?plzOrt(e.tripFrom)+' -> '+plzOrt(e.tripTo):e.stayLocation?plzOrt(e.stayLocation):''):'',
     ];
-    let x=ML;
-    cells.forEach((cell,ci)=>{
-      const col=COLS[ci];
-      const txt=fit(st(cell),col.w-4,f,7.5);
-      const cx=col.align==='right'?x+col.w-f.widthOfTextAtSize(txt,7.5)-2:col.align==='center'?x+(col.w-f.widthOfTextAtSize(txt,7.5))/2:x+2;
-      const color=ci===8&&ppSum>0?GRN:ci===1?NAV:GRY;
-      try{page.drawText(txt,{x:cx,y:y-RH+3.5,size:7.5,font:ci===1?fb:f,color});}catch(er){}
-      x+=col.w;
-    });
-    // bottom border
-    page.drawLine({start:{x:ML,y:y-RH},end:{x:ML+TW,y:y-RH},thickness:0.3,color:rgb(0.85,0.85,0.85)});
-    y-=RH;rowIdx++;
+    for(let ri=0;ri<nRows;ri++){
+      if(y-RH<MB+10){newPage();drawTableHeader();}
+      if(rowIdx%2===1)page.drawRectangle({x:ML,y:y-RH,width:TW,height:RH,color:LGRY});
+      const sg=aSegs[ri];
+      const ppV=sg?(sg.ppTotal>0?sg.ppTotal:calcPP(sg.mode,sg.km).ppTotal):0;
+      const segCells=sg?[
+        sg.mode||'',
+        sg.km?String(sg.km):'',
+        sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr||'EUR'):'',
+        ppV>0?fmtM(ppV):'',
+      ]:['','','',''];
+      const allCells=ri===0?[...sharedCells,...segCells]:['','','','','','','',...segCells];
+      let x=ML;
+      allCells.forEach((cell,ci)=>{
+        const col=COLS[ci];if(!col)return;
+        const txt=fit(st(cell),col.w-4,f,7);
+        const cx=col.align==='right'?x+col.w-f.widthOfTextAtSize(txt,7)-2:col.align==='center'?x+(col.w-f.widthOfTextAtSize(txt,7))/2:x+2;
+        const color=ci===10&&ppV>0?GRN:ci===1?NAV:ci===9?rgb(0.66,0.42,0.12):GRY;
+        try{page.drawText(txt,{x:cx,y:y-RH+3.5,size:7,font:(ci===1||ci===2)?fb:f,color});}catch(er){}
+        x+=col.w;
+      });
+      page.drawLine({start:{x:ML,y:y-RH},end:{x:ML+TW,y:y-RH},thickness:0.3,color:rgb(0.88,0.88,0.88)});
+      y-=RH;rowIdx++;
+    }
   }
   // Footer on all pages
   const pageCount=doc.getPageCount();
@@ -2128,7 +2252,36 @@ async function genMonthPdf(list,yr,mo){
   document.getElementById('exTo').value=tm.toISOString().slice(0,10);
   const rcM=document.getElementById('rcM');if(rcM)rcM.value=pad(now.getMonth()+1);
   if(!state.settings.name)setTimeout(()=>toast('Tipp: Einstellungen → Name & Adressen eintragen'),900);
+  // Auto-save Monatsbericht at month end 23:59
+  scheduleMonthEndSave();
 })();
+
+function scheduleMonthEndSave(){
+  const now=new Date();
+  const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0); // last day of current month
+  const target=new Date(lastDay.getFullYear(),lastDay.getMonth(),lastDay.getDate(),23,59,0);
+  const ms=target-now;
+  if(ms<=0)return; // already past
+  setTimeout(async()=>{
+    try{
+      const yr=target.getFullYear();const mo=pad(target.getMonth()+1);
+      const key=`${yr}-${mo}`;
+      const list=state.entries.filter(e=>e.date&&e.date.startsWith(key)&&isCatOn(e.dayCode)).sort((a,b)=>a.date.localeCompare(b.date));
+      if(list.length>0){
+        const pdfBytes=await genMonthPdf(list,yr,mo);
+        const blob=new Blob([pdfBytes],{type:'application/pdf'});
+        const fname=`${yr}-${mo}_Monatsbericht.pdf`;
+        const fid=await storeFile(new File([blob],fname,{type:'application/pdf'}),`mb_${key}`);
+        if(!state.settings.mbReceipts)state.settings.mbReceipts={};
+        if(!state.settings.mbReceipts[key])state.settings.mbReceipts[key]=[];
+        if(!state.settings.mbReceipts[key].includes(fid))state.settings.mbReceipts[key].push(fid);
+        persist();toast(`${fname} automatisch gespeichert`,'ok');
+      }
+    }catch(e){console.error('Auto-save MB:',e);}
+    // Schedule next month
+    setTimeout(scheduleMonthEndSave,60000);
+  },ms);
+}
 </script>
 </body>
 </html>
