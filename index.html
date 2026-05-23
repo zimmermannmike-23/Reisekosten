@@ -142,15 +142,15 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 80px;}
   background:var(--gold);border-radius:999px;margin-bottom:5px;}
 .dt .dn{font-weight:600;font-size:12px;display:block;margin-bottom:1px;}
 .dt .dd{font-size:10px;color:var(--muted);line-height:1.3;}
-.tblock{margin-top:12px;padding:12px 14px;border-radius:12px;display:flex;align-items:flex-start;gap:10px;}
-.tblock.blue{background:rgba(10,132,255,.06);border:1.5px solid rgba(10,132,255,.25);}
+.tblock{margin-top:12px;padding:12px 14px;border-radius:12px;}
+.tblock.blue{background:rgba(10,132,255,.06);border:1.5px solid rgba(10,132,255,.25);display:flex;align-items:flex-start;gap:10px;}
 .tblock.gold{background:var(--warns);border:1.5px solid var(--gold);}
 .tblock input[type=checkbox]{width:17px;height:17px;cursor:pointer;margin-top:3px;accent-color:#0A84FF;flex-shrink:0;}
 .tblock .tl{flex:1;cursor:pointer;user-select:none;}
 .tblock .tl b{font-weight:600;color:var(--navy);font-size:13px;display:block;}
 .tblock .tl small{font-size:11px;color:var(--muted);margin-top:1px;display:block;line-height:1.4;}
-.segs{display:flex;flex-direction:column;gap:10px;margin-bottom:10px;}
-.seg{border:1.5px solid var(--line);border-radius:12px;background:#fafafa;overflow:hidden;}
+.segs{display:flex;flex-direction:column;gap:10px;margin-bottom:10px;width:100%;box-sizing:border-box;}
+.seg{border:1.5px solid var(--line);border-radius:12px;background:#fafafa;overflow:hidden;box-sizing:border-box;width:100%;}
 .seg-h{display:flex;align-items:center;gap:7px;padding:9px 13px;background:var(--lsoft);border-bottom:1px solid var(--line);}
 .seg-h select{font:inherit;font-size:13px;font-weight:600;color:var(--navy);padding:4px 22px 4px 8px;
   border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;
@@ -175,7 +175,6 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 80px;}
 .cblock{background:var(--warns);border:1.5px solid var(--gold);border-radius:12px;padding:13px;margin-bottom:10px;}
 .cblock-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:7px;}
 .cblock-t{font-weight:600;color:var(--navy);font-size:13px;}
-.pp-box{background:var(--oks);border-radius:9px;padding:9px 11px;margin-bottom:9px;font-size:12px;color:var(--ok);}
 .rec-sec{margin-top:12px;padding-top:12px;border-top:1.5px dashed rgba(230,175,46,.4);}
 .rec-lbl{font-size:11px;font-weight:600;color:var(--navy);letter-spacing:.4px;text-transform:uppercase;
   margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;}
@@ -203,11 +202,11 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 80px;}
 .achip:hover{border-color:#0A84FF;color:#0A84FF;}
 .etbl{background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:var(--rl);
   overflow:hidden;box-shadow:var(--sh0);}
-.etbl table{width:100%;border-collapse:collapse;font-size:12px;}
+.etbl table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .etbl thead{background:var(--navy);color:#fff;}
 .etbl th{text-align:left;padding:10px 11px;font-weight:600;font-size:10px;letter-spacing:.6px;
   text-transform:uppercase;white-space:nowrap;}
-.etbl td{padding:10px 11px;border-top:1px solid var(--lsoft);vertical-align:top;}
+.etbl td{padding:9px 10px;border-top:1px solid var(--lsoft);vertical-align:top;}
 .etbl tr:hover td{background:rgba(10,132,255,.03);}
 .dcell{font-weight:600;color:var(--navy);}
 .dcell small{display:block;font-weight:400;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
@@ -324,10 +323,6 @@ datalist{display:none;}
     </div>
     <div class="cal-grid" id="calGrid"></div>
   </div>
-  <div class="wbanner" id="w28" style="display:none">
-    <div class="icon">&#9888;&#65039;</div>
-    <div><h4>Verpflegungsmehraufwand wieder anrechenbar!</h4><p id="w28txt"></p></div>
-  </div>
   <div class="prog-wrap">
     <div class="sdots" id="sdots"></div>
     <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
@@ -338,10 +333,6 @@ datalist{display:none;}
 <section class="view" id="view-overview">
   <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
     <div><h2 style="font-size:22px;color:var(--navy);font-weight:700;letter-spacing:-0.4px">Übersicht</h2></div>
-  </div>
-  <div class="wbanner" id="ov28" style="display:none">
-    <div class="icon">&#9888;&#65039;</div>
-    <div><h4>Verpflegungsmehraufwand wieder anrechenbar!</h4><p id="ov28txt"></p></div>
   </div>
   <div class="sg" id="ovStats"></div>
   <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
@@ -359,7 +350,7 @@ datalist{display:none;}
   </div>
   <div class="etbl" id="etbl">
     <table><thead><tr>
-      <th>Datum</th><th>Code</th><th>Ort / Fahrt</th><th>Reisemittel + Kosten</th><th></th>
+      <th style="width:14%">Datum</th><th style="width:7%">Code</th><th style="width:30%">Dienstort</th><th style="width:24%">Reisemittel & Strecke</th><th style="width:8%;text-align:right">km</th><th style="width:12%;text-align:right">Kosten</th>
     </tr></thead><tbody id="tbody"></tbody></table>
     <div id="emptyMsg" style="display:none;padding:50px;text-align:center;color:var(--muted)">
       <div style="font-size:19px;font-weight:700;color:var(--navy);margin-bottom:5px">Noch keine Einträge</div>
@@ -407,15 +398,7 @@ datalist{display:none;}
   <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
     <div><h2 style="font-size:22px;color:var(--navy);font-weight:700;letter-spacing:-0.4px">PDF / Druck</h2></div>
   </div>
-  <div class="card" style="border-color:var(--gold);background:var(--warns);margin-bottom:12px">
-    <h3 style="font-size:15px;margin-bottom:6px">&#128106; Familienheimfahrten</h3>
-    <div id="fhfStats" style="margin-bottom:8px"></div>
-    <div id="fhfList"></div>
-    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
-      <button class="btn btn-gold btn-sm" onclick="genAllFhf()">&#128230; Alle FHF-PDFs</button>
-      <button class="btn btn-s btn-sm" onclick="resetFhfCtr()">&#128260; Z&#228;hler reset</button>
-    </div>
-  </div>
+
   <div class="card">
     <div class="g">
       <div class="f"><label for="exFrom">Von</label><input type="date" id="exFrom"></div>
@@ -512,11 +495,9 @@ datalist{display:none;}
 </div>
 <script>
 /* TG/RB Nachweis v5.0 — Apple Ecosystem Design
-   Pendlerpauschale 2026: 0,38 €/km ab km 1 (§9 EStG, einheitlich ab 01.01.2026)
    Dienstreise PKW: 0,30 €/km (tatsächlich gefahren) */
 
 const SK='zc-tgrb-v2', SETK='zc-tgrb-set-v2';
-const PP26=0.38; // Pendlerpauschale 2026
 const DRPKW=0.30; // Dienstreise PKW
 
 const DT={ // day types
@@ -535,14 +516,15 @@ const DT={ // day types
 const MODES=[
   {v:'',         l:'— Auswählen —',        pp:0,     ppN:''},
   {v:'PKW-D',    l:'🚗 PKW (Dienstreise)', pp:DRPKW, ppN:'Dienstreisekm-Pausch. 0,30 €/km'},
-  {v:'PKW-P',    l:'🚗 PKW (Pendeln)',     pp:PP26,  ppN:'Entfernungspauschale 0,38 €/km (2026)'},
+  {v:'PKW-P',    l:'🚗 PKW (Pendeln)'},
+  {v:'PKW-Priv',  l:'🚗 PKW (privat)'},
   {v:'Dienst-Kfz',l:'🛻 Dienst-Kfz',      pp:0,     ppN:''},
-  {v:'Bahn',     l:'🚆 Bahn',              pp:PP26,  ppN:'Entfernungspauschale 0,38 €/km (2026)'},
+  {v:'Bahn',     l:'🚆 Bahn'},
   {v:'Flugzeug', l:'✈️ Flugzeug',          pp:0,     ppN:''},
-  {v:'ÖPNV',     l:'🚍 ÖPNV',              pp:PP26,  ppN:'Entfernungspauschale 0,38 €/km (2026)'},
+  {v:'ÖPNV',     l:'🚍 ÖPNV'},
   {v:'Taxi',     l:'🚕 Taxi',              pp:0,     ppN:''},
   {v:'Mietwagen',l:'🚙 Mietwagen',         pp:0,     ppN:''},
-  {v:'Fahrrad',  l:'🚴 Fahrrad',           pp:PP26,  ppN:'Entfernungspauschale 0,38 €/km (2026)'},
+  {v:'Fahrrad',  l:'🚴 Fahrrad'},
   {v:'Zu Fuß',   l:'🚶 Zu Fuß',            pp:0,     ppN:''},
   {v:'Mitfahrer',l:'👥 Mitfahrer',          pp:0,     ppN:''},
 ];
@@ -562,15 +544,14 @@ let state={entries:[],settings:{
 let wiz=freshW(), curStep=0, editId=null, calY=new Date().getFullYear(), calM=new Date().getMonth();
 let lastNom=0, folderHandle=null;
 
-function freshW(){return{costEnabled:true,
+function freshW(){return{costEnabled:true,useFahrt:true,useAufenthalt:false,
   date:todayISO(),dayCode:'AW',vorhaben:'',isFHF:false,presentNoWork:false,
   workStart:'',workEnd:'',workLocation:'',workNotes:'',
   verpflegung:'',stayLocation:'',
-  tripFrom:'',tripTo:'',tripType:'einfach',
   segs:[],
 };}
 function freshSeg(){return{mode:'',fromLoc:'',toLoc:'',fromGeo:null,toGeo:null,
-  km:'',kmSrc:'',dep:'',arr:'',detail:'',ppKm:0,ppTotal:0,
+  km:'',kmSrc:'',dep:'',arr:'',detail:'',costEnabled:true,
   costType:'',costAmt:'',costCurr:'EUR',costDesc:'',recIds:[],enabled:true};}
 
 /* HELPERS */
@@ -591,9 +572,12 @@ function firstL(s){if(!s)return'';const ls=(s||'').split(/[\n,]+/).map(x=>x.trim
 /* STEPS */
 function getSteps(code){
   const dt=DT[code]||DT.AW;
-  if(dt.noT){return[{id:'daytype',l:'Tagesart'},{id:'location',l:'Aufenthaltsort'},{id:'costs',l:'Kosten'},{id:'save',l:'Speichern'}];}
-  if(dt.noW){return[{id:'daytype',l:'Tagesart'},{id:'trip',l:'Fahrt'},{id:'segs',l:'Reisemittel'},{id:'costs',l:'Kosten & Belege'},{id:'save',l:'Speichern'}];}
-  return[{id:'daytype',l:'Tagesart'},{id:'work',l:'Arbeitszeit'},{id:'trip',l:'Fahrt'},{id:'segs',l:'Reisemittel'},{id:'costs',l:'Kosten & Belege'},{id:'save',l:'Speichern'}];
+  // noT = UR/WE/KR: Tagesart → Aufenthalt+Segmente → Kosten → Speichern
+  if(dt.noT){return[{id:'daytype',l:'Tagesart'},{id:'travel',l:'Aufenthalt & Fahrt'},{id:'costs',l:'Allg. Kosten'},{id:'save',l:'Speichern'}];}
+  // noW = DR/LG/ÜB/HF/RF: Tagesart → Fahrt+Segmente → Kosten → Speichern
+  if(dt.noW){return[{id:'daytype',l:'Tagesart'},{id:'travel',l:'Fahrt & Reisemittel'},{id:'costs',l:'Allg. Kosten'},{id:'save',l:'Speichern'}];}
+  // Normal AW: Tagesart → Fahrt+Segmente → Kosten → Arbeitszeit → Speichern
+  return[{id:'daytype',l:'Tagesart'},{id:'travel',l:'Fahrt & Reisemittel'},{id:'costs',l:'Allg. Kosten'},{id:'work',l:'Arbeitszeit'},{id:'save',l:'Speichern'}];
 }
 
 /* INDEXEDDB */
@@ -640,13 +624,10 @@ function migrate(){
       if(Array.isArray(e.segments)){e.segs=e.segments.map(s=>({...freshSeg(),mode:s.mode||'',fromLoc:s.fromLoc||'',toLoc:s.toLoc||'',km:s.km||'',kmSrc:s.kmSrc||s.kmSource||'',dep:s.dep||'',arr:s.arr||'',detail:s.route||'',recIds:s.receiptIds||s.costRecIds||[]}));}
       else if(Array.isArray(e.travelSegments)){e.segs=e.travelSegments.map(s=>({...freshSeg(),mode:s.mode||'',fromLoc:s.fromLoc||'',toLoc:s.toLoc||'',km:s.km||'',kmSrc:s.kmSource||'',dep:s.dep||'',arr:s.arr||'',detail:s.route||'',recIds:s.receiptIds||[]}));}
     }
-    e.segs.forEach(s=>{if(!Array.isArray(s.recIds))s.recIds=s.costRecIds||s.receiptIds||[];if(typeof s.enabled!=='boolean')s.enabled=true;if(!s.ppKm)s.ppKm=0;if(!s.ppTotal)s.ppTotal=0;if(!s.costCurr)s.costCurr='EUR';
-      // Recalculate ppTotal if never set (ppKm===0) but mode+km present
-      if(s.mode&&s.km&&s.ppKm===0){const ppr=MODES.find(x=>x.v===s.mode);if(ppr&&ppr.pp){s.ppKm=parseFloat(s.km)||0;s.ppTotal=s.ppKm*ppr.pp;}}
+    e.segs.forEach(s=>{if(!Array.isArray(s.recIds))s.recIds=s.costRecIds||s.receiptIds||[];if(typeof s.enabled!=='boolean')s.enabled=true;if(!s.costCurr)s.costCurr='EUR';if(typeof s.costEnabled!=='boolean')s.costEnabled=true;
     });
     if(!Array.isArray(e.recIds))e.recIds=e.costRecIds||e.costReceiptIds||[];
     if(!e.stayLocation)e.stayLocation='';if(!e.verpflegung)e.verpflegung='';
-    if(!e.tripType)e.tripType='einfach';
   });
   if(!state.settings.addressHistory)state.settings.addressHistory=[];
   if(!state.settings.bwReceipts)state.settings.bwReceipts={};
@@ -655,28 +636,7 @@ function migrate(){
   if(!state.settings.dtStart)state.settings.dtStart='';
 }
 
-/* PP CALC */
-function calcPP(mode,km){
-  const k=parseFloat(km)||0;if(!k)return{ppKm:k,ppTotal:0,ppN:'',auto:false};
-  const m=MODES.find(x=>x.v===mode);
-  if(!m||!m.pp)return{ppKm:k,ppTotal:0,ppN:'',auto:false};
-  return{ppKm:k,ppTotal:k*m.pp,ppN:m.ppN,auto:true};
-}
 
-/* PP PAIRING LOCK – HF+RF same week cannot both claim PP; TGW-route is separate */
-function ppAlreadyForPair(dayCode, date){
-  if(dayCode!=='HF'&&dayCode!=='RF')return{locked:false};
-  const paired=dayCode==='HF'?'RF':'HF';
-  const d=new Date(date+'T00:00');
-  // Search ±8 days for paired entry with PP
-  for(let i=-5;i<=5;i++){
-    const iso=new Date(d.getTime()+i*86400000).toISOString().slice(0,10);
-    const e=state.entries.find(x=>x.date===iso&&x.dayCode===paired&&x.id!==editId);
-    if(e&&(e.segs||[]).some(s=>s.enabled!==false&&parseFloat(s.ppTotal)>0))
-      return{locked:true,msg:`${paired}-Eintrag (${iso}) hat bereits Pendlerpauschale. Pro Wegstrecke (Hin + Rück) wird PP nur einmal angesetzt.`};
-  }
-  return{locked:false};
-}
 
 /* IMAGE COMPRESSION */
 async function compressImg(file){
@@ -724,7 +684,7 @@ async function geocode(addr){
   if(!d.length)throw new Error('Nicht gefunden');return{lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
 }
 async function calcRoute(from,to){
-  const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=false`);
+  const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=false&alternatives=false&steps=false&annotations=false`);
   if(!r.ok)throw new Error('Route '+r.status);const d=await r.json();
   if(d.code!=='Ok'||!d.routes?.length)throw new Error('Keine Route');
   return{km:d.routes[0].distance/1000,min:Math.round(d.routes[0].duration/60)};
@@ -774,7 +734,7 @@ function gotoView(v){
   document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='view-'+v));
   if(v==='overview')renderOverview();if(v==='export'){updExStats();renderFhf();initCatGrid();}
   if(v==='settings')loadSettings();if(v==='receipts')renderReceipts();
-  if(v==='wizard'){renderCal();check28();}
+  if(v==='wizard'){renderCal();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -840,9 +800,6 @@ function collectCur(){
   const wn=document.getElementById('wNotes');if(wn)wiz.workNotes=wn.value;
   const nc=document.getElementById('nwCb');if(nc)wiz.presentNoWork=nc.checked;
   const sl=document.getElementById('stayLoc');if(sl)wiz.stayLocation=sl.value;
-  const sn=document.getElementById('stayN');if(sn)wiz.workNotes=sn.value;
-  const tf=document.getElementById('tFrom');if(tf)wiz.tripFrom=tf.value;
-  const tt=document.getElementById('tTo');if(tt)wiz.tripTo=tt.value;
   const gt=document.getElementById('genType');if(gt)wiz.costType=gt.value;
   const ga=document.getElementById('genAmt');if(ga)wiz.costAmt=ga.value;
   const gc=document.getElementById('genCurr');if(gc)wiz.costCurr=gc.value;
@@ -875,17 +832,16 @@ function navBtns(showBack,showSkip,nextLbl,nextFn){
 
 function renderStep(id){const c=document.getElementById('stepBox');if(!c)return;c.innerHTML=buildStep(id);afterRender(id);}
 function afterRender(id){
-  if(id==='costs'){wiz.segs.filter(s=>s.enabled!==false).forEach((_,i)=>hydrateSegRec(i));hydrateGenRec();}
+  if(id==='costs'){hydrateGenRec();}
+  if(id==='costs'||id==='travel'||id==='segs'){wiz.segs.forEach((_,i)=>hydrateSegRec(i));}
 }
 
 /* BUILD STEPS */
 function buildStep(id){
   switch(id){
     case 'daytype': return buildDaytype();
+    case 'travel':  return buildTravel();
     case 'work':    return buildWork();
-    case 'location':return buildLocation();
-    case 'trip':    return buildTrip();
-    case 'segs':    return buildSegs();
     case 'costs':   return buildCosts();
     case 'save':    return buildSave();
     default: return '';
@@ -925,24 +881,80 @@ function buildDaytype(){
 }
 function selectCode(code){
   wiz.dayCode=code;
-  if(code==='AW'&&!wiz.tripFrom&&!wiz.tripTo&&wiz.segs.length===0)autoFillTrip();
   renderStep('daytype');
 }
 function autoFillTrip(){
   const s=state.settings;if(!s.addrSecondary||!s.addrWork){return;}
   const from=fullA(s.addrSecondary),to=fullA(s.addrWork);
-  wiz.tripFrom=from;wiz.tripTo=to;wiz.tripType='hin_zurueck';
   const seg=freshSeg();seg.mode='ÖPNV';seg.fromLoc=from;seg.toLoc=to;
   seg.dep=wiz.workStart||'';seg.arr=wiz.workEnd||'';
   seg.detail='Deutschlandticket';seg.fromGeo=s.addrSecondaryGeo||null;seg.toGeo=s.addrWorkGeo||null;
   wiz.segs=[seg];toast('🚍 Standard-Fahrt TGW → Arbeitsstätte angelegt','ok');
 }
 
-/* STEP 2: WORK */
+/* STEP 2: COMBINED TRAVEL (Fahrt + Reisemittel + Aufenthalt) */
+function buildTravel(){
+  const dt=DT[wiz.dayCode]||{};
+  const noT=dt.noT;
+  const ss=state.settings;
+  const aItems=[{l:'EW',v:fullA(ss.addrPrimary)},{l:'TGW',v:fullA(ss.addrSecondary)},{l:'Arb.',v:fullA(ss.addrWork)}].filter(x=>x.v);
+  // Toggle: Fahrt or Aufenthalt
+  const useFahrt=wiz.useFahrt!==false&&!noT||wiz.useFahrt===true;
+  const useAuf=wiz.useAufenthalt===true||noT;
+  const segHtml=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');
+  const aufenthaltSection=`
+    <div style="border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;background:var(--card)">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--navy);margin-bottom:8px">
+        <input type="checkbox" id="cbAuf" ${useAuf?'checked':''} onchange="wiz.useAufenthalt=this.checked;buildTravelToggle()" style="width:17px;height:17px;accent-color:#0A84FF">
+        Aufenthaltsort
+      </label>
+      <div id="aufBody" style="display:${useAuf?'block':'none'}">
+        <div class="f">
+          <input type="text" id="stayLoc" list="addrList" value="${esc(wiz.stayLocation)}"
+            onchange="wiz.stayLocation=this.value;addToHistory(this.value)"
+            placeholder="z. B. Bad Reichenhall, Heimat …">
+          <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">
+            ${aItems.map(a=>`<button class="achip" type="button" onclick="wiz.stayLocation='${esc(a.v)}';document.getElementById('stayLoc').value='${esc(a.v)}'">${esc(a.l)}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const fahrtSection=`
+    <div style="border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;background:var(--card)">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--navy);margin-bottom:8px">
+        <input type="checkbox" id="cbFahrt" ${(!noT&&useFahrt)?'checked':noT?'':''} ${noT?'disabled':''} onchange="wiz.useFahrt=this.checked;buildTravelToggle()" style="width:17px;height:17px;accent-color:#0A84FF">
+        Fahrt & Reisemittel
+      </label>
+      <div id="fahrtBody" style="display:${(!noT&&useFahrt)||noT?'block':'none'}">
+        <div class="segs" id="segList">${segHtml}</div>
+        <button class="add-seg" type="button" onclick="addSeg()">+ Reisemittel hinzufügen</button>
+      </div>
+    </div>`;
+  const stepNum=getSteps(wiz.dayCode).findIndex(s=>s.id==='travel')+1;
+  return`<div class="wcard">
+    <div class="wcard-head"><h3>Schritt ${stepNum} · Fahrt & Aufenthalt</h3><div class="sub">Aufenthaltsort und/oder Reisemittel erfassen.</div></div>
+    ${navBtns(true,true)}
+    <div class="wbody">
+      ${aufenthaltSection}
+      ${fahrtSection}
+      <div class="f" style="margin-top:6px"><label>Bemerkung</label>
+        <input type="text" id="travelNotes" value="${esc(wiz.workNotes)}" onchange="wiz.workNotes=this.value" placeholder="z. B. Dienstort, Lagerangabe …">
+      </div>
+    </div>
+  </div>`;
+}
+function buildTravelToggle(){
+  const cbF=document.getElementById('cbFahrt');
+  const cbA=document.getElementById('cbAuf');
+  if(cbF){wiz.useFahrt=cbF.checked;document.getElementById('fahrtBody').style.display=cbF.checked?'block':'none';}
+  if(cbA){wiz.useAufenthalt=cbA.checked;document.getElementById('aufBody').style.display=cbA.checked?'block':'none';}
+}
+
+/* STEP 2: WORK (moved to step 4 for AW) */
 function buildWork(){
   const vrpfl=DT[wiz.dayCode]?.verpfl?buildVerpfl():'';
   return`<div class="wcard">
-    <div class="wcard-head"><h3>Schritt 2 · Arbeitszeiten</h3><div class="sub">Dienstbeginn und -ende.</div></div>
+    <div class="wcard-head"><h3>Schritt ${getSteps(wiz.dayCode).findIndex(s=>s.id==='work')+1} · Arbeitszeiten</h3><div class="sub">Dienstbeginn und -ende.</div></div>
     ${navBtns(true,true)}
     <div class="wbody">
       <div class="tblock blue" style="margin-bottom:14px">
@@ -995,42 +1007,6 @@ function buildLocation(){
 }
 
 /* STEP 3: TRIP */
-function buildTrip(){
-  const s=state.settings;
-  const aItems=[{l:'🏠 EW',v:fullA(s.addrPrimary)},{l:'🏡 TGW',v:fullA(s.addrSecondary)},{l:'🏢 Arb.',v:fullA(s.addrWork)}].filter(x=>x.v);
-  const fChips=aItems.map(a=>`<button class="achip" type="button" onclick="setTA('from','${esc(a.v)}')">${esc(a.l)}</button>`).join('');
-  const tChips=aItems.map(a=>`<button class="achip" type="button" onclick="setTA('to','${esc(a.v)}')">${esc(a.l)}</button>`).join('');
-  return`<div class="wcard">
-    <div class="wcard-head"><h3>Schritt 3 · Fahrt</h3><div class="sub">Abfahrt und Ziel.</div></div>
-    ${navBtns(true,true)}
-    <div class="wbody">
-      <div class="g g2">
-        <div class="f">
-          <label>Abfahrtsort</label>
-          <input type="text" id="tFrom" list="addrList" value="${esc(wiz.tripFrom)}" onchange="wiz.tripFrom=this.value;addToHistory(this.value)">
-          <div class="achips">${fChips}</div>
-        </div>
-        <div class="f">
-          <label>Zielort</label>
-          <input type="text" id="tTo" list="addrList" value="${esc(wiz.tripTo)}" onchange="wiz.tripTo=this.value;addToHistory(this.value)">
-          <div class="achips">${tChips}</div>
-        </div>
-      </div>
-      <div style="margin-top:12px">
-        <label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:7px">Fahrtrichtung</label>
-        <div class="chips">
-          <button type="button" class="chip${wiz.tripType==='einfach'?' on':''}" onclick="wiz.tripType='einfach';this.closest('.chips').querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Einfach</button>
-          <button type="button" class="chip${wiz.tripType==='hin_zurueck'?' on':''}" onclick="wiz.tripType='hin_zurueck';this.closest('.chips').querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));this.classList.add('on')">Hin & Zurück</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-function setTA(which,val){
-  if(which==='from'){wiz.tripFrom=val;const el=document.getElementById('tFrom');if(el)el.value=val;}
-  else{wiz.tripTo=val;const el=document.getElementById('tTo');if(el)el.value=val;}
-  addToHistory(val);
-}
 /* STEP 4: SEGMENTS */
 function buildSegs(){
   const sh=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');
@@ -1049,13 +1025,12 @@ function buildSeg(s,i){
   const aItems=[{l:'🏠 EW',v:fullA(ss.addrPrimary)},{l:'🏡 TGW',v:fullA(ss.addrSecondary)},{l:'🏢 Arb.',v:fullA(ss.addrWork)}].filter(x=>x.v);
   const fc=aItems.map(a=>`<button class="achip" type="button" onclick="setSA(${i},'from','${esc(a.v)}')">${esc(a.l)}</button>`).join('');
   const tc=aItems.map(a=>`<button class="achip" type="button" onclick="setSA(${i},'to','${esc(a.v)}')">${esc(a.l)}</button>`).join('');
-  const pp=s.ppTotal>0?`<span class="badge ok">${fmtM(s.ppTotal)}</span>`:'';
   const kmB=s.km?(s.kmSrc==='auto'?`<span class="badge ok">🗺️ ${s.km}km</span>`:`<span class="badge mu">manuell</span>`):'';
   return`<div class="seg" id="seg_${i}">
     <div class="seg-h">
       <span class="seg-lbl">Abschnitt ${i+1}</span>
       <input type="checkbox" ${s.enabled!==false?'checked':''} title="Aktiv" onchange="wiz.segs[${i}].enabled=this.checked">
-      <select onchange="setSeg(${i},'mode',this.value);updatePP(${i})">${mOpts}</select>
+      <select onchange="setSeg(${i},'mode',this.value)">${mOpts}</select>
       <button class="btn-xs d" onclick="rmSeg(${i})">✕</button>
     </div>
     <div class="seg-body">
@@ -1082,15 +1057,50 @@ function buildSeg(s,i){
       <div class="f" style="margin-top:10px">
         <label>Kilometer</label>
         <div style="display:flex;gap:6px;align-items:stretch">
-          <input type="number" min="0" step="0.1" value="${esc(s.km)}" style="flex:1" onchange="setSeg(${i},'km',this.value);setSeg(${i},'kmSrc','manual');updatePP(${i})" placeholder="0">
+          <input type="number" min="0" step="0.1" value="${esc(s.km)}" style="flex:1" onchange="setSeg(${i},'km',this.value);setSeg(${i},'kmSrc','manual')" placeholder="0">
           <button class="rbtn" onclick="autoRoute(${i})">🗺️ Auto</button>
           <button class="rbtn gm" onclick="openGm(${i})">G</button>
         </div>
-        <div style="display:flex;gap:5px;margin-top:4px" id="segBadge_${i}">${kmB}${pp}</div>
+        <div style="display:flex;gap:5px;margin-top:4px" id="segBadge_${i}">${kmB}</div>
       </div>
       <div class="f" style="margin-top:9px">
         <label>Linie / Kennzeichen / Detail</label>
         <input type="text" value="${esc(s.detail)}" onchange="setSeg(${i},'detail',this.value)" placeholder="z. B. ICE 525, Deutschlandticket, Kz.">
+      </div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:12px 0 10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-weight:600;font-size:12px;color:var(--navy);text-transform:uppercase;letter-spacing:.4px">Kosten & Beleg</span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">
+          <input type="checkbox" ${s.costEnabled!==false?'checked':''} style="accent-color:#0A84FF" onchange="setSeg(${i},'costEnabled',this.checked);document.getElementById('segCostInline_${i}').style.display=this.checked?'':'none'">
+          aktiv
+        </label>
+      </div>
+      <div id="segCostInline_${i}" style="display:${s.costEnabled!==false?'block':'none'}">
+        <div class="g">
+          <div class="f"><label>Art der Kosten</label>
+            <select class="seg-cost-type" onchange="setSeg(${i},'costType',this.value)">
+              ${['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Deutschlandticket','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${s.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('')}
+            </select>
+          </div>
+          <div class="f"><label>Betrag</label>
+            <input class="seg-cost-amt" type="number" min="0" step="0.01" value="${esc(s.costAmt)}" onchange="setSeg(${i},'costAmt',this.value)" placeholder="0,00">
+          </div>
+          <div class="f"><label>Währung</label>
+            <select onchange="setSeg(${i},'costCurr',this.value)">
+              ${['EUR','CHF','USD','GBP','NOK'].map(c=>`<option ${(s.costCurr||'EUR')===c?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="f" style="margin-top:8px">
+          <label>Beschreibung</label>
+          <input class="seg-cost-desc" type="text" value="${esc(s.costDesc)}" onchange="setSeg(${i},'costDesc',this.value)" placeholder="z. B. ICE München – Salzburg">
+        </div>
+        <div class="rec-sec" style="margin-top:9px">
+          <div class="rec-lbl"><span>Belege (${s.recIds.length})</span>
+            <label class="fbtn">📎 Hinzufügen<input type="file" accept="image/*,application/pdf" multiple onchange="handleSegRec(${i},event)"></label>
+          </div>
+          <div class="rec-list" id="segRL_${i}"></div>
+        </div>
       </div>
     </div>
   </div>`;
@@ -1102,15 +1112,8 @@ function setSA(i,which,val){
   if(inp)inp.value=val;setGeo(i,which,val);addToHistory(val);
 }
 function setGeo(i,which,val){const g=lookupGeo(val);if(wiz.segs[i]){if(which==='from')wiz.segs[i].fromGeo=g;else wiz.segs[i].toGeo=g;}}
-function updatePP(i){
-  const s=wiz.segs[i];if(!s)return;
-  const pp=calcPP(s.mode,s.km);s.ppKm=pp.ppKm;s.ppTotal=pp.ppTotal;
-  const bd=document.getElementById('segBadge_'+i);
-  if(bd){const kmB=s.km?(s.kmSrc==='auto'?`<span class="badge ok">🗺️ ${s.km}km</span>`:`<span class="badge mu">manuell</span>`):'';
-    const ppB=pp.auto?`<span class="badge ok">${fmtM(pp.ppTotal)}</span>`:'';bd.innerHTML=kmB+ppB;}
-}
-function addSeg(){wiz.segs.push(freshSeg());const sl=document.getElementById('segList');if(sl)sl.innerHTML=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');}
-function rmSeg(i){wiz.segs.splice(i,1);const sl=document.getElementById('segList');if(sl)sl.innerHTML=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');}
+function addSeg(){wiz.segs.push(freshSeg());const sl=document.getElementById('segList');if(sl){sl.innerHTML=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');wiz.segs.forEach((_,i)=>hydrateSegRec(i));}}
+function rmSeg(i){wiz.segs.splice(i,1);const sl=document.getElementById('segList');if(sl){sl.innerHTML=wiz.segs.map((s,i)=>buildSeg(s,i)).join('');wiz.segs.forEach((_,j)=>hydrateSegRec(j));}}
 async function autoRoute(i){
   const s=wiz.segs[i];if(!s)return;if(!s.fromLoc||!s.toLoc){toast('Orte eingeben','err');return;}
   const bd=document.getElementById('segBadge_'+i);if(bd)bd.innerHTML='<span class="badge ld">⏳ Berechne…</span>';
@@ -1118,8 +1121,7 @@ async function autoRoute(i){
     let fg=s.fromGeo||lookupGeo(s.fromLoc);if(!fg){fg=await geocode(s.fromLoc);s.fromGeo=fg;}
     let tg=s.toGeo||lookupGeo(s.toLoc);if(!tg){tg=await geocode(s.toLoc);s.toGeo=tg;}
     const r=await calcRoute(fg,tg);s.km=r.km.toFixed(1);s.kmSrc='auto';
-    const pp=calcPP(s.mode,s.km);s.ppKm=pp.ppKm;s.ppTotal=pp.ppTotal;
-    if(bd)bd.innerHTML=`<span class="badge ok">${s.km}km · ~${r.min}min</span>${pp.auto?`<span class="badge ok">${fmtM(pp.ppTotal)}</span>`:''}`;
+    if(bd)bd.innerHTML=`<span class="badge ok">${s.km}km · ~${r.min}min</span>`;
     const ki=document.querySelector(`#seg_${i} input[type="number"]`);if(ki)ki.value=s.km;
     toast('Route berechnet ✓','ok');
   }catch(e){if(bd)bd.innerHTML=`<span class="badge err">✕ ${esc(e.message)}</span>`;toast('Fehler: '+e.message,'err');}
@@ -1127,53 +1129,13 @@ async function autoRoute(i){
 function openGm(i){const s=wiz.segs[i];if(!s||!s.fromLoc||!s.toLoc){toast('Orte eingeben','err');return;}
   window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(s.fromLoc)}&destination=${encodeURIComponent(s.toLoc)}`,'_blank','noopener');}
 
-/* STEP 5: COSTS */
+/* STEP 5: COSTS (general costs only – per-segment costs are in Step 2) */
 function buildCosts(){
-  const activeSeg=wiz.segs.filter(s=>s.enabled!==false&&s.mode);
-  const segBlocks=activeSeg.map((s,rawIdx)=>{
-    const realIdx=wiz.segs.indexOf(s);
-    const pp=calcPP(s.mode,s.km);
-    const ppPair=ppAlreadyForPair(wiz.dayCode,wiz.date);
-    const ppHtml=pp.auto?(ppPair.locked?
-      `<div class="pp-box" style="background:#fff3cd;border-color:#e6af2e"><b>Pendlerpauschale gesperrt</b><br><small style="color:#6c4a00">${esc(ppPair.msg)}</small></div>`:
-      `<div class="pp-box"><b>Pendlerpauschale (automatisch berechnet):</b><br>${esc(pp.ppN)}<br><b>Betrag: ${fmtM(pp.ppTotal)}</b>
-      <button class="rbtn" style="margin-left:9px;margin-top:4px" onclick="applyPP(${realIdx})">Übernehmen</button></div>`):'';
-    const mOpts=['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Pendlerpauschale','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${s.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('');
-    return`<div class="cblock" data-segidx="${realIdx}">
-      <div class="cblock-h"><span class="cblock-t">Abschnitt ${rawIdx+1}: ${esc(s.mode)}${s.fromLoc&&s.toLoc?' · '+esc(s.fromLoc)+' → '+esc(s.toLoc):''}</span></div>
-      ${ppHtml}
-      <div class="g">
-        <div class="f"><label>Art der Kosten</label>
-          <select class="seg-cost-type" onchange="setSeg(${realIdx},'costType',this.value)">${mOpts}</select>
-        </div>
-        <div class="f"><label>Betrag</label>
-          <input class="seg-cost-amt" type="number" min="0" step="0.01" value="${esc(s.costAmt)}" onchange="setSeg(${realIdx},'costAmt',this.value)" placeholder="0,00">
-        </div>
-        <div class="f"><label>Währung</label>
-          <select onchange="setSeg(${realIdx},'costCurr',this.value)">
-            ${['EUR','CHF','USD','GBP','NOK'].map(c=>`<option ${(s.costCurr||'EUR')===c?'selected':''}>${c}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div class="f" style="margin-top:9px">
-        <label>Beschreibung</label>
-        <input class="seg-cost-desc" type="text" value="${esc(s.costDesc)}" onchange="setSeg(${realIdx},'costDesc',this.value)" placeholder="z. B. ICE München – Salzburg">
-      </div>
-      <div class="rec-sec">
-        <div class="rec-lbl"><span>Belege (${s.recIds.length})</span>
-          <label class="fbtn">📎 Hinzufügen<input type="file" accept="image/*,application/pdf" multiple onchange="handleSegRec(${realIdx},event)"></label>
-        </div>
-        <div class="rec-list" id="segRL_${realIdx}"></div>
-      </div>
-    </div>`;
-  }).join('');
-
   return`<div class="wcard">
-    <div class="wcard-head"><h3>Schritt 5 · Kosten & Belege</h3><div class="sub">Kosten pro Reisemittel + allgemeine Kosten. Pendlerpauschale wird automatisch berechnet.</div></div>
+    <div class="wcard-head"><h3>Schritt ${getSteps(wiz.dayCode).findIndex(s=>s.id==='costs')+1} · Allgemeine Kosten</h3><div class="sub">Kosten die keinem einzelnen Reisemittel zugeordnet sind.</div></div>
     ${navBtns(true,false,'Weiter →')}
     <div class="wbody">
-      ${segBlocks||'<p style="color:var(--muted);font-size:13px;margin-bottom:14px">Keine aktiven Reisemittel erfasst.</p>'}
-      <div class="cblock" style="margin-top:10px">
+      <div class="cblock" style="margin-top:0">
         <div class="cblock-h" style="display:flex;align-items:center;gap:10px">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
             <input type="checkbox" id="genEnabled" ${wiz.costEnabled!==false?'checked':''} onchange="wiz.costEnabled=this.checked;document.getElementById('genBody').style.display=this.checked?'':'none'">
@@ -1184,7 +1146,7 @@ function buildCosts(){
         <div class="g">
           <div class="f"><label>Art</label>
             <select id="genType" onchange="wiz.costType=this.value">
-              ${['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Pendlerpauschale','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${wiz.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('')}
+              ${['','Bahnfahren in Uniform','Bahnkarte','Buskarte','Deutschlandticket','Flugkarte','Tanken','Taxi','Mietwagen','Parkgebühr','Maut','Verpflegung','Übernachtung','Sonstiges'].map(o=>`<option ${wiz.costType===o?'selected':''}>${esc(o)||'— Keine —'}</option>`).join('')}
             </select>
           </div>
           <div class="f"><label>Betrag</label>
@@ -1211,25 +1173,6 @@ function buildCosts(){
     </div>
   </div>`;
 }
-function applyPP(i){
-  const s=wiz.segs[i];if(!s)return;
-  const pp=calcPP(s.mode,s.km);const m=MODES.find(x=>x.v===s.mode);
-  const desc=`${m?.ppN||''} · ${pp.ppKm}km × ${(m?.pp||PP26).toLocaleString('de-DE',{minimumFractionDigits:2})}€/km = ${fmtM(pp.ppTotal)}`;
-  setSeg(i,'costType','Pendlerpauschale');setSeg(i,'costAmt',pp.ppTotal.toFixed(2));
-  setSeg(i,'costDesc',desc);
-  // Update DOM fields directly without full re-render
-  const block=document.querySelector(`[data-segidx="${i}"]`);
-  if(block){
-    const typeEl=block.querySelector('.seg-cost-type');if(typeEl)typeEl.value='Pendlerpauschale';
-    const amtEl=block.querySelector('.seg-cost-amt');if(amtEl)amtEl.value=pp.ppTotal.toFixed(2);
-    const descEl=block.querySelector('.seg-cost-desc');if(descEl)descEl.value=desc;
-    const ppBox=block.querySelector('.pp-box');if(ppBox)ppBox.style.background='#e6efe9';
-  } else {
-    // fallback: re-render whole step
-    renderStep(curStep);
-  }
-  toast('Pendlerpauschale übernommen ✓','ok');
-}
 
 /* STEP 6: SAVE */
 function buildSave(){
@@ -1238,8 +1181,7 @@ function buildSave(){
   w.segs.forEach(s=>{if(s.enabled!==false&&s.costAmt){const c=s.costCurr||'EUR';ttlCur[c]=(ttlCur[c]||0)+parseFloat(s.costAmt);}});
   if(w.costAmt){const c=w.costCurr||'EUR';ttlCur[c]=(ttlCur[c]||0)+parseFloat(w.costAmt);}
   const costs=Object.entries(ttlCur).map(([c,v])=>fmtM(v,c)).join(' + ')||'—';
-  const ppSum=w.segs.filter(s=>s.enabled!==false).reduce((a,s)=>a+(parseFloat(s.ppTotal)||0),0);
-  const segsStr=w.segs.filter(s=>s.enabled!==false&&s.mode).map(s=>`${s.mode}${s.km?' · '+s.km+'km':''}${s.ppTotal>0?' · '+fmtM(s.ppTotal):''}`).join('; ')||'—';
+  const segsStr=w.segs.filter(s=>s.enabled!==false&&s.mode).map(s=>`${s.mode}${s.fromLoc&&s.toLoc?' · '+esc(s.fromLoc)+' → '+esc(s.toLoc):''}${s.km?' · '+s.km+'km':''}`).join('<br>')||'—';
   return`<div class="wcard">
     <div class="wcard-head"><h3>Speichern · Zusammenfassung</h3><div class="sub">Bitte prüfen.</div></div>
     <div class="wact">
@@ -1253,10 +1195,10 @@ function buildSave(){
         <div><b style="color:var(--navy)">Code:</b> <span class="cpill ${w.dayCode}">${w.dayCode}</span> ${esc(dt.n)}${w.isFHF?'<span class="ftag">FHF</span>':''}</div>
         ${w.workStart||w.workEnd||w.presentNoWork?`<div><b style="color:var(--navy)">Dienst:</b> ${w.presentNoWork?'⏸ Anwesend o. Dienst':(w.workStart&&w.workEnd?w.workStart+' – '+w.workEnd:'—')}${w.workLocation?' · '+esc(w.workLocation):''}</div>`:''}
         ${w.stayLocation?`<div><b style="color:var(--navy)">Aufenthalt:</b> ${esc(w.stayLocation)}</div>`:''}
-        ${w.tripFrom||w.tripTo?`<div><b style="color:var(--navy)">Fahrt:</b> ${esc(w.tripFrom||'?')} → ${esc(w.tripTo||'?')} (${w.tripType==='hin_zurueck'?'H&R':'einfach'})</div>`:''}
-        ${segsStr!=='—'?`<div><b style="color:var(--navy)">Reisemittel:</b> ${esc(segsStr)}</div>`:''}
+
+        ${segsStr!=='—'?`<div><b style="color:var(--navy)">Reisemittel:</b> <span style="line-height:1.7">${segsStr}</span></div>`:''}
         ${costs!=='—'?`<div><b style="color:var(--navy)">Kosten:</b> ${esc(costs)}</div>`:''}
-        ${ppSum>0?`<div><b style="color:var(--ok)">Pendlerpauschale gesamt:</b> ${fmtM(ppSum)}</div>`:''}
+
         ${w.verpflegung?`<div><b style="color:var(--navy)">Verpflegung:</b> ${esc(w.verpflegung)}</div>`:''}
         ${w.workNotes?`<div style="color:var(--muted)"><b>Bemerkung:</b> ${esc(w.workNotes)}</div>`:''}
       </div>
@@ -1329,7 +1271,7 @@ function saveEntry(){
   wiz.segs.forEach(s=>[s.fromLoc,s.toLoc].filter(Boolean).forEach(addToHistory));
   if(editId){const i=state.entries.findIndex(e=>e.id===editId);if(i>=0)state.entries[i]=entry;}
   else state.entries.push(entry);
-  editId=null;persist();renderCal();check28();
+  editId=null;persist();renderCal();
   toast('Eintrag gespeichert ✓','ok');
   wiz=freshW();curStep=0;renderProg();renderStep('daytype');
   setTimeout(()=>gotoView('overview'),350);
@@ -1365,40 +1307,63 @@ function renderOverview(){
   const tb=document.getElementById('tbody'),em=document.getElementById('emptyMsg');
   const cnt=document.getElementById('ovCnt');if(cnt)cnt.textContent=list.length+' Einträge';
   if(!list.length){if(tb)tb.innerHTML='';if(em)em.style.display='block';
-    document.getElementById('ppSummary').innerHTML='';document.getElementById('wsSummary').innerHTML='';return;}
+    document.getElementById('ppSummary').innerHTML='';document.getElementById('costsSummary').innerHTML='';document.getElementById('wsSummary').innerHTML='';return;}
   if(em)em.style.display='none';
   tb.innerHTML=list.map(e=>{
     const dt=DT[e.dayCode]||{n:'—'};
-    let loc='—';
-    if(e.tripFrom||e.tripTo)loc=`${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}<br><small style="color:var(--muted)">${e.tripType==='hin_zurueck'?'H&R':'einfach'}</small>`;
-    else if(e.stayLocation)loc=esc(e.stayLocation);
-    else if(e.workLocation)loc=esc(e.workLocation);
-    const ttlCur={};
-    (e.segs||[]).forEach(s=>{if(s.enabled!==false&&s.costAmt){const c=s.costCurr||'EUR';ttlCur[c]=(ttlCur[c]||0)+parseFloat(s.costAmt);}});
-    if(e.costAmt){const c=e.costCurr||'EUR';ttlCur[c]=(ttlCur[c]||0)+parseFloat(e.costAmt);}
-    const costStr=Object.entries(ttlCur).map(([c,v])=>fmtM(v,c)).join(' + ')||'—';
-    const ppSum=(e.segs||[]).reduce((a,s)=>a+(s.enabled!==false?parseFloat(s.ppTotal)||0:0),0);
-    const segsStr=(e.segs||[]).filter(s=>s.enabled!==false&&s.mode).map(s=>{
-      const pp=s.ppTotal>0?` <span style="color:var(--ok);font-size:10px">${fmtM(s.ppTotal)}</span>`:'';
-      return`${esc(s.mode)}${s.km?' '+s.km+'km':''}${pp}`;
-    }).join('<br>')||'—';
+    // Location
+    let locPrimary='—';
+    if(e.stayLocation)locPrimary=esc(e.stayLocation);
+    else if(e.workLocation)locPrimary=esc(e.workLocation);
+    // Active segments with route info
+    const activeSegs=(e.segs||[]).filter(s=>s.enabled!==false&&s.mode);
     const rc=(e.segs||[]).reduce((a,s)=>a+(s.recIds?.length||0),0)+(e.recIds?.length||0);
-    return`<tr>
-      <td><div class="dcell">${fmtD(e.date)}<small>${dayN(e.date)}</small>
+    const rcBadge=rc>0?`<span style="color:var(--muted);font-size:10px;margin-left:4px">📎${rc}</span>`:'';
+    // Actions cell (spans all segment rows)
+    const rowspan=Math.max(1,activeSegs.length);
+    const dateTd=`<td rowspan="${rowspan}" style="vertical-align:top">
+      <div class="dcell">${fmtD(e.date)}<small>${dayN(e.date)}</small>
         <div class="acts" style="margin-top:5px">
           ${e.isFHF?`<button class="btn-xs" onclick="dlFhf('${e.id}')">PDF</button> `:''}
           <button class="btn-xs" onclick="editEntry('${e.id}')">✎</button>
           <button class="btn-xs d" onclick="deleteEntry('${e.id}')">✕</button>
-        </div></div></td>
-      <td><span class="cpill ${e.dayCode}">${e.dayCode}</span>${e.isFHF?'<span class="ftag">FHF</span>':''}</td>
-      <td>${loc}</td>
-      <td style="font-size:11px">${segsStr}${costStr!=='—'?`<br><b style="color:var(--warn)">${costStr}</b>`:''}${ppSum>0?`<br><span style="color:var(--ok);font-size:10px">PP: ${fmtM(ppSum)}</span>`:''}${rc>0?`<br><span style="color:var(--muted);font-size:10px">📎${rc}</span>`:''}</td>
-    </tr>`;
+        </div>
+      </div></td>`;
+    const codeTd=`<td rowspan="${rowspan}" style="vertical-align:top">
+      <span class="cpill ${e.dayCode}">${e.dayCode}</span>${e.isFHF?'<span class="ftag">FHF</span>':''}
+    </td>`;
+    // Location td (spans all rows, shows primary location)
+    const locTd=`<td rowspan="${rowspan}" style="vertical-align:top;font-size:12px">
+      ${locPrimary}${rcBadge}
+    </td>`;
+    if(!activeSegs.length){
+      // No segments – single row, empty mode/km
+      return`<tr>${dateTd}${codeTd}${locTd}
+        <td style="color:var(--muted);font-size:11px">—</td>
+        <td></td><td></td>
+      </tr>`;
+    }
+    // One <tr> per segment; date/code/loc use rowspan
+    return activeSegs.map((s,si)=>{
+      if(si===0){
+        const costStr=s.costAmt?fmtM(parseFloat(s.costAmt),s.costCurr||'EUR'):'';
+      const routeLine=s.fromLoc&&s.toLoc?`<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35">${esc(s.fromLoc)} → ${esc(s.toLoc)}</div>`:'';
+      return`<tr>${dateTd}${codeTd}${locTd}
+          <td style="font-size:12px;vertical-align:top">${esc(s.mode)}${routeLine}</td>
+          <td style="font-size:12px;text-align:right;vertical-align:top;white-space:nowrap">${s.km?s.km+' km':''}</td>
+          <td style="font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;color:var(--warn)">${costStr}</td>
+        </tr>`;
+      }
+      const costStr2=s.costAmt?fmtM(parseFloat(s.costAmt),s.costCurr||'EUR'):'';
+      const routeLine2=s.fromLoc&&s.toLoc?`<div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35">${esc(s.fromLoc)} → ${esc(s.toLoc)}</div>`:'';
+      return`<tr>
+        <td style="font-size:12px;vertical-align:top;border-top:1px dashed var(--lsoft)">${esc(s.mode)}${routeLine2}</td>
+        <td style="font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;border-top:1px dashed var(--lsoft)">${s.km?s.km+' km':''}</td>
+        <td style="font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;border-top:1px dashed var(--lsoft);color:var(--warn)">${costStr2}</td>
+      </tr>`;
+    }).join('');
   }).join('');
-  renderPPSummary(list);renderCostsSummary(list);renderWSSummary(list);
-  const w=check28W();
-  const ob=document.getElementById('ov28');const ot=document.getElementById('ov28txt');
-  if(ob)ob.style.display=w.triggered?'flex':'none';if(ot&&w.triggered)ot.textContent=w.msg;
+  renderFahrtSummary(list);renderCostsSummary(list);renderWSSummary(list);
 }
 function check28W(){
   const d=new Date(todayISO()+'T00:00');let streak=0;
@@ -1414,86 +1379,76 @@ function renderOvStats(list){
   el.innerHTML=[
     {n:list.length,l:'Einträge',ac:true},
     {n:st.arb,l:'Tage Arb.-Stätte'},
-    {n:st.hr,l:'Fahrten H&R'},
-    {n:st.ef,l:'Fahrten einfach'},
     {n:st.dr,l:'Dienstreisen'},
     {n:st.lg,l:'Lehrgänge'},
     {n:st.ub,l:'Übungen'},
     {n:st.ur,l:'Urlaub'},
     {n:st.fhf,l:'FHF'},
-    {n:st.hf,l:'HF/RF'},
-    {n:st.pp>0?fmtM(st.pp):'—',l:'Pendlerpauschale'},
   ].map(s=>`<div class="sbox${s.ac?' ac':''}"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('');
 }
 function calcSt(list){
-  let arb=0,hr=0,ef=0,dr=0,lg=0,ub=0,ur=0,fhf=0,hf=0,pp=0,ppHF=0,ppTGW=0;
+  let arb=0,dr=0,lg=0,ub=0,ur=0,fhf=0,hf=0;
   list.forEach(e=>{
-    const dtc=DT[e.dayCode]||{};
     if(isWSDay(e))arb++;if(e.dayCode==='DR')dr++;if(e.dayCode==='LG')lg++;
     if(e.dayCode==='ÜB')ub++;if(e.dayCode==='UR')ur++;if(e.isFHF)fhf++;
     if(e.dayCode==='HF'||e.dayCode==='RF')hf++;
-    // Trips only counted for non-noT days (not UR/WE/KR)
-    if(!dtc.noT){
-      if(e.tripType==='hin_zurueck'&&(e.tripFrom||e.tripTo))hr++;
-      else if(e.tripFrom||e.tripTo)ef++;
-    }
-    (e.segs||[]).forEach(s=>{
-      if(s.enabled!==false&&s.ppTotal){
-        const v=parseFloat(s.ppTotal)||0;pp+=v;
-        if(e.dayCode==='HF'||e.dayCode==='RF')ppHF+=v;else ppTGW+=v;
-      }
-    });
   });
-  return{arb,hr,ef,dr,lg,ub,ur,fhf,hf,pp,ppHF,ppTGW};
+  return{arb,dr,lg,ub,ur,fhf,hf};
 }
-function renderPPSummary(list){
+
+function renderFahrtSummary(list){
   const el=document.getElementById('ppSummary');if(!el)return;
-  const hfItems=[],twgItems=[];let hfTot=0,twgTot=0;
-  list.forEach(e=>(e.segs||[]).filter(s=>s.enabled!==false&&s.ppTotal>0).forEach(s=>{
-    const v=parseFloat(s.ppTotal)||0;
-    if(e.dayCode==='HF'||e.dayCode==='RF'){hfItems.push({date:e.date,code:e.dayCode,mode:s.mode,km:s.km,pp:v});hfTot+=v;}
-    else{twgItems.push({date:e.date,code:e.dayCode,mode:s.mode,km:s.km,pp:v});twgTot+=v;}
-  }));
-  if(!hfItems.length&&!twgItems.length){el.innerHTML='';return;}
-  const ppRow=p=>`<tr style="border-bottom:1px solid var(--lsoft)">
-    <td style="padding:6px 7px">${fmtD(p.date)}</td>
-    <td style="padding:6px 7px"><span class="cpill ${p.code}" style="font-size:9px;padding:1px 5px">${p.code}</span></td>
-    <td style="padding:6px 7px">${esc(p.mode)}</td>
-    <td style="padding:6px 7px;text-align:right">${p.km||'—'}</td>
-    <td style="padding:6px 7px;text-align:right;font-weight:600;color:var(--ok)">${fmtM(p.pp)}</td>
+  const hfrf=[],aw=[];
+  list.forEach(e=>{
+    const segs=(e.segs||[]).filter(s=>s.enabled!==false&&s.mode&&s.km);
+    if(!segs.length)return;
+    if(e.dayCode==='HF'||e.dayCode==='RF')segs.forEach(s=>hfrf.push({date:e.date,code:e.dayCode,mode:s.mode,km:parseFloat(s.km)||0}));
+    else if(e.dayCode==='AW')segs.forEach(s=>aw.push({date:e.date,code:e.dayCode,mode:s.mode,km:parseFloat(s.km)||0}));
+  });
+  if(!hfrf.length&&!aw.length){el.innerHTML='';return;}
+  const row=r=>`<tr style="border-bottom:1px solid var(--lsoft)">
+    <td style="padding:6px 7px">${fmtD(r.date)}</td>
+    <td style="padding:6px 7px"><span class="cpill ${r.code}" style="font-size:9px;padding:1px 5px">${r.code}</span></td>
+    <td style="padding:6px 7px">${esc(r.mode)}</td>
+    <td style="padding:6px 7px;text-align:right">${r.km} km</td>
   </tr>`;
-  const thead=`<thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Code</th><th style="padding:7px">Modus</th><th style="padding:7px;text-align:right">km</th><th style="padding:7px;text-align:right">Pauschale</th></tr></thead>`;
-  const tbl=(items,tot,label)=>items.length?`
+  const sumRow=(rows,label)=>{
+    const tot=rows.reduce((a,r)=>a+r.km,0);
+    return tot>0?`<tr style="background:var(--lsoft);font-weight:700">
+      <td colspan="3" style="padding:7px">${label}</td>
+      <td style="padding:7px;text-align:right">${tot.toFixed(1)} km</td>
+    </tr>`:'';
+  };
+  const thead=`<colgroup><col style="width:25%"><col style="width:15%"><col style="width:42%"><col style="width:18%"></colgroup><thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Code</th><th style="padding:7px">Reisemittel</th><th style="padding:7px;text-align:right">km</th></tr></thead>`;
+  const tbl=(rows,label)=>rows.length?`
     <h4 style="font-size:13px;color:var(--navy);margin:10px 0 5px">${label}</h4>
-    <table style="width:100%;border-collapse:collapse;font-size:12px">${thead}
-      <tbody>${items.map(ppRow).join('')}</tbody>
-      <tfoot><tr style="background:var(--lsoft);font-weight:700">
-        <td colspan="4" style="padding:7px">Summe</td>
-        <td style="padding:7px;text-align:right;color:var(--ok)">${fmtM(tot)}</td>
-      </tr></tfoot>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed">${thead}
+      <tbody>${rows.map(row).join('')}${sumRow(rows,'Summe km')}</tbody>
     </table>`:''
-  const grandTot=hfTot+twgTot;
-  el.innerHTML=`<div class="card"><h3 style="font-size:15px;margin-bottom:6px">Pendlerpauschale (§9 EStG 2026: 0,38 €/km)</h3>
-    ${tbl(hfItems,hfTot,'Heimfahrten / Rückfahrten (HF/RF)')}
-    ${tbl(twgItems,twgTot,'Trennungsgeldwohnung → Arbeitsstätte (AW)')}
-    ${hfItems.length&&twgItems.length?`<div style="margin-top:8px;padding:7px 9px;background:var(--lsoft);border-radius:var(--r);display:flex;justify-content:space-between;font-weight:700"><span>Gesamt Pendlerpauschale</span><span style="color:var(--ok)">${fmtM(grandTot)}</span></div>`:''}
+  el.innerHTML=`<div class="card">
+    <h3 style="font-size:15px;margin-bottom:6px">Fahrtenübersicht</h3>
+    ${tbl(hfrf,'Heimfahrten / Rückfahrten (HF/RF)')}
+    ${tbl(aw,'Trennungsgeldwohnung → Arbeitsstätte (AW)')}
   </div>`;
 }
+
 function renderCostsSummary(list){
   const el=document.getElementById('costsSummary');if(!el)return;
   const items=[];
+  // Strip "Entfernungspauschale..." from descriptions, skip Pendlerpauschale entirely
+  const cleanDesc=d=>(d||'').replace(/Entfernungspauschale[^;·]*/g,'').replace(/0,38\s*€\/km[^;·]*/g,'').trim().replace(/^[·\s]+|[·\s]+$/g,'');
   list.forEach(e=>{
     (e.segs||[]).filter(s=>s.enabled!==false&&s.costAmt&&s.costType!=='Pendlerpauschale').forEach(s=>{
-      items.push({date:e.date,code:e.dayCode,type:s.costType||'Sonstiges',amt:parseFloat(s.costAmt)||0,curr:s.costCurr||'EUR',desc:s.costDesc||''});
+      items.push({date:e.date,code:e.dayCode,type:s.costType||'Sonstiges',amt:parseFloat(s.costAmt)||0,curr:s.costCurr||'EUR',desc:cleanDesc(s.costDesc)});
     });
     if(e.costAmt&&e.costType!=='Pendlerpauschale')
-      items.push({date:e.date,code:e.dayCode,type:e.costType||'Sonstiges',amt:parseFloat(e.costAmt)||0,curr:e.costCurr||'EUR',desc:e.costDesc||''});
+      items.push({date:e.date,code:e.dayCode,type:e.costType||'Sonstiges',amt:parseFloat(e.costAmt)||0,curr:e.costCurr||'EUR',desc:cleanDesc(e.costDesc)});
   });
   if(!items.length){el.innerHTML='';return;}
   const totByC={};items.forEach(i=>{totByC[i.curr]=(totByC[i.curr]||0)+i.amt;});
   el.innerHTML=`<div class="card" style="margin-top:12px"><h3 style="font-size:15px;margin-bottom:8px">Sonstige Kosten</h3>
-    <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Code</th><th style="padding:7px">Art</th><th style="padding:7px">Beschreibung</th><th style="padding:7px;text-align:right">Betrag</th></tr></thead>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed">
+      <colgroup><col style="width:16%"><col style="width:12%"><col style="width:20%"><col style="width:35%"><col style="width:17%"></colgroup><thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Datum</th><th style="padding:7px">Code</th><th style="padding:7px">Art</th><th style="padding:7px">Beschreibung</th><th style="padding:7px;text-align:right">Betrag</th></tr></thead>
       <tbody>${items.map(i=>`<tr style="border-bottom:1px solid var(--lsoft)">
         <td style="padding:6px 7px">${fmtD(i.date)}</td>
         <td style="padding:6px 7px"><span class="cpill ${i.code}" style="font-size:9px;padding:1px 5px">${i.code}</span></td>
@@ -1507,8 +1462,8 @@ function renderCostsSummary(list){
       </tr>`).join('')}</tfoot>
     </table>
     <h4 style="font-size:13px;color:var(--navy);margin:12px 0 6px">Aufschlüsselung nach Art</h4>
-    <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Art</th><th style="padding:7px;text-align:right">Anzahl</th><th style="padding:7px;text-align:right">Gesamt</th></tr></thead>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed">
+      <colgroup><col style="width:55%"><col style="width:20%"><col style="width:25%"></colgroup><thead><tr style="background:var(--navy);color:#fff"><th style="padding:7px">Art</th><th style="padding:7px;text-align:right">Anzahl</th><th style="padding:7px;text-align:right">Gesamt</th></tr></thead>
       <tbody>${(()=>{
         const byType={};
         items.forEach(i=>{const k=i.type||'Sonstiges';if(!byType[k])byType[k]={n:0,amt:0,curr:i.curr};byType[k].n++;byType[k].amt+=i.amt;});
@@ -1628,7 +1583,6 @@ function updExStats(){
   el.innerHTML=[
     {n:list.length,l:'Einträge',ac:true},
     {n:st.arb,l:'Tage Arb.-Stätte'},
-    {n:st.hr,l:'Fahrten H&R'},
     {n:st.dr,l:'Dienstreisen'},
     {n:st.lg,l:'Lehrgänge'},
     {n:st.ub,l:'Übungen'},
@@ -1650,7 +1604,6 @@ function renderFhf(){
     const rc=(e.segs||[]).reduce((a,s)=>a+(s.recIds?.length||0),0)+(e.recIds?.length||0);
     return`<div class="rc-row" style="margin-bottom:5px">
       <span class="rd">${fmtD(e.date)}</span>
-      <div class="ri">${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}<small>${rc} Beleg(e)</small></div>
       <button class="btn-xs" onclick="dlFhf('${e.id}')">📦 PDF</button>
     </div>`;
   }).join('')||'<div style="color:var(--muted);font-size:12px">Keine FHF-Einträge.</div>';
@@ -1753,7 +1706,7 @@ async function doPrint(slim){
   if(!list.length){toast('Keine Einträge','err');return;}
   list=sort==='date'?list.sort((a,b)=>(a.date||'').localeCompare(b.date||'')):
     list.sort((a,b)=>((a.dayCode||'').localeCompare(b.dayCode||''))||((a.date||'').localeCompare(b.date||'')));
-  const s=state.settings;const ov=calcSt(list);const w28=check28W();
+  const s=state.settings;const ov=calcSt(list);
   const period=(from||to)?`${from?fmtD(from):'…'} – ${to?fmtD(to):'…'}`:'gesamter Zeitraum';
   const recs=[];let rctr=0;
   if(!slim){const byDate=[...list].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -1767,7 +1720,7 @@ async function doPrint(slim){
     const fhfTag=e.isFHF?`<span style="background:#1a3a5c;color:#c9a84c;padding:0 3px;border-radius:2px;font-size:6.5pt;font-weight:700">FHF</span>`:'—';
     const dienst=noW?'':e.presentNoWork?'o.D.':e.workStart&&e.workEnd?`${e.workStart}–${e.workEnd}`:'';
     const arbSt=e.workLocation||e.stayLocation||(e.workStart?'✓':'');
-    const fahrt=!dt.noT&&(e.tripFrom||e.tripTo)?`${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}<br><span style="color:#888;font-size:6.5pt">(${e.tripType==='hin_zurueck'?'H&R':'einf.'})</span>`:e.stayLocation?esc(e.stayLocation):'—';
+    const fahrt=!dt.noT&&(e.tripFrom||e.tripTo)?`${esc(e.tripFrom||'?')} → ${esc(e.tripTo||'?')}`:e.stayLocation?esc(e.stayLocation):'—';
     const numRefs=recs.filter(r=>r.entry===e).map(r=>`#${r.num}`).join(',');
     const activeSegs=dt.noT?[]:(e.segs||[]).filter(sg=>sg.enabled!==false&&sg.mode);
     // Hauptzeile (entry info) + sub-rows per segment
@@ -1787,15 +1740,13 @@ async function doPrint(slim){
       <td colspan="4" style="${TD}color:var(--muted);font-size:6.5pt">${activeSegs.length?'':'—'}</td>
     </tr>`;
     activeSegs.forEach(sg=>{
-      const ppVal=sg.ppTotal>0?sg.ppTotal:calcPP(sg.mode,sg.km).ppTotal;
       rows+=`<tr>
         <td style="${TD}">${esc(sg.mode)}</td>
         <td style="${TD}text-align:right">${sg.km||'—'}</td>
         <td style="${TD}text-align:right;color:#a86b1f">${sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr):'—'}</td>
-        <td style="${TD}text-align:right;color:#2d6a4f">${ppVal>0?fmtM(ppVal):'—'}</td>
       </tr>`;
     });
-    if(e.costAmt&&e.costType!=='Pendlerpauschale'){
+    if(e.costAmt){
       rows+=`<tr><td colspan="3" style="${TD}font-size:6.5pt;color:#a86b1f">Allg. Kosten (${esc(e.costType||'Sonstiges')}): ${fmtM(parseFloat(e.costAmt),e.costCurr)}</td><td style="${TD}"></td></tr>`;
     }
     return rows;
@@ -1804,38 +1755,20 @@ async function doPrint(slim){
   if(sort==='code'){const grps={};list.forEach(e=>(grps[e.dayCode]=grps[e.dayCode]||[]).push(e));
     Object.keys(grps).sort().forEach(c=>{tbody+=`<tr><td colspan="11" style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt"><span style="background:#c9a84c;color:#1a3a5c;padding:0 5px;border-radius:2px;margin-right:5px">${c}</span>${esc(DT[c]?.n||c)} · ${grps[c].length}</td></tr>`;grps[c].forEach(e=>{tbody+=buildRow(e);});});}
   else tbody=list.map(buildRow).join('');
-  const ppHF=[],ppTGW=[];let ppTotHF=0,ppTotTGW=0;
-  list.forEach(e=>(e.segs||[]).filter(s=>s.enabled!==false&&s.ppTotal>0).forEach(s=>{
-    const v=parseFloat(s.ppTotal)||0;const item={date:e.date,code:e.dayCode,mode:s.mode,km:s.km,pp:v};
-    if(e.dayCode==='HF'||e.dayCode==='RF'){ppHF.push(item);ppTotHF+=v;}else{ppTGW.push(item);ppTotTGW+=v;}
-  }));
-  const ppTot=ppTotHF+ppTotTGW;
-  const ppTbl=(items,tot,label)=>items.length?`<div style="margin-top:2mm">
-    <div style="font-size:7pt;font-weight:700;color:#1a3a5c;margin-bottom:1mm;text-transform:uppercase;letter-spacing:.3px">${label}</div>
-    <table style="width:100%;border-collapse:collapse;font-size:7pt">
-      <tr style="background:#f5f5ee"><th style="padding:1.2mm;text-align:left">Datum</th><th style="padding:1.2mm;text-align:left">Code</th><th style="padding:1.2mm;text-align:left">Modus</th><th style="padding:1.2mm;text-align:right">km</th><th style="padding:1.2mm;text-align:right">Pauschale</th></tr>
-      ${items.map(p=>`<tr style="border-bottom:.5px solid #ddd"><td style="padding:1mm">${fmtD(p.date)}</td><td style="padding:1mm;font-weight:700">${p.code}</td><td style="padding:1mm">${esc(p.mode)}</td><td style="padding:1mm;text-align:right">${p.km||'—'}</td><td style="padding:1mm;text-align:right;font-weight:700;color:#2d6a4f">${fmtM(p.pp)}</td></tr>`).join('')}
-      <tr style="background:#fafaf3;font-weight:700"><td colspan="4" style="padding:1.2mm">Summe</td><td style="padding:1.2mm;text-align:right;color:#2d6a4f">${fmtM(tot)}</td></tr>
-    </table></div>`:'';
-  const ppHtml=(ppHF.length||ppTGW.length)?`<div style="margin-top:3mm;page-break-inside:avoid">
-    <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Pendlerpauschale 2026 · 0,38 €/km (§9 EStG)</div>
-    ${ppTbl(ppHF,ppTotHF,'Heimfahrten / Rückfahrten (HF/RF)')}
-    ${ppTbl(ppTGW,ppTotTGW,'Trennungsgeldwohnung → Arbeitsstätte (AW)')}
-    ${ppHF.length&&ppTGW.length?`<div style="background:#e6efe9;padding:1.5mm 2mm;margin-top:1.5mm;font-weight:700;font-size:8pt;display:flex;justify-content:space-between"><span>Gesamt Pendlerpauschale</span><span style="color:#2d6a4f">${fmtM(ppTot)}</span></div>`:''}
-  </div>`:'';
+  const ppHtml='';
   // Gesamtkosten section (after PP)
   const costItems=[];
   list.forEach(e=>{
-    (e.segs||[]).filter(s=>s.enabled!==false&&s.costAmt&&s.costType!=='Pendlerpauschale').forEach(s=>{
+    (e.segs||[]).filter(s=>s.enabled!==false&&s.costAmt).forEach(s=>{
       costItems.push({date:e.date,code:e.dayCode,type:s.costType||'Sonstiges',amt:parseFloat(s.costAmt)||0,curr:s.costCurr||'EUR',desc:s.costDesc||''});
     });
-    if(e.costAmt&&e.costType!=='Pendlerpauschale')
+    if(e.costAmt)
       costItems.push({date:e.date,code:e.dayCode,type:e.costType||'Sonstiges',amt:parseFloat(e.costAmt)||0,curr:e.costCurr||'EUR',desc:e.costDesc||''});
   });
   const byType={};costItems.forEach(i=>{const k=(i.curr||'EUR')+'_'+(i.type||'Sonstiges');if(!byType[k])byType[k]={type:i.type,curr:i.curr,amt:0,n:0};byType[k].amt+=i.amt;byType[k].n++;});
   const costTotByC={};costItems.forEach(i=>{costTotByC[i.curr]=(costTotByC[i.curr]||0)+i.amt;});
   const costsHtml=costItems.length?`<div style="margin-top:3mm;page-break-inside:avoid">
-    <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Gesamtkosten (ohne Pendlerpauschale)</div>
+    <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Gesamtkosten</div>
     <table style="width:100%;border-collapse:collapse;font-size:7pt">
       <tr style="background:#f5f5ee"><th style="padding:1.2mm;text-align:left">Datum</th><th style="padding:1.2mm;text-align:left">Code</th><th style="padding:1.2mm;text-align:left">Art</th><th style="padding:1.2mm">Beschreibung</th><th style="padding:1.2mm;text-align:right">Betrag</th></tr>
       ${costItems.map(i=>`<tr style="border-bottom:.5px solid #ddd"><td style="padding:1mm">${fmtD(i.date)}</td><td style="padding:1mm;font-weight:700">${i.code}</td><td style="padding:1mm">${esc(i.type)}</td><td style="padding:1mm;color:#888;font-size:6.5pt">${esc(i.desc)}</td><td style="padding:1mm;text-align:right;font-weight:700;color:#a86b1f">${fmtM(i.amt,i.curr)}</td></tr>`).join('')}
@@ -1849,16 +1782,11 @@ async function doPrint(slim){
   const wsHtml=wsDays.length?`<div style="margin-top:3mm;page-break-inside:avoid">
     <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Tage an Arbeitsstätte / TGW · ${wsDays.length}</div>
     <div style="display:flex;flex-wrap:wrap;gap:2mm">${wsDays.map(e=>`<span style="background:#e6efe9;color:#2d6a4f;padding:1mm 3mm;border-radius:99px;font-size:7.5pt;font-weight:600">${fmtD(e.date)} ${e.dayCode}</span>`).join('')}</div></div>`:'';
-  const dtNote=s.dtKosten>0?`<div style="margin-top:3mm;padding:2mm 3mm;background:#fafaf3;border-left:2mm solid #c9a84c;font-size:8pt">
-    <b>Deutschlandticket:</b> ÖPNV-Fahrten Arbeitsstätte ↔ TGW. Monatlicher Beitrag: ${fmtM(s.dtKosten)}${s.dtStart?' · ab '+s.dtStart:''}.
-  </div>`:'';
-  const warnHtml=w28.triggered?`<div style="margin-top:3mm;padding:2mm 3mm;background:#fff8e1;border-left:2mm solid #c9a84c;font-size:8pt">
-    <b>⚠ Verpflegungsmehraufwand:</b> ${esc(w28.msg)}
-  </div>`:'';
+
   const ovHtml=`<div style="margin-bottom:4mm;page-break-inside:avoid">
     <div style="background:#1a3a5c;color:#fff;padding:2mm 3mm;font-weight:700;font-size:9pt;margin-bottom:2mm">Übersicht · ${period}</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:2mm">
-      ${[{n:list.length,l:'Einträge'},{n:ov.arb,l:'Arb.-Tage'},{n:ov.hr,l:'Fahrten H&R'},{n:ov.ef,l:'Fahrten einf.'},{n:ov.dr,l:'Dienstreisen'},{n:ov.lg,l:'Lehrgänge'},{n:ov.ub,l:'Übungen'},{n:ov.ur,l:'Urlaub'},{n:ov.fhf,l:'FHF'},{n:ov.hf,l:'HF/RF'},{n:ppTot>0?fmtM(ppTot):'0',l:'PP-Gesamt'},{n:wsDays.length,l:'Arb.-Stätte'}].map(st=>`<div style="border:.5px solid #c9a84c;padding:1.5mm;text-align:center;background:#fafaf3"><div style="font-family:serif;font-size:11pt;font-weight:700;color:#1a3a5c">${st.n}</div><div style="font-size:6.5pt;color:#666;text-transform:uppercase;letter-spacing:.3px;margin-top:.5mm">${st.l}</div></div>`).join('')}
+      ${[{n:list.length,l:'Einträge'},{n:ov.arb,l:'Arb.-Tage'},{n:ov.dr,l:'Dienstreisen'},{n:ov.lg,l:'Lehrgänge'},{n:ov.ub,l:'Übungen'},{n:ov.ur,l:'Urlaub'},{n:ov.fhf,l:'FHF'},{n:wsDays.length,l:'Arb.-Stätte'}].map(st=>`<div style="border:.5px solid #c9a84c;padding:1.5mm;text-align:center;background:#fafaf3"><div style="font-family:serif;font-size:11pt;font-weight:700;color:#1a3a5c">${st.n}</div><div style="font-size:6.5pt;color:#666;text-transform:uppercase;letter-spacing:.3px;margin-top:.5mm">${st.l}</div></div>`).join('')}
     </div></div>`;
   const addrHtml=(s.addrPrimary||s.addrSecondary||s.addrWork)?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin-top:2mm;font-size:8pt;border:.5px solid #ddd;padding:2mm">
     <div><b style="color:#1a3a5c;display:block;font-size:7pt;text-transform:uppercase;margin-bottom:.5mm">Erstwohnung</b>${esc((s.addrPrimary||'—').replace(/\n/g,', '))}</div>
@@ -1899,12 +1827,12 @@ async function doPrint(slim){
     <div style="margin-bottom:4mm">
       <div style="font-family:serif;font-size:11pt;color:#1a3a5c;border-bottom:1px solid #c9a84c;padding-bottom:1.5mm;margin-bottom:2mm;font-weight:600">Detail · ${list.length} Einträge · ${sort==='date'?'nach Datum':'nach Kennzeichen'}</div>
       <table><thead><tr>
-        <th style="width:8%">Datum</th><th style="width:5%">Code</th><th style="width:4%">FHF</th>
-        <th style="width:7%">Art</th><th style="width:8%">Arb.-Stätte</th><th style="width:7%">Dienstzeit</th>
-        <th style="width:18%">Fahrtstrecke/Aufenthalt</th>
-        <th style="width:14%">Reisemittel</th><th style="width:7%">km</th><th style="width:11%">Kosten</th><th style="width:11%">PP</th>
+        <th style="width:9%">Datum</th><th style="width:6%">Code</th><th style="width:5%">FHF</th>
+        <th style="width:8%">Art</th><th style="width:9%">Arb.-Stätte</th><th style="width:8%">Dienstzeit</th>
+        <th style="width:24%">Fahrtstrecke/Aufenthalt</th>
+        <th style="width:15%">Reisemittel</th><th style="width:8%">km</th><th style="width:18%">Kosten</th>
       </tr></thead><tbody>${tbody}</tbody></table>
-      ${ppHtml}${costsHtml}${wsHtml}${dtNote}${warnHtml}
+      ${costsHtml}${wsHtml}${dtNote}${warnHtml}
     </div>
     <div style="margin-top:10mm;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7mm">
       ${['Datum, Ort','Unterschrift Antragsteller','Unterschrift Bevollmächtigter'].map(l=>`<div style="border:.5px dashed #888;min-height:20mm;padding:2mm;text-align:center;display:flex;flex-direction:column;justify-content:flex-end"><b style="border-top:.5px solid #000;padding-top:1.5mm;display:block;color:#1a3a5c;font-size:7.5pt">${l}</b></div>`).join('')}
@@ -1953,7 +1881,6 @@ async function doLandscape(){
     const result=[];
     for(let ri=0;ri<nRows;ri++){
       const sg=aSegs[ri];
-      const ppV=sg?(sg.ppTotal>0?sg.ppTotal:calcPP(sg.mode,sg.km).ppTotal):0;
       if(ri===0){
         result.push(`<tr>
           <td rowspan="${nRows}" style="${R}white-space:nowrap"><b>${fmtD(e.date)}</b> ${dayN(e.date)}</td>
@@ -1973,7 +1900,6 @@ async function doLandscape(){
           <td style="${R}">${sg?esc(sg.mode):''}</td>
           <td style="${R}text-align:right">${sg&&sg.km?sg.km:''}</td>
           <td style="${R}text-align:right;color:#a86b1f">${sg&&sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr||'EUR'):''}</td>
-          <td style="${R}text-align:right;color:#2d6a4f">${ppV>0?fmtM(ppV):''}</td>
         </tr>`);
       }
     }
@@ -1987,16 +1913,13 @@ async function doLandscape(){
       </div>
       <div style="display:flex;gap:4mm;font-size:8pt;flex-wrap:wrap">
         ${[{n:list.length,l:'Einträge'},{n:ov.arb,l:'Arb.-Tage'},{n:ov.dr,l:'DR'},{n:ov.lg,l:'LG'},{n:ov.ub,l:'ÜB'},{n:ov.ur,l:'Urlaub'},{n:ov.fhf,l:'FHF'}].map(x=>`<span><b>${x.n}</b> ${x.l}</span>`).join('')}
-        ${ov.ppHF>0?`<span style="color:#2d6a4f"><b>PP HF/RF: ${fmtM(ov.ppHF)}</b></span>`:''}
-        ${ov.ppTGW>0?`<span style="color:#2d6a4f"><b>PP TGW: ${fmtM(ov.ppTGW)}</b></span>`:''}
-        ${ppTot>0?`<span style="color:#2d6a4f;font-weight:700">PP gesamt: ${fmtM(ppTot)}</span>`:''}
       </div>
     </div>
     <table><thead><tr>
-      <th style="width:8%">Datum</th><th style="width:5%">Code</th><th style="width:4%">FHF</th>
-      <th style="width:7%">Art</th><th style="width:7%">Arb.-St.</th><th style="width:6%">Dienstzeit</th>
-      <th style="width:22%">Reisestrecke/Aufenthalt</th>
-      <th style="width:12%">Reisemittel</th><th style="width:6%">km</th><th style="width:11%">Kosten</th><th style="width:12%">PP</th>
+      <th style="width:9%">Datum</th><th style="width:6%">Code</th><th style="width:5%">FHF</th>
+      <th style="width:8%">Art</th><th style="width:8%">Arb.-St.</th><th style="width:7%">Dienstzeit</th>
+      <th style="width:25%">Reisestrecke/Aufenthalt</th>
+      <th style="width:14%">Reisemittel</th><th style="width:8%">km</th><th style="width:20%">Kosten</th>
     </tr></thead><tbody>${rows}</tbody></table>
     <div style="position:fixed;bottom:4mm;left:0;right:0;text-align:center;font-size:6.5pt;color:#999;border-top:.5px solid #ddd;padding-top:1.5mm">Monatsbericht ${period} · ${esc((s.rank?s.rank+' ':'')+s.name||'')} · ${new Date().toLocaleDateString('de-DE')}</div>
   `;
@@ -2120,9 +2043,8 @@ async function genMonthPdf(list,yr,mo){
     {l:'Reisemittel', w:80, align:'left'},
     {l:'km',          w:36, align:'right'},
     {l:'Kosten',      w:72, align:'right'},
-    {l:'PP',          w:72, align:'right'},
   ]; // total=691; TW≈798 → add 107 to Reisestrecke
-  COLS[6].w=262;
+  COLS[6].w=334;
   const RH=13,HDRH=15,TITLEH=36,SUMH=20;
   const s=state.settings;const ov=calcSt(list);
   // helper: safe text (replace non-latin chars)
@@ -2164,9 +2086,6 @@ async function genMonthPdf(list,yr,mo){
     `Einträge: ${list.length}`,
     `Arb.-Tage: ${ov.arb}`,
     `DR: ${ov.dr}`,`LG: ${ov.lg}`,`UEB: ${ov.ub}`,`Urlaub: ${ov.ur}`,`FHF: ${ov.fhf}`,
-    ov.ppHF>0?`PP HF/RF: ${fmtM(ov.ppHF)}`:'',
-    ov.ppTGW>0?`PP TGW: ${fmtM(ov.ppTGW)}`:'',
-    ov.pp>0?`PP gesamt: ${fmtM(ov.pp)}`:'',
   ].filter(Boolean);
   page.drawRectangle({x:ML,y:y-SUMH,width:TW,height:SUMH,color:LGRY});
   let sx=ML+4;stats.forEach(st2=>{
@@ -2199,12 +2118,10 @@ async function genMonthPdf(list,yr,mo){
       if(y-RH<MB+10){newPage();drawTableHeader();}
       if(rowIdx%2===1)page.drawRectangle({x:ML,y:y-RH,width:TW,height:RH,color:LGRY});
       const sg=aSegs[ri];
-      const ppV=sg?(sg.ppTotal>0?sg.ppTotal:calcPP(sg.mode,sg.km).ppTotal):0;
       const segCells=sg?[
         sg.mode||'',
         sg.km?String(sg.km):'',
         sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr||'EUR'):'',
-        ppV>0?fmtM(ppV):'',
       ]:['','','',''];
       const allCells=ri===0?[...sharedCells,...segCells]:['','','','','','','',...segCells];
       let x=ML;
@@ -2212,7 +2129,7 @@ async function genMonthPdf(list,yr,mo){
         const col=COLS[ci];if(!col)return;
         const txt=fit(st(cell),col.w-4,f,7);
         const cx=col.align==='right'?x+col.w-f.widthOfTextAtSize(txt,7)-2:col.align==='center'?x+(col.w-f.widthOfTextAtSize(txt,7))/2:x+2;
-        const color=ci===10&&ppV>0?GRN:ci===1?NAV:ci===9?rgb(0.66,0.42,0.12):GRY;
+        const color=ci===1?NAV:ci===9?rgb(0.66,0.42,0.12):GRY;
         try{page.drawText(txt,{x:cx,y:y-RH+3.5,size:7,font:(ci===1||ci===2)?fb:f,color});}catch(er){}
         x+=col.w;
       });
