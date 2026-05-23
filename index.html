@@ -2114,7 +2114,7 @@ async function genMonthPdf(list,yr,mo){
   const RH=14,HDRH=16,TITLEH=36,SUMH=20;
   const s=state.settings;const ov=calcSt(list);
 
-  function st(v){return String(v||'').replace(/→/g,'->').replace(/–|—/g,'-').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[^ -ÿ]/g,'?');}
+  function st(v){return String(v||'').replace(/→/g,'->').replace(/–|—/g,'-').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[^\x00-\xff]/g,'?');}
   function fit(txt,maxW,font,sz){
     let t=txt;if(font.widthOfTextAtSize(t,sz)<=maxW)return t;
     while(t.length>1&&font.widthOfTextAtSize(t+'..',sz)>maxW)t=t.slice(0,-1);
