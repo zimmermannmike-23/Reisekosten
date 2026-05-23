@@ -391,6 +391,15 @@ datalist{display:none;}
     <p style="color:var(--muted);font-size:12px;margin-bottom:8px">Gespeicherte Monatsübersichten (PDF). Automatisch gespeichert zum Monatsende.</p>
     <div id="mbArea"></div>
   </div>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="font-size:15px;margin-bottom:4px">&#128203; Dienstreiseabrechnung</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Dienstreiseabrechnungen und zugehörige Belege hochladen und speichern.</p>
+    <div id="drArea"></div>
+    <label class="fbtn" style="margin-top:9px">
+      &#128206; Beleg hochladen
+      <input type="file" id="drInput" accept="image/*,application/pdf" multiple onchange="handleDrUpload(event)">
+    </label>
+  </div>
   <div id="rcList"></div>
 </section>
 <!-- EXPORT -->
@@ -509,7 +518,7 @@ const DT={ // day types
   LG:{n:'Lehrgang',  d:'Aus-/Fortbildung',      noW:false,noT:false,verpfl:true},
   ÜB:{n:'Übung',     d:'Truppenübung',          noW:false,noT:false,verpfl:true},
   UR:{n:'Urlaub',    d:'Erholungsurlaub',        noW:true, noT:true, verpfl:false},
-  WE:{n:'Wochenende',d:'Freier Tag',            noW:true, noT:true, verpfl:false},
+  WE:{n:'Wochenende/Feiertag',d:'Freier Tag',   noW:true, noT:true, verpfl:false, abbr:'WF'},
   KR:{n:'Krankheit', d:'Arbeitsunfähig',         noW:true, noT:true, verpfl:false},
 };
 // Transport modes with PP rate
@@ -632,6 +641,7 @@ function migrate(){
   if(!state.settings.addressHistory)state.settings.addressHistory=[];
   if(!state.settings.bwReceipts)state.settings.bwReceipts={};
   if(!state.settings.mbReceipts)state.settings.mbReceipts={};
+  if(!state.settings.drReceipts)state.settings.drReceipts={};
   if(!state.settings.dtKosten)state.settings.dtKosten=0;
   if(!state.settings.dtStart)state.settings.dtStart='';
 }
@@ -881,15 +891,16 @@ function buildDaytype(){
 }
 function selectCode(code){
   wiz.dayCode=code;
+  if(code==='AW'){wiz.segs=[];autoFillTrip();}
   renderStep('daytype');
 }
 function autoFillTrip(){
   const s=state.settings;if(!s.addrSecondary||!s.addrWork){return;}
   const from=fullA(s.addrSecondary),to=fullA(s.addrWork);
   const seg=freshSeg();seg.mode='ÖPNV';seg.fromLoc=from;seg.toLoc=to;
-  seg.dep=wiz.workStart||'';seg.arr=wiz.workEnd||'';
+  seg.km='21';seg.kmSrc='auto';seg.dep='';seg.arr='';
   seg.detail='Deutschlandticket';seg.fromGeo=s.addrSecondaryGeo||null;seg.toGeo=s.addrWorkGeo||null;
-  wiz.segs=[seg];toast('🚍 Standard-Fahrt TGW → Arbeitsstätte angelegt','ok');
+  wiz.segs=[seg];toast('Fahrt TGW → Arbeitsstätte eingetragen (21 km)','ok');
 }
 
 /* STEP 2: COMBINED TRAVEL (Fahrt + Reisemittel + Aufenthalt) */
@@ -1499,6 +1510,15 @@ async function renderReceipts(){
         <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Beleg')}</div><small>${fmtBytes(r.size)}</small></div>
         <button class="btn-xs d" onclick="rmBw('${key}','${rid}')">✕</button></div>`);}catch(e){}}
     bwEl.innerHTML=p.join('')||'<div style="color:var(--muted);font-size:12px;margin-bottom:6px">Noch kein BW-Beleg hochgeladen.</div>';}
+  // Dienstreiseabrechnung box
+  const drEl=document.getElementById('drArea');
+  if(drEl){const drrids=(state.settings.drReceipts||{})[key]||[];
+    const dp=[];for(const rid of drrids){try{const r=await idbGetF(rid);if(!r)continue;
+      const aTag=r.blob?`<a href="${URL.createObjectURL(r.blob)}" download="${esc(r.name||'Dienstreise.pdf')}" style="font-size:11px;color:var(--navy)">Download</a>`:'';
+      dp.push(`<div class="rc-row"><span class="rd">DR</span>
+        <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Dienstreise-Beleg')}</div><small>${fmtBytes(r.size)}</small></div>
+        ${aTag}<button class="btn-xs d" onclick="rmDr('${key}','${rid}')">✕</button></div>`);}catch(e){}}
+    drEl.innerHTML=dp.join('')||'<div style="color:var(--muted);font-size:12px">Kein Dienstreise-Beleg hochgeladen.</div>';}
   // Monatsberichte box
   const mbEl=document.getElementById('mbArea');
   if(mbEl){const mbrids=(state.settings.mbReceipts||{})[key]||[];
@@ -1538,9 +1558,24 @@ async function handleBwUpload(ev){
   const key=`${yr}-${mo}`;
   if(!state.settings.bwReceipts)state.settings.bwReceipts={};
   if(!state.settings.mbReceipts)state.settings.mbReceipts={};
+  if(!state.settings.drReceipts)state.settings.drReceipts={};
   if(!state.settings.bwReceipts[key])state.settings.bwReceipts[key]=[];
   for(const f of files){try{const id=await storeFile(f,'bw_'+key);state.settings.bwReceipts[key].push(id);}catch(e){toast('Fehler: '+e.message,'err');}}
   persist();renderReceipts();toast('BW-Beleg gespeichert','ok');
+}
+async function handleDrUpload(ev){
+  const key=rcKey();const fls=Array.from(ev.target.files);if(!fls.length)return;
+  for(const f of fls){const fid=await storeFile(f,'dr_'+key+'_'+Date.now());
+    if(!state.settings.drReceipts)state.settings.drReceipts={};
+    if(!state.settings.drReceipts[key])state.settings.drReceipts[key]=[];
+    state.settings.drReceipts[key].push(fid);}
+  persist();renderReceipts();toast(`${fls.length} Dienstreise-Beleg(e) gespeichert`,'ok');
+  ev.target.value='';
+}
+async function rmDr(key,rid){
+  if(!state.settings.drReceipts?.[key])return;
+  state.settings.drReceipts[key]=state.settings.drReceipts[key].filter(x=>x!==rid);
+  try{await idbDelF(rid);}catch(e){}persist();renderReceipts();
 }
 async function rmBw(key,rid){
   if(!state.settings.bwReceipts?.[key])return;
@@ -1851,16 +1886,18 @@ async function doPrint(slim){
   const _oldTitle=document.title;
   const _yr=from?from.slice(0,4):String(new Date().getFullYear());
   document.title=`${_yr} ${title}`;
-  // Hide toast and modals before printing
   const _toast=document.getElementById('toast');
   if(_toast){_toast.classList.remove('show');_toast.style.display='none';}
   document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='none');
-  await new Promise(r=>setTimeout(r,400));window.print();
-  setTimeout(()=>{
-    document.title=_oldTitle;
-    if(_toast)_toast.style.display='';
-    document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='');
-  },1500);
+  // iOS-safe print: open in new window
+  const pvEl=document.getElementById('pv');
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+document.title+'</title><style>body{margin:0;padding:0;}@page{size:A4 portrait;margin:11mm 10mm 15mm 10mm;}</style></head><body>'+pvEl.innerHTML+'</body></html>';
+  const blob=new Blob([html],{type:'text/html'});
+  const burl=URL.createObjectURL(blob);
+  const pw=window.open(burl,'_blank');
+  if(pw){pw.onload=()=>{setTimeout(()=>pw.print(),300);};}
+  else{await new Promise(r=>setTimeout(r,400));window.print();}
+  setTimeout(()=>{document.title=_oldTitle;if(_toast)_toast.style.display='';document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='');URL.revokeObjectURL(burl);},3000);
 }
 
 /* LANDSCAPE MONTHLY REPORT */
@@ -1876,8 +1913,13 @@ async function doLandscape(){
     const aSegs=dt.noT?[]:(e.segs||[]).filter(s=>s.enabled!==false&&s.mode);
     const nRows=Math.max(1,aSegs.length);
     const dienst=dt.noT?'':e.presentNoWork?'o.D.':e.workStart&&e.workEnd?`${e.workStart}–${e.workEnd}`:'';
-    const reisestrecke=!dt.noT?(e.tripFrom&&e.tripTo?plzOrt(e.tripFrom)+' → '+plzOrt(e.tripTo):e.stayLocation?plzOrt(e.stayLocation):''):'';
-    const arbSt=e.workLocation||e.stayLocation||(isWSDay(e)?'✓':'');
+    // Reisestrecke: fromLoc→toLoc of first active segment, or stayLocation
+    const firstSeg=(e.segs||[]).find(s=>s.enabled!==false&&s.fromLoc&&s.toLoc);
+    const reisestrecke=!dt.noT?(firstSeg?plzOrt(firstSeg.fromLoc)+' → '+plzOrt(firstSeg.toLoc):e.stayLocation?plzOrt(e.stayLocation):''):'';
+    // ArbSt: city+country only (last comma-separated part before country, or just city)
+    const rawArbSt=e.workLocation||e.stayLocation||'';
+    const arbStParts=rawArbSt.split(',').map(p=>p.trim()).filter(Boolean);
+    const arbSt=arbStParts.length>=2?arbStParts[arbStParts.length-2]+(arbStParts.length>=3?' · '+arbStParts[arbStParts.length-1]:''):arbStParts[0]||'';
     const result=[];
     for(let ri=0;ri<nRows;ri++){
       const sg=aSegs[ri];
@@ -1890,10 +1932,9 @@ async function doLandscape(){
           <td rowspan="${nRows}" style="${R}">${esc(arbSt)}</td>
           <td rowspan="${nRows}" style="${R}">${esc(dienst)}</td>
           <td rowspan="${nRows}" style="${R}">${esc(reisestrecke)||'—'}</td>
-          <td style="${R}">${sg?esc(sg.mode):'—'}</td>
+          <td style="${R}">${sg?`${esc(sg.mode)}${sg.dep&&sg.arr?' <span style="font-size:6pt;color:#888">('+sg.dep+'–'+sg.arr+')</span>'  :''}` :'—'}</td>
           <td style="${R}text-align:right">${sg&&sg.km?sg.km:'—'}</td>
           <td style="${R}text-align:right;color:#a86b1f">${sg&&sg.costAmt?fmtM(parseFloat(sg.costAmt),sg.costCurr||'EUR'):'—'}</td>
-          <td style="${R}text-align:right;color:#2d6a4f">${ppV>0?fmtM(ppV):'—'}</td>
         </tr>`);
       } else {
         result.push(`<tr>
@@ -1916,21 +1957,24 @@ async function doLandscape(){
       </div>
     </div>
     <table><thead><tr>
-      <th style="width:9%">Datum</th><th style="width:6%">Code</th><th style="width:5%">FHF</th>
-      <th style="width:8%">Art</th><th style="width:8%">Arb.-St.</th><th style="width:7%">Dienstzeit</th>
-      <th style="width:25%">Reisestrecke/Aufenthalt</th>
-      <th style="width:14%">Reisemittel</th><th style="width:8%">km</th><th style="width:20%">Kosten</th>
+      <th style="width:9%">Datum</th><th style="width:5%">Code</th><th style="width:4%">FHF</th>
+      <th style="width:7%">Art</th><th style="width:8%">Arb.-St.</th><th style="width:6%">Dienstzeit</th>
+      <th style="width:22%">Reisestrecke/Aufenthalt</th>
+      <th style="width:18%">Reisemittel & Reisezeit</th><th style="width:7%">km</th><th style="width:14%">Kosten</th>
     </tr></thead><tbody>${rows}</tbody></table>
     <div style="position:fixed;bottom:4mm;left:0;right:0;text-align:center;font-size:6.5pt;color:#999;border-top:.5px solid #ddd;padding-top:1.5mm">Monatsbericht ${period} · ${esc((s.rank?s.rank+' ':'')+s.name||'')} · ${new Date().toLocaleDateString('de-DE')}</div>
   `;
   const _lt=document.getElementById('toast');
   if(_lt){_lt.classList.remove('show');_lt.style.display='none';}
   document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='none');
-  await new Promise(r=>setTimeout(r,400));window.print();
-  setTimeout(()=>{
-    if(_lt)_lt.style.display='';
-    document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='');
-  },1500);
+  const pvEl2=document.getElementById('pv');
+  const html2='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Monatsbericht</title><style>body{margin:0;}@page{size:A4 landscape;margin:10mm 12mm 12mm 12mm;}</style></head><body>'+pvEl2.innerHTML+'</body></html>';
+  const blob2=new Blob([html2],{type:'text/html'});
+  const burl2=URL.createObjectURL(blob2);
+  const pw2=window.open(burl2,'_blank');
+  if(pw2){pw2.onload=()=>{setTimeout(()=>pw2.print(),300);};}
+  else{await new Promise(r=>setTimeout(r,400));window.print();}
+  setTimeout(()=>{if(_lt)_lt.style.display='';document.querySelectorAll('.modal,.overlay').forEach(el=>el.style.display='');URL.revokeObjectURL(burl2);},3000);
 }
 
 /* FHF PDF */
@@ -2003,6 +2047,7 @@ async function saveLandscape(){
     const fname=`${yr}-${mo}_Monatsbericht.pdf`;
     const fid=await storeFile(new File([blob],fname,{type:'application/pdf'}),`mb_${key}`);
     if(!state.settings.mbReceipts)state.settings.mbReceipts={};
+  if(!state.settings.drReceipts)state.settings.drReceipts={};
     if(!state.settings.mbReceipts[key])state.settings.mbReceipts[key]=[];
     if(!state.settings.mbReceipts[key].includes(fid))state.settings.mbReceipts[key].push(fid);
     persist();
@@ -2183,6 +2228,7 @@ function scheduleMonthEndSave(){
         const fname=`${yr}-${mo}_Monatsbericht.pdf`;
         const fid=await storeFile(new File([blob],fname,{type:'application/pdf'}),`mb_${key}`);
         if(!state.settings.mbReceipts)state.settings.mbReceipts={};
+  if(!state.settings.drReceipts)state.settings.drReceipts={};
         if(!state.settings.mbReceipts[key])state.settings.mbReceipts[key]=[];
         if(!state.settings.mbReceipts[key].includes(fid))state.settings.mbReceipts[key].push(fid);
         persist();toast(`${fname} automatisch gespeichert`,'ok');
