@@ -400,6 +400,15 @@ datalist{display:none;}
       <input type="file" id="drInput" accept="image/*,application/pdf" multiple onchange="handleDrUpload(event)">
     </label>
   </div>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="font-size:15px;margin-bottom:4px">&#128202; Fahrtkosten Jahresbeleg</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Entfernungspauschale f&#252;r die Steuererkl&#228;rung (Anlage N). Routen konfigurieren und PDF erstellen.</p>
+    <div id="fkArea"></div>
+    <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
+      <button class="btn btn-gold btn-sm" onclick="openFkModal()">&#9881; Routen konfigurieren</button>
+      <button class="btn btn-s btn-sm" onclick="genFahrtkostenPdf()">&#128196; PDF erstellen &amp; speichern</button>
+    </div>
+  </div>
   <div id="rcList"></div>
 </section>
 <!-- EXPORT -->
@@ -644,6 +653,8 @@ function migrate(){
   if(!state.settings.drReceipts)state.settings.drReceipts={};
   if(!state.settings.dtKosten)state.settings.dtKosten=0;
   if(!state.settings.dtStart)state.settings.dtStart='';
+  if(!state.settings.fkReceipts)state.settings.fkReceipts={};
+  if(!Array.isArray(state.settings.fkRoutes))state.settings.fkRoutes=[];
 }
 
 
@@ -1528,6 +1539,19 @@ async function renderReceipts(){
         <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Monatsbericht')}</div><small>${fmtBytes(r.size)}</small></div>
         ${aTag}<button class="btn-xs d" onclick="rmMb('${key}','${rid}')">✕</button></div>`);}catch(e){}}
     mbEl.innerHTML=mp.join('')||'<div style="color:var(--muted);font-size:12px">Kein Monatsbericht gespeichert.</div>';}
+  // Fahrtkosten Jahresbeleg box
+  const fkEl=document.getElementById('fkArea');
+  if(fkEl){const yr=document.getElementById('rcY')?.value||String(new Date().getFullYear());
+    const fkKey='FK-'+yr;
+    const fkrids=(state.settings.fkReceipts||{})[fkKey]||[];
+    const fp=[];for(const rid of fkrids){try{const r=await idbGetF(rid);if(!r)continue;
+      const aTag=r.blob?`<a href="${URL.createObjectURL(r.blob)}" download="${esc(r.name||'Fahrtkosten.pdf')}" style="font-size:11px;color:var(--navy)">Download</a>`:'';
+      fp.push(`<div class="rc-row"><span class="rd" style="background:var(--gold);color:var(--navy)">FK</span>
+        <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Fahrtkosten')}</div><small>${fmtBytes(r.size)}</small></div>
+        ${aTag}<button class="btn-xs d" onclick="rmFk('${fkKey}','${rid}')">✕</button></div>`);}catch(e){}}
+    const routeCount=(state.settings.fkRoutes||[]).length;
+    const routeInfo=routeCount?`<div style="font-size:11px;color:var(--ok);margin-bottom:6px">${routeCount} Route(n) konfiguriert</div>`:'';
+    fkEl.innerHTML=routeInfo+(fp.join('')||'<div style="color:var(--muted);font-size:12px">Noch kein Fahrtkosten-Beleg erstellt.</div>');}
   const rcList=document.getElementById('rcList');if(!rcList)return;
   const entries=state.entries.filter(e=>e.date&&e.date.startsWith(key)).sort((a,b)=>a.date.localeCompare(b.date));
   if(!entries.length){rcList.innerHTML='<div style="color:var(--muted);font-size:13px;padding:30px;text-align:center">Keine Einträge im gewählten Monat.</div>';return;}
@@ -1585,6 +1609,11 @@ async function rmBw(key,rid){
 async function rmMb(key,rid){
   if(!state.settings.mbReceipts?.[key])return;
   state.settings.mbReceipts[key]=state.settings.mbReceipts[key].filter(x=>x!==rid);
+  try{await idbDelF(rid);}catch(e){}persist();renderReceipts();
+}
+async function rmFk(key,rid){
+  if(!state.settings.fkReceipts?.[key])return;
+  state.settings.fkReceipts[key]=state.settings.fkReceipts[key].filter(x=>x!==rid);
   try{await idbDelF(rid);}catch(e){}persist();renderReceipts();
 }
 /* CATEGORY GRID */
@@ -2262,6 +2291,250 @@ async function genMonthPdf(list,yr,mo){
   // Auto-save Monatsbericht at month end 23:59
   scheduleMonthEndSave();
 })();
+
+/* ─── FAHRTKOSTEN JAHRESBELEG ─── */
+function freshFkRoute(){return{title:'',subtitle:'',dateFrom:'',dateTo:'',
+  arbPlz:'',arbOrt:'',arbStr:'',wohnPlz:'',wohnOrt:'',wohnStr:'',km:'',tage:''};}
+
+function openFkModal(){
+  const routes=state.settings.fkRoutes&&state.settings.fkRoutes.length?
+    JSON.parse(JSON.stringify(state.settings.fkRoutes)):[freshFkRoute()];
+  const yr=document.getElementById('rcY')?.value||String(new Date().getFullYear());
+  const bk=document.createElement('div');
+  bk.id='fkModalBk';
+  bk.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px';
+  bk.onclick=e=>{if(e.target===bk)bk.remove();};
+
+  function renderModal(){
+    const inner=document.createElement('div');
+    inner.style.cssText='background:#fff;border-radius:16px;max-width:640px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:none';
+    inner.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:18px;color:var(--navy);font-weight:700;margin:0">Fahrtkosten-Routen ${esc(yr)}</h3>
+        <button class="btn-xs d" id="fkClose">✕</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Entfernungspauschale: 0,30 €/km (1–20 km), 0,38 €/km (ab 21. km).</p>
+      <div id="fkRoutesContainer"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-s btn-sm" id="fkAddRoute">+ Route hinzuf&#252;gen</button>
+        <button class="btn btn-gold" id="fkSave">Routen speichern</button>
+      </div>`;
+    bk.innerHTML='';bk.appendChild(inner);
+    inner.querySelector('#fkClose').onclick=()=>bk.remove();
+    inner.querySelector('#fkAddRoute').onclick=()=>{routes.push(freshFkRoute());renderRoutes();};
+    inner.querySelector('#fkSave').onclick=()=>{
+      readRoutesFromDom();
+      state.settings.fkRoutes=routes;persist();
+      bk.remove();renderReceipts();toast('Routen gespeichert','ok');};
+    renderRoutes();
+  }
+
+  function readRoutesFromDom(){
+    routes.forEach((rt,i)=>{
+      const g=document.getElementById('fkR'+i);if(!g)return;
+      rt.title=g.querySelector('[data-f="title"]')?.value||'';
+      rt.subtitle=g.querySelector('[data-f="subtitle"]')?.value||'';
+      rt.dateFrom=g.querySelector('[data-f="dateFrom"]')?.value||'';
+      rt.dateTo=g.querySelector('[data-f="dateTo"]')?.value||'';
+      rt.arbPlz=g.querySelector('[data-f="arbPlz"]')?.value||'';
+      rt.arbOrt=g.querySelector('[data-f="arbOrt"]')?.value||'';
+      rt.arbStr=g.querySelector('[data-f="arbStr"]')?.value||'';
+      rt.wohnPlz=g.querySelector('[data-f="wohnPlz"]')?.value||'';
+      rt.wohnOrt=g.querySelector('[data-f="wohnOrt"]')?.value||'';
+      rt.wohnStr=g.querySelector('[data-f="wohnStr"]')?.value||'';
+      rt.km=g.querySelector('[data-f="km"]')?.value||'';
+      rt.tage=g.querySelector('[data-f="tage"]')?.value||'';
+    });
+  }
+
+  function renderRoutes(){
+    readRoutesFromDom();
+    const c=document.getElementById('fkRoutesContainer');if(!c)return;
+    c.innerHTML=routes.map((rt,i)=>{
+      const pp=calcEP(parseFloat(rt.km)||0,parseInt(rt.tage)||0);
+      return`<div id="fkR${i}" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--lsoft)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-weight:700;color:var(--navy);font-size:14px">Route ${i+1}</span>
+          ${routes.length>1?`<button class="btn-xs d" onclick="document.getElementById('fkModalBk')._rmRoute(${i})">Entfernen</button>`:''}
+        </div>
+        <div class="g g2" style="gap:8px;margin-bottom:8px">
+          <div class="f"><label>Bezeichnung</label><input data-f="title" value="${esc(rt.title)}" placeholder="z. B. Tägliches Pendeln"></div>
+          <div class="f"><label>Beschreibung</label><input data-f="subtitle" value="${esc(rt.subtitle)}" placeholder="z. B. Wöchentliches Pendeln zum 1. Wohnsitz"></div>
+        </div>
+        <div class="g g2" style="gap:8px;margin-bottom:8px">
+          <div class="f"><label>Zeitraum von</label><input type="date" data-f="dateFrom" value="${esc(rt.dateFrom)}"></div>
+          <div class="f"><label>Zeitraum bis</label><input type="date" data-f="dateTo" value="${esc(rt.dateTo)}"></div>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 6px">&#127970; Arbeitsst&#228;tte</div>
+        <div class="g" style="gap:8px;grid-template-columns:80px 1fr;margin-bottom:4px">
+          <div class="f"><label>PLZ</label><input data-f="arbPlz" value="${esc(rt.arbPlz)}" placeholder="PLZ"></div>
+          <div class="f"><label>Ort</label><input data-f="arbOrt" value="${esc(rt.arbOrt)}" placeholder="Ort"></div>
+        </div>
+        <div class="f" style="margin-bottom:8px"><label>Stra&#223;e</label><input data-f="arbStr" value="${esc(rt.arbStr)}" placeholder="Stra&#223;e Nr."></div>
+        <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 6px">&#127968; Eigener Hausstand</div>
+        <div class="g" style="gap:8px;grid-template-columns:80px 1fr;margin-bottom:4px">
+          <div class="f"><label>PLZ</label><input data-f="wohnPlz" value="${esc(rt.wohnPlz)}" placeholder="PLZ"></div>
+          <div class="f"><label>Ort</label><input data-f="wohnOrt" value="${esc(rt.wohnOrt)}" placeholder="Ort"></div>
+        </div>
+        <div class="f" style="margin-bottom:8px"><label>Stra&#223;e</label><input data-f="wohnStr" value="${esc(rt.wohnStr)}" placeholder="Stra&#223;e Nr."></div>
+        <div class="g g2" style="gap:8px;margin-bottom:6px">
+          <div class="f"><label>Entfernung (km, einfach)</label><input type="number" data-f="km" value="${esc(rt.km)}" placeholder="z. B. 32" min="1"></div>
+          <div class="f"><label>Fahrten (Tage)</label><input type="number" data-f="tage" value="${esc(rt.tage)}" placeholder="z. B. 168" min="0"></div>
+        </div>
+        ${pp.gesamt>0?`<div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-top:6px;font-size:12px">
+          <span style="color:var(--muted)">Entfernungspauschale:</span>
+          <b style="color:var(--navy);margin-left:4px">${pp.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})} €</b>
+          <span style="color:var(--muted);margin-left:4px">(${pp.proTag.toLocaleString('de-DE',{minimumFractionDigits:2})} €/Tag × ${parseInt(rt.tage)} Tage)</span>
+        </div>`:''}
+      </div>`;}).join('');
+  }
+
+  bk._rmRoute=idx=>{readRoutesFromDom();routes.splice(idx,1);renderRoutes();};
+  document.body.appendChild(bk);
+  renderModal();
+}
+
+function calcEP(km,tage){
+  if(!km||!tage)return{proTag:0,gesamt:0};
+  const proTag=km<=20?km*0.30:(20*0.30+(km-20)*0.38);
+  return{proTag,gesamt:proTag*tage};
+}
+
+async function genFahrtkostenPdf(){
+  const routes=state.settings.fkRoutes||[];
+  if(!routes.length||!routes.some(r=>r.km&&r.tage)){
+    toast('Bitte erst Routen konfigurieren','err');openFkModal();return;}
+  const yr=document.getElementById('rcY')?.value||String(new Date().getFullYear());
+  toast('Fahrtkosten-PDF wird erstellt…');
+  try{
+    await loadPdfLib();
+    const{PDFDocument,StandardFonts,rgb}=window.PDFLib;
+    const doc=await PDFDocument.create();
+    const fb=await doc.embedFont(StandardFonts.HelveticaBold);
+    const fn=await doc.embedFont(StandardFonts.Helvetica);
+    const NAV=rgb(0.043,0.075,0.169);const GLD=rgb(0.902,0.686,0.180);
+    const GR=rgb(0.4,0.4,0.4);const BLK=rgb(0,0,0);
+    const W=595.28,H=841.89;
+    let pg=doc.addPage([W,H]);
+    let y=H-45;
+    // Title
+    pg.drawText('Fahrtkosten Ehemann',{x:40,y,size:20,font:fb,color:NAV});
+    y-=18;
+    pg.drawText('Steuerjahr '+yr+' \u2013 Anlage N / Werbungskosten',{x:40,y,size:10,font:fn,color:GR});
+    y-=6;
+    pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:2.5,color:NAV});
+    y-=24;
+
+    let gesamtsumme=0;
+    const sums=[];
+
+    for(let i=0;i<routes.length;i++){
+      const rt=routes[i];
+      const km=parseFloat(rt.km)||0;
+      const tage=parseInt(rt.tage)||0;
+      const ep=calcEP(km,tage);
+      gesamtsumme+=ep.gesamt;
+      sums.push({rt,ep});
+
+      // Check if we need a new page
+      if(y<220){pg=doc.addPage([W,H]);y=H-45;
+        pg.drawText('Fahrtkosten '+yr+' (Forts.)',{x:40,y:H-30,size:10,font:fn,color:GR});}
+
+      // Section header
+      const secTitle=(i+1)+'. '+(rt.title||('Fahrten Wohnung \u2013 Arbeitsst\u00e4tte'));
+      pg.drawText(secTitle,{x:40,y,size:13,font:fb,color:NAV});
+      y-=15;
+      if(rt.subtitle){pg.drawText(rt.subtitle,{x:40,y,size:9,font:fn,color:GR});y-=13;}
+      // Gold line
+      pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:1.2,color:GLD});
+      y-=18;
+
+      // Info block
+      const zeitraum=(rt.dateFrom?fmtD(rt.dateFrom):'?')+' \u2013 '+(rt.dateTo?fmtD(rt.dateTo):'?');
+      const infoLines=[
+        ['Zeitraum:',zeitraum],
+        ['Entfernung:',km+' km (einfache Strecke)'],
+        ['',''],
+        ['Arbeitsst\u00e4tte:',((rt.arbPlz||'')+' '+(rt.arbOrt||'')).trim()],
+        ['',(rt.arbStr||'')],
+        ['',''],
+        ['Eigener Hausstand:',((rt.wohnPlz||'')+' '+(rt.wohnOrt||'')).trim()],
+        ['',(rt.wohnStr||'')],
+        ['',''],
+        ['Fahrten (einfach):',tage+' Tage'],
+      ];
+      for(const[lbl,val] of infoLines){
+        if(!lbl&&!val){y-=4;continue;}
+        if(lbl)pg.drawText(lbl,{x:40,y,size:10,font:fb,color:BLK});
+        if(val)pg.drawText(val,{x:175,y,size:10,font:fn,color:BLK});
+        y-=14;
+      }
+      y-=4;
+      pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:0.4,color:rgb(.85,.85,.85)});
+      y-=14;
+
+      // Calculation
+      pg.drawText('Berechnung Entfernungspauschale:',{x:40,y,size:10,font:fb,color:BLK});
+      y-=14;
+      let formel;
+      if(km<=20){formel=km+' km \u00d7 0,30 \u20ac \u00d7 '+tage+' Tage';}
+      else{formel='(20 km \u00d7 0,30 \u20ac + '+(km-20)+' km \u00d7 0,38 \u20ac) \u00d7 '+tage+' Tage';}
+      pg.drawText(formel,{x:40,y,size:10,font:fn,color:BLK});
+      y-=16;
+      const res='= '+ep.proTag.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac/Tag \u00d7 '+tage+' Tage = '+ep.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac';
+      pg.drawText(res,{x:40,y,size:11,font:fb,color:NAV});
+      y-=28;
+    }
+
+    // Summary table
+    if(y<180){pg=doc.addPage([W,H]);y=H-45;}
+    pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:2.5,color:NAV});
+    y-=20;
+    pg.drawText('Zusammenfassung',{x:40,y,size:13,font:fb,color:NAV});
+    y-=18;
+    // Header row
+    pg.drawRectangle({x:40,y:y-2,width:W-80,height:16,color:NAV});
+    pg.drawText('Position',{x:44,y:y+1,size:9,font:fb,color:rgb(1,1,1)});
+    pg.drawText('Betrag',{x:W-120,y:y+1,size:9,font:fb,color:rgb(1,1,1)});
+    y-=20;
+
+    for(let i=0;i<sums.length;i++){
+      const{rt,ep}=sums[i];
+      const lbl=(i+1)+'. '+(rt.arbOrt||'?')+' ('+(rt.wohnOrt||'?')+' \u2013 '+(rt.arbOrt||'?')+', '+rt.km+' km, '+rt.tage+' Tg)';
+      if(i%2===0)pg.drawRectangle({x:40,y:y-3,width:W-80,height:15,color:rgb(.96,.96,.96)});
+      pg.drawText(lbl.slice(0,70),{x:44,y,size:9,font:fn,color:BLK});
+      pg.drawText(ep.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac',{x:W-120,y,size:9,font:fn,color:BLK});
+      y-=16;
+    }
+    // Total
+    pg.drawRectangle({x:40,y:y-4,width:W-80,height:18,color:rgb(.91,.88,.80)});
+    pg.drawText('Gesamtsumme Fahrtkosten',{x:44,y:y-1,size:10,font:fb,color:NAV});
+    pg.drawText(gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac',{x:W-120,y:y-1,size:10,font:fb,color:NAV});
+    y-=20;
+    pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:1,color:NAV});
+
+    // Footer
+    y-=22;
+    pg.drawText('Entfernungspauschale gem. \u00a7 9 Abs. 1 S. 3 Nr. 4 EStG: 0,30 \u20ac je km (erste 20 km), 0,38 \u20ac ab dem 21. km (ab VZ 2022).',
+      {x:40,y,size:7,font:fn,color:GR});
+    y-=20;
+    pg.drawText('Erstellt am '+new Date().toLocaleDateString('de-DE')+' \u2013 Beleg zur Einkommensteuererkl\u00e4rung '+yr,
+      {x:40,y,size:7.5,font:fn,color:GR});
+
+    const pdfBytes=await doc.save();
+    const blob=new Blob([pdfBytes],{type:'application/pdf'});
+    const fname='Fahrtkosten_Ehemann_'+yr+'.pdf';
+    const storedId=await storeFile(new File([blob],fname,{type:'application/pdf'}),'fk_'+yr);
+    if(!state.settings.fkReceipts)state.settings.fkReceipts={};
+    const fkKey='FK-'+yr;
+    if(!state.settings.fkReceipts[fkKey])state.settings.fkReceipts[fkKey]=[];
+    state.settings.fkReceipts[fkKey].push(storedId);
+    persist();
+    await renderReceipts();
+    toast(fname+' gespeichert ('+gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac)','ok');
+  }catch(e){toast('Fehler: '+e.message,'err');console.error(e);}
+}
+/* ─── END FAHRTKOSTEN ─── */
 
 function scheduleMonthEndSave(){
   const now=new Date();
