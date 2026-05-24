@@ -219,7 +219,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 16px 80px;}
 .cpill.DR{background:#F3E5F5;color:#4A148C;}
 .cpill.LG{background:var(--oks);color:var(--ok);}
 .cpill.ÜB{background:var(--errs);color:var(--err);}
-.cpill.WE{background:#EFEBE9;color:#4E342E;}
+.cpill.WF{background:#EFEBE9;color:#4E342E;}
 .cpill.KR{background:#F5F5F5;color:#757575;}
 .cpill.UR{background:#E8F5E9;color:#1B5E20;}
 .ftag{display:inline-block;padding:1px 6px;border-radius:999px;background:var(--gold);
@@ -400,15 +400,6 @@ datalist{display:none;}
       <input type="file" id="drInput" accept="image/*,application/pdf" multiple onchange="handleDrUpload(event)">
     </label>
   </div>
-  <div class="card" style="margin-bottom:12px">
-    <h3 style="font-size:15px;margin-bottom:4px">&#128202; Fahrtkosten Jahresbeleg</h3>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Entfernungspauschale f&#252;r die Steuererkl&#228;rung (Anlage N). Routen konfigurieren und PDF erstellen.</p>
-    <div id="fkArea"></div>
-    <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
-      <button class="btn btn-gold btn-sm" onclick="openFkModal()">&#9881; Routen konfigurieren</button>
-      <button class="btn btn-s btn-sm" onclick="genFahrtkostenPdf()">&#128196; PDF erstellen &amp; speichern</button>
-    </div>
-  </div>
   <div id="rcList"></div>
 </section>
 <!-- EXPORT -->
@@ -442,6 +433,23 @@ datalist{display:none;}
       <label class="btn btn-s btn-sm" style="cursor:pointer">&#128228; JSON laden<input type="file" accept="application/json" onchange="doImport(event)" style="display:none"></label>
     </div>
   </div>
+  <div class="card" style="margin-top:12px">
+    <h3 style="font-size:15px;margin-bottom:4px">&#128203; Abwesenheitsbescheinigung</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Bescheinigung zur Vorlage beim Finanzamt &#252;ber Lehrg&#228;nge, Dienstreisen, &#220;bungen &amp; Home Office.</p>
+    <div id="abArea"></div>
+    <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
+      <button class="btn btn-gold btn-sm" onclick="genAbwesenheitPdf()">&#128196; PDF erstellen &amp; speichern</button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3 style="font-size:15px;margin-bottom:4px">&#128202; Fahrtkosten Jahresbeleg</h3>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Entfernungspauschale f&#252;r die Steuererkl&#228;rung (Anlage N). Pendlertyp w&#228;hlen, Routen konfigurieren.</p>
+    <div id="fkArea"></div>
+    <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
+      <button class="btn btn-gold btn-sm" onclick="openFkModal()">&#9881; Routen konfigurieren</button>
+      <button class="btn btn-s btn-sm" onclick="genFahrtkostenPdf()">&#128196; PDF erstellen &amp; speichern</button>
+    </div>
+  </div>
 </section>
 <!-- SETTINGS -->
 <section class="view" id="view-settings">
@@ -467,10 +475,13 @@ datalist{display:none;}
       <div class="f"><label>Kosten/Monat (&#8364;)</label><input type="number" id="sDT" min="0" step="0.01" placeholder="58.00"></div>
       <div class="f"><label>G&#252;ltig ab</label><input type="month" id="sDTd"></div>
     </div>
-    <h3 style="margin-top:22px;margin-bottom:12px">&#128106; FHF-Z&#228;hler</h3>
-    <div style="display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap">
-      <div class="f"><label>Jahr</label><input type="number" id="sFY" min="2000" max="2099" style="width:100px"></div>
-      <div class="f"><label>Letzte Nr.</label><input type="number" id="sFC" min="0" style="width:100px"></div>
+    <h3 style="margin-top:22px;margin-bottom:12px">&#128196; Briefkopf (Abwesenheitsbescheinigung)</h3>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px">Absender f&#252;r die Bescheinigung zur Vorlage beim Finanzamt.</p>
+    <div class="g g2" style="gap:8px">
+      <div class="f"><label>Zeile 1 (Beh&#246;rde)</label><input type="text" id="sBK1" placeholder="z. B. Bundesministerium der Verteidigung"></div>
+      <div class="f"><label>Zeile 2 (PLZ, Ort)</label><input type="text" id="sBK2" placeholder="z. B. 10785, Berlin"></div>
+      <div class="f"><label>Zeile 3 (Abteilung)</label><input type="text" id="sBK3" placeholder="z. B. BSB BMVg SE I 3"></div>
+      <div class="f"><label>Zeile 4 (Stra&#223;e)</label><input type="text" id="sBK4" placeholder="z. B. Stauffenbergstra&#223;e 18"></div>
     </div>
     <h3 style="margin-top:22px;margin-bottom:8px">&#128193; Beleg-Ordner</h3>
     <div id="folderSt" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--lsoft);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;font-size:12px">
@@ -527,7 +538,7 @@ const DT={ // day types
   LG:{n:'Lehrgang',  d:'Aus-/Fortbildung',      noW:false,noT:false,verpfl:true},
   ÜB:{n:'Übung',     d:'Truppenübung',          noW:false,noT:false,verpfl:true},
   UR:{n:'Urlaub',    d:'Erholungsurlaub',        noW:true, noT:true, verpfl:false},
-  WE:{n:'Wochenende/Feiertag',d:'Freier Tag',   noW:true, noT:true, verpfl:false, abbr:'WF'},
+  WF:{n:'Wochen./Feiert.',d:'Freier Tag',   noW:true, noT:true, verpfl:false},
   KR:{n:'Krankheit', d:'Arbeitsunfähig',         noW:true, noT:true, verpfl:false},
 };
 // Transport modes with PP rate
@@ -565,7 +576,7 @@ let lastNom=0, folderHandle=null;
 function freshW(){return{costEnabled:true,useFahrt:true,useAufenthalt:false,
   date:todayISO(),dayCode:'AW',vorhaben:'',isFHF:false,presentNoWork:false,
   workStart:'',workEnd:'',workLocation:'',workNotes:'',
-  verpflegung:'',stayLocation:'',
+  verpflegung:'',stayLocation:'',nachweis:'',
   segs:[],
 };}
 function freshSeg(){return{mode:'',fromLoc:'',toLoc:'',fromGeo:null,toGeo:null,
@@ -590,7 +601,7 @@ function firstL(s){if(!s)return'';const ls=(s||'').split(/[\n,]+/).map(x=>x.trim
 /* STEPS */
 function getSteps(code){
   const dt=DT[code]||DT.AW;
-  // noT = UR/WE/KR: Tagesart → Aufenthalt+Segmente → Kosten → Speichern
+  // noT = UR/WF/KR: Tagesart → Aufenthalt+Segmente → Kosten → Speichern
   if(dt.noT){return[{id:'daytype',l:'Tagesart'},{id:'travel',l:'Aufenthalt & Fahrt'},{id:'costs',l:'Allg. Kosten'},{id:'save',l:'Speichern'}];}
   // noW = DR/LG/ÜB/HF/RF: Tagesart → Fahrt+Segmente → Kosten → Speichern
   if(dt.noW){return[{id:'daytype',l:'Tagesart'},{id:'travel',l:'Fahrt & Reisemittel'},{id:'costs',l:'Allg. Kosten'},{id:'save',l:'Speichern'}];}
@@ -636,6 +647,7 @@ function migrate(){
     if(e.dayCode==='X')e.dayCode='AW';if(e.dayCode==='U')e.dayCode='UR';
     if(e.dayCode==='K')e.dayCode='KR';if(e.dayCode==='SG')e.dayCode='LG';
     if(e.dayCode==='FH')e.dayCode='HF';
+    if(e.dayCode==='WE')e.dayCode='WF';
     if(typeof e.isFHF!=='boolean')e.isFHF=!!e.isFamilienheimfahrt;
     if(!Array.isArray(e.segs)){
       e.segs=[];
@@ -654,7 +666,9 @@ function migrate(){
   if(!state.settings.dtKosten)state.settings.dtKosten=0;
   if(!state.settings.dtStart)state.settings.dtStart='';
   if(!state.settings.fkReceipts)state.settings.fkReceipts={};
+  if(!state.settings.abReceipts)state.settings.abReceipts={};
   if(!Array.isArray(state.settings.fkRoutes))state.settings.fkRoutes=[];
+  state.entries.forEach(e=>{if(!e.nachweis)e.nachweis='';});
 }
 
 
@@ -753,7 +767,7 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>goto
 function gotoView(v){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
   document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='view-'+v));
-  if(v==='overview')renderOverview();if(v==='export'){updExStats();renderFhf();initCatGrid();}
+  if(v==='overview')renderOverview();if(v==='export'){updExStats();renderFhf();initCatGrid();renderExportPdfs();}
   if(v==='settings')loadSettings();if(v==='receipts')renderReceipts();
   if(v==='wizard'){renderCal();}
   window.scrollTo({top:0,behavior:'smooth'});
@@ -897,6 +911,14 @@ function buildDaytype(){
       </div>
       <div class="dt-grid">${grid}</div>
       ${fhf}
+      ${['DR','LG','\u00dcB'].includes(wiz.dayCode)?`
+      <div class="tblock" style="margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--lsoft)">
+        <div style="font-weight:600;font-size:12px;color:var(--navy);margin-bottom:8px">&#128196; Nachweis (f\u00fcr Abwesenheitsbescheinigung)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${['Befehl','Kommandierung','Versetzung'].map(n=>`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid ${wiz.nachweis===n?'var(--navy)':'var(--line)'};border-radius:999px;background:${wiz.nachweis===n?'var(--navy)':'#fff'};color:${wiz.nachweis===n?'#fff':'var(--text)'};font-weight:${wiz.nachweis===n?'600':'400'};transition:all .15s">
+            <input type="radio" name="nachweis" value="${n}" ${wiz.nachweis===n?'checked':''} onchange="wiz.nachweis=this.value;renderStep('daytype')" style="display:none"> ${n}</label>`).join('')}
+        </div>
+      </div>`:''}
     </div>
   </div>`;
 }
@@ -1001,12 +1023,26 @@ function buildWork(){
   </div>`;
 }
 function buildVerpfl(){
-  const opts=[['','— Keine —'],['vollständig','✓ Vollständig'],['frühstück','Nur Frühstück'],['mittag','Nur Mittag'],['abend','Nur Abend'],['nein','✕ Nein, selbst']];
-  const chips=opts.map(([v,l])=>`<button type="button" class="chip${wiz.verpflegung===v?' on':''}" onclick="wiz.verpflegung='${v}';this.closest('.chips').querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));this.classList.add('on')">${l}</button>`).join('');
+  const sel=(wiz.verpflegung||'').split(',').filter(Boolean);
+  const opts=[['keine','Keine'],['vollständig','Vollständig'],['frühstück','Frühstück'],['mittag','Mittag'],['abend','Abend'],['nein','Nein'],['selbst','Selbst']];
+  const chips=opts.map(([v,l])=>{
+    const on=sel.includes(v);
+    return`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid ${on?'var(--navy)':'var(--line)'};border-radius:999px;background:${on?'var(--navy)':'#fff'};color:${on?'#fff':'var(--text)'};font-weight:${on?'600':'400'};transition:all .15s">
+      <input type="checkbox" ${on?'checked':''} onchange="toggleVerpfl('${v}')" style="display:none"> ${l}</label>`;}).join('');
   return`<div class="card" style="margin-top:12px;background:var(--warns);border-color:var(--gold)">
     <h3 style="font-size:13px;margin-bottom:9px">🍽 Verpflegung bereitgestellt?</h3>
-    <div class="chips">${chips}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
   </div>`;
+}
+function toggleVerpfl(val){
+  const sel=(wiz.verpflegung||'').split(',').filter(Boolean);
+  const idx=sel.indexOf(val);
+  if(idx>=0)sel.splice(idx,1);else sel.push(val);
+  wiz.verpflegung=sel.join(',');
+  const box=document.querySelector('.wbody');if(box){const vrpfl=DT[wiz.dayCode]?.verpfl?buildVerpfl():'';
+    const existing=box.querySelector('.card[style*="warns"]');
+    if(existing&&vrpfl){existing.outerHTML=vrpfl;}
+  }
 }
 
 /* STEP 2 ALT: LOCATION */
@@ -1539,19 +1575,6 @@ async function renderReceipts(){
         <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Monatsbericht')}</div><small>${fmtBytes(r.size)}</small></div>
         ${aTag}<button class="btn-xs d" onclick="rmMb('${key}','${rid}')">✕</button></div>`);}catch(e){}}
     mbEl.innerHTML=mp.join('')||'<div style="color:var(--muted);font-size:12px">Kein Monatsbericht gespeichert.</div>';}
-  // Fahrtkosten Jahresbeleg box
-  const fkEl=document.getElementById('fkArea');
-  if(fkEl){const yr=document.getElementById('rcY')?.value||String(new Date().getFullYear());
-    const fkKey='FK-'+yr;
-    const fkrids=(state.settings.fkReceipts||{})[fkKey]||[];
-    const fp=[];for(const rid of fkrids){try{const r=await idbGetF(rid);if(!r)continue;
-      const aTag=r.blob?`<a href="${URL.createObjectURL(r.blob)}" download="${esc(r.name||'Fahrtkosten.pdf')}" style="font-size:11px;color:var(--navy)">Download</a>`:'';
-      fp.push(`<div class="rc-row"><span class="rd" style="background:var(--gold);color:var(--navy)">FK</span>
-        <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Fahrtkosten')}</div><small>${fmtBytes(r.size)}</small></div>
-        ${aTag}<button class="btn-xs d" onclick="rmFk('${fkKey}','${rid}')">✕</button></div>`);}catch(e){}}
-    const routeCount=(state.settings.fkRoutes||[]).length;
-    const routeInfo=routeCount?`<div style="font-size:11px;color:var(--ok);margin-bottom:6px">${routeCount} Route(n) konfiguriert</div>`:'';
-    fkEl.innerHTML=routeInfo+(fp.join('')||'<div style="color:var(--muted);font-size:12px">Noch kein Fahrtkosten-Beleg erstellt.</div>');}
   const rcList=document.getElementById('rcList');if(!rcList)return;
   const entries=state.entries.filter(e=>e.date&&e.date.startsWith(key)).sort((a,b)=>a.date.localeCompare(b.date));
   if(!entries.length){rcList.innerHTML='<div style="color:var(--muted);font-size:13px;padding:30px;text-align:center">Keine Einträge im gewählten Monat.</div>';return;}
@@ -1614,7 +1637,12 @@ async function rmMb(key,rid){
 async function rmFk(key,rid){
   if(!state.settings.fkReceipts?.[key])return;
   state.settings.fkReceipts[key]=state.settings.fkReceipts[key].filter(x=>x!==rid);
-  try{await idbDelF(rid);}catch(e){}persist();renderReceipts();
+  try{await idbDelF(rid);}catch(e){}persist();renderExportPdfs();
+}
+async function rmAb(key,rid){
+  if(!state.settings.abReceipts?.[key])return;
+  state.settings.abReceipts[key]=state.settings.abReceipts[key].filter(x=>x!==rid);
+  try{await idbDelF(rid);}catch(e){}persist();renderExportPdfs();
 }
 /* CATEGORY GRID */
 const ALL_CATS=Object.keys(DT);
@@ -1652,10 +1680,43 @@ function updExStats(){
     {n:st.ub,l:'Übungen'},
     {n:st.ur,l:'Urlaub'},
     {n:st.fhf,l:'FHF'},
-    {n:st.pp>0?fmtM(st.pp):'—',l:'PP-Gesamt'},
   ].map(s=>`<div class="sbox${s.ac?' ac':''}"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('');
 }
 ['exFrom','exTo'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',updExStats);});
+
+async function renderExportPdfs(){
+  const yr=(document.getElementById('exFrom')?.value||'').slice(0,4)||String(new Date().getFullYear());
+  // Abwesenheitsbescheinigung area
+  const abEl=document.getElementById('abArea');
+  if(abEl){
+    const abKey='AB-'+yr;
+    const abrids=(state.settings.abReceipts||{})[abKey]||[];
+    const ap=[];for(const rid of abrids){try{const r=await idbGetF(rid);if(!r)continue;
+      const aTag=r.blob?`<a href="${URL.createObjectURL(r.blob)}" download="${esc(r.name||'Abwesenheit.pdf')}" style="font-size:11px;color:var(--navy)">Download</a>`:'';
+      ap.push(`<div class="rc-row"><span class="rd" style="background:var(--navy2);color:#fff">AB</span>
+        <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Abwesenheitsbescheinigung')}</div><small>${fmtBytes(r.size)}</small></div>
+        ${aTag}<button class="btn-xs d" onclick="rmAb('${abKey}','${rid}')">✕</button></div>`);}catch(e){}}
+    const yrEntries=state.entries.filter(e=>e.date&&e.date.startsWith(yr));
+    const drCount=yrEntries.filter(e=>['DR','LG','\u00dcB'].includes(e.dayCode)).length;
+    const wfhCount=yrEntries.filter(e=>e.dayCode==='WFH').length;
+    const infoLine=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">${drCount} Dienstreise(n)/Lehrg./\u00dcbung(en), ${wfhCount} Home-Office-Tage im Jahr ${yr}</div>`;
+    abEl.innerHTML=infoLine+(ap.join('')||'<div style="color:var(--muted);font-size:12px">Noch keine Bescheinigung erstellt.</div>');
+  }
+  // Fahrtkosten area
+  const fkEl=document.getElementById('fkArea');
+  if(fkEl){
+    const fkKey='FK-'+yr;
+    const fkrids=(state.settings.fkReceipts||{})[fkKey]||[];
+    const fp=[];for(const rid of fkrids){try{const r=await idbGetF(rid);if(!r)continue;
+      const aTag=r.blob?`<a href="${URL.createObjectURL(r.blob)}" download="${esc(r.name||'Fahrtkosten.pdf')}" style="font-size:11px;color:var(--navy)">Download</a>`:'';
+      fp.push(`<div class="rc-row"><span class="rd" style="background:var(--gold);color:var(--navy)">FK</span>
+        <div class="ri"><div onclick="viewRec('${rid}')" style="cursor:pointer;font-weight:600;font-size:12px">${esc(r.name||'Fahrtkosten')}</div><small>${fmtBytes(r.size)}</small></div>
+        ${aTag}<button class="btn-xs d" onclick="rmFk('${fkKey}','${rid}')">✕</button></div>`);}catch(e){}}
+    const routeCount=(state.settings.fkRoutes||[]).length;
+    const routeInfo=routeCount?`<div style="font-size:11px;color:var(--ok);margin-bottom:6px">${routeCount} Route(n) konfiguriert</div>`:'';
+    fkEl.innerHTML=routeInfo+(fp.join('')||'<div style="color:var(--muted);font-size:12px">Noch kein Fahrtkosten-Beleg erstellt.</div>');
+  }
+}
 
 /* FHF */
 function renderFhf(){
@@ -1686,7 +1747,7 @@ function loadSettings(){
   const s=state.settings;
   ['sName','sRank','sUnit','sPNr','sAP','sAS','sAW'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=[s.name,s.rank,s.unit,s.persNr,s.addrPrimary,s.addrSecondary,s.addrWork][i]||'';});
   document.getElementById('sDT').value=s.dtKosten||'';document.getElementById('sDTd').value=s.dtStart||'';
-  document.getElementById('sFY').value=s.fhfYear||new Date().getFullYear();document.getElementById('sFC').value=s.fhfCounter||0;
+  ['sBK1','sBK2','sBK3','sBK4'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=[s.bk1,s.bk2,s.bk3,s.bk4][i]||'';});
   const geo=g=>g?`✓(${g.lat.toFixed(3)},${g.lng.toFixed(3)})`:'?';
   const gs=document.getElementById('geoStat');
   if(gs)gs.innerHTML=[s.addrPrimary?`EW:${geo(s.addrPrimaryGeo)}`:'',s.addrSecondary?`TGW:${geo(s.addrSecondaryGeo)}`:'',s.addrWork?`Arb.:${geo(s.addrWorkGeo)}`:''].filter(Boolean).join(' · ');
@@ -1703,8 +1764,8 @@ function saveSettings(){
     addrSecondaryGeo:ns===prev.addrSecondary?prev.addrSecondaryGeo:null,
     addrWorkGeo:nw===prev.addrWork?prev.addrWorkGeo:null,
     dtKosten:parseFloat(document.getElementById('sDT').value)||0,dtStart:document.getElementById('sDTd').value||'',
-    fhfYear:parseInt(document.getElementById('sFY').value)||new Date().getFullYear(),
-    fhfCounter:Math.max(0,parseInt(document.getElementById('sFC').value)||0),
+    bk1:(document.getElementById('sBK1')?.value||'').trim(),bk2:(document.getElementById('sBK2')?.value||'').trim(),
+    bk3:(document.getElementById('sBK3')?.value||'').trim(),bk4:(document.getElementById('sBK4')?.value||'').trim(),
   };
   persist();document.getElementById('uchip').textContent=(state.settings.rank?state.settings.rank+' ':'')+state.settings.name||'Nicht konfiguriert';
   refreshAddrList();toast('Einstellungen gespeichert ✓','ok');
@@ -1846,7 +1907,8 @@ async function doPrint(slim){
   const wsHtml=wsDays.length?`<div style="margin-top:3mm;page-break-inside:avoid">
     <div style="background:#1a3a5c;color:#fff;padding:1.5mm 2mm;font-weight:700;font-size:8pt;margin-bottom:2mm">Tage an Arbeitsstätte / TGW · ${wsDays.length}</div>
     <div style="display:flex;flex-wrap:wrap;gap:2mm">${wsDays.map(e=>`<span style="background:#e6efe9;color:#2d6a4f;padding:1mm 3mm;border-radius:99px;font-size:7.5pt;font-weight:600">${fmtD(e.date)} ${e.dayCode}</span>`).join('')}</div></div>`:'';
-
+  const dtNote=s.dtKosten?`<div style="margin-top:2mm;font-size:7pt;color:#444;background:#fff8ec;padding:1.5mm 2mm;border:.5px solid #c9a84c">Deutschlandticket: ${fmtM(s.dtKosten)} / Monat${s.dtStart?' (ab '+s.dtStart+')':''}</div>`:'';
+  const warnHtml='';
   const ovHtml=`<div style="margin-bottom:4mm;page-break-inside:avoid">
     <div style="background:#1a3a5c;color:#fff;padding:2mm 3mm;font-weight:700;font-size:9pt;margin-bottom:2mm">Übersicht · ${period}</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:2mm">
@@ -1976,7 +2038,7 @@ async function doLandscape(){
     return result;
   }).join('');
   document.getElementById('pv').innerHTML=`
-    <style>@page{size:A4 landscape;margin:10mm 12mm 12mm 12mm;}body{font-family:'Helvetica Neue',Arial,sans-serif;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c;color:#fff;text-align:left;padding:2mm;font-size:7pt;text-transform:uppercase;}</style>
+    <style>@page{size:A4 landscape;margin:10mm 12mm 12mm 12mm;}body{font-family:'Helvetica Neue',Arial,sans-serif;}table{width:100%;border-collapse:collapse;border:1px solid #666;}th{background:#1a3a5c;color:#fff;text-align:left;padding:2mm;font-size:7pt;text-transform:uppercase;border:1px solid #444;}td{border:0.5px solid #999;}</style>
     <div style="border-bottom:2px solid #1a3a5c;padding-bottom:3mm;margin-bottom:3mm;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap">
       <div><div style="font-family:serif;font-size:15pt;color:#1a3a5c;font-weight:600">Monatsbericht · ${period}</div>
         <div style="font-size:8.5pt;color:#444;margin-top:1mm">${esc((s.rank?s.rank+' ':'')+s.name||'—')} ${s.unit?'· '+esc(s.unit):''}</div>
@@ -2158,11 +2220,16 @@ async function genMonthPdf(list,yr,mo){
   }
   // Draw vertical separators
   function drawColLines(yTop,yBot){
-    let x=ML;
+    let x=ML;const lineClr=rgb(0.55,0.55,0.55);
+    // Left border
+    page.drawLine({start:{x:ML,y:yTop},end:{x:ML,y:yBot},thickness:0.5,color:lineClr});
     COLS.forEach((col,ci)=>{
-      if(ci>0)page.drawLine({start:{x,y:yTop},end:{x,y:yBot},thickness:0.3,color:rgb(0.8,0.8,0.8)});
       x+=col.w;
+      page.drawLine({start:{x,y:yTop},end:{x,y:yBot},thickness:0.4,color:lineClr});
     });
+  }
+  function drawRowBorder(yPos){
+    page.drawLine({start:{x:ML,y:yPos},end:{x:ML+TW,y:yPos},thickness:0.4,color:rgb(0.55,0.55,0.55)});
   }
 
   let page,y;
@@ -2178,6 +2245,7 @@ async function genMonthPdf(list,yr,mo){
       x+=col.w;
     });
     drawColLines(y,y-HDRH);
+    drawRowBorder(y);
     y-=HDRH;
   }
 
@@ -2234,9 +2302,7 @@ async function genMonthPdf(list,yr,mo){
       // draw shared cell full-height separator
       x+=col.w;
     });
-    // Vertical separator lines for shared cols across all rows
-    let lineX=ML;COLS.slice(0,6).forEach(c=>{lineX+=c.w;});
-    page.drawLine({start:{x:lineX,y:y},end:{x:lineX,y:y-rowH},thickness:0.3,color:rgb(0.8,0.8,0.8)});
+    // Vertical separator lines for shared cols across all rows — handled by drawColLines
 
     // Per-segment rows
     for(let ri=0;ri<nRows;ri++){
@@ -2256,11 +2322,12 @@ async function genMonthPdf(list,yr,mo){
         px+=col.w;
       });
       // separator line for each seg row
-      if(ri<nRows-1)page.drawLine({start:{x:ML+COLS.slice(0,6).reduce((a,c)=>a+c.w,0),y:y-ri*RH-RH},end:{x:ML+TW,y:y-ri*RH-RH},thickness:0.3,color:rgb(0.85,0.85,0.85)});
+      if(ri<nRows-1)page.drawLine({start:{x:ML+COLS.slice(0,6).reduce((a,c)=>a+c.w,0),y:y-ri*RH-RH},end:{x:ML+TW,y:y-ri*RH-RH},thickness:0.3,color:rgb(0.7,0.7,0.7)});
     }
 
-    // Bottom border
-    page.drawLine({start:{x:ML,y:y-rowH},end:{x:ML+TW,y:y-rowH},thickness:0.3,color:rgb(0.82,0.82,0.82)});
+    // Full grid: bottom border + vertical lines for entire row
+    drawRowBorder(y-rowH);
+    drawColLines(y,y-rowH);
     y-=rowH;rowIdx++;
   }
 
@@ -2293,13 +2360,65 @@ async function genMonthPdf(list,yr,mo){
 })();
 
 /* ─── FAHRTKOSTEN JAHRESBELEG ─── */
-function freshFkRoute(){return{title:'',subtitle:'',dateFrom:'',dateTo:'',
-  arbPlz:'',arbOrt:'',arbStr:'',wohnPlz:'',wohnOrt:'',wohnStr:'',km:'',tage:''};}
+function freshFkRoute(){return{type:'daily',title:'',subtitle:'',dateFrom:'',dateTo:'',
+  arbPlz:'',arbOrt:'',arbStr:'',wohnPlz:'',wohnOrt:'',wohnStr:'',km:'',tage:'',enabled:true};}
+
+function parsePlzOrtStr(addr){
+  if(!addr)return{plz:'',ort:'',str:''};
+  const lines=(addr||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  let plz='',ort='',str='';
+  for(const l of lines){
+    const m=l.match(/^(\d{4,5})\s*,?\s*(.+)/);
+    if(m&&!plz){plz=m[1];ort=m[2].replace(/,.*$/,'').trim();}
+    else if(!str)str=l;
+  }
+  if(!plz&&lines.length>=2){str=lines[0];const m2=lines[1].match(/(\d{4,5})\s*,?\s*(.*)/);if(m2){plz=m2[1];ort=m2[2].trim();}}
+  if(!str&&!plz&&lines.length===1)str=lines[0];
+  return{plz,ort,str};
+}
+
+function autoFkRoutes(yr){
+  const s=state.settings;
+  const yrEntries=state.entries.filter(e=>e.date&&e.date.startsWith(yr));
+  const routes=[];
+  // Daily: AW days, TGW → Arbeitsstätte
+  const awDays=yrEntries.filter(e=>['AW','WFH'].includes(e.dayCode));
+  if(awDays.length){
+    const tgw=parsePlzOrtStr(s.addrSecondary);const arb=parsePlzOrtStr(s.addrWork);
+    const dates=awDays.map(e=>e.date).sort();
+    // Estimate km from first AW segment
+    let estKm='';const awWithSeg=yrEntries.find(e=>e.dayCode==='AW'&&e.segs?.length&&e.segs[0].km);
+    if(awWithSeg)estKm=awWithSeg.segs[0].km;
+    routes.push({type:'daily',enabled:true,title:'Tägliches Pendeln',subtitle:'TGW → Arbeitsstätte',
+      dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',
+      arbPlz:arb.plz,arbOrt:arb.ort,arbStr:arb.str,
+      wohnPlz:tgw.plz,wohnOrt:tgw.ort,wohnStr:tgw.str,
+      km:estKm,tage:String(awDays.length)});
+  }
+  // Weekly: HF+RF days, EW → Arbeitsstätte
+  const hfDays=yrEntries.filter(e=>['HF','RF'].includes(e.dayCode));
+  if(hfDays.length){
+    const ew=parsePlzOrtStr(s.addrPrimary);const arb=parsePlzOrtStr(s.addrWork);
+    const dates=hfDays.map(e=>e.date).sort();
+    let estKm='';const hfWithSeg=hfDays.find(e=>e.segs?.length&&e.segs[0].km);
+    if(hfWithSeg)estKm=hfWithSeg.segs[0].km;
+    routes.push({type:'weekly',enabled:true,title:'Wöchentliches Pendeln',subtitle:'EW → Arbeitsstätte (Familienheimfahrt)',
+      dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',
+      arbPlz:arb.plz,arbOrt:arb.ort,arbStr:arb.str,
+      wohnPlz:ew.plz,wohnOrt:ew.ort,wohnStr:ew.str,
+      km:estKm,tage:String(Math.ceil(hfDays.length/2))});
+  }
+  return routes;
+}
 
 function openFkModal(){
-  const routes=state.settings.fkRoutes&&state.settings.fkRoutes.length?
-    JSON.parse(JSON.stringify(state.settings.fkRoutes)):[freshFkRoute()];
-  const yr=document.getElementById('rcY')?.value||String(new Date().getFullYear());
+  const yr=(document.getElementById('exFrom')?.value||'').slice(0,4)||String(new Date().getFullYear());
+  // Load existing or auto-generate
+  let routes=state.settings.fkRoutes&&state.settings.fkRoutes.length?
+    JSON.parse(JSON.stringify(state.settings.fkRoutes)):autoFkRoutes(yr);
+  if(!routes.length)routes=autoFkRoutes(yr);
+  if(!routes.length)routes=[freshFkRoute()];
+
   const bk=document.createElement('div');
   bk.id='fkModalBk';
   bk.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px';
@@ -2307,31 +2426,34 @@ function openFkModal(){
 
   function renderModal(){
     const inner=document.createElement('div');
-    inner.style.cssText='background:#fff;border-radius:16px;max-width:640px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:none';
+    inner.style.cssText='background:#fff;border-radius:16px;max-width:640px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2)';
     inner.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <h3 style="font-size:18px;color:var(--navy);font-weight:700;margin:0">Fahrtkosten-Routen ${esc(yr)}</h3>
+        <h3 style="font-size:18px;color:var(--navy);font-weight:700;margin:0">Fahrtkosten ${esc(yr)}</h3>
         <button class="btn-xs d" id="fkClose">✕</button>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Entfernungspauschale: 0,30 €/km (1–20 km), 0,38 €/km (ab 21. km).</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Pendlerpauschale: ${parseInt(yr)>=2026?'0,38 \u20ac/km (ab VZ 2026)':'0,30 \u20ac/km (1\u201320 km), 0,38 \u20ac/km (ab 21. km)'}. Daten aus Einträgen vorab befüllt.</p>
       <div id="fkRoutesContainer"></div>
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-        <button class="btn btn-s btn-sm" id="fkAddRoute">+ Route hinzuf&#252;gen</button>
-        <button class="btn btn-gold" id="fkSave">Routen speichern</button>
+        <button class="btn btn-s btn-sm" id="fkAddRoute">+ Weitere Route</button>
+        <button class="btn btn-s btn-sm" id="fkAutoFill">&#x21bb; Aus Eintr&#228;gen laden</button>
+        <button class="btn btn-gold" id="fkSave">Speichern</button>
       </div>`;
     bk.innerHTML='';bk.appendChild(inner);
     inner.querySelector('#fkClose').onclick=()=>bk.remove();
     inner.querySelector('#fkAddRoute').onclick=()=>{routes.push(freshFkRoute());renderRoutes();};
+    inner.querySelector('#fkAutoFill').onclick=()=>{routes=autoFkRoutes(yr);if(!routes.length)routes=[freshFkRoute()];renderRoutes();toast('Daten aus Einträgen geladen','ok');};
     inner.querySelector('#fkSave').onclick=()=>{
       readRoutesFromDom();
       state.settings.fkRoutes=routes;persist();
-      bk.remove();renderReceipts();toast('Routen gespeichert','ok');};
+      bk.remove();renderExportPdfs();toast('Routen gespeichert','ok');};
     renderRoutes();
   }
 
   function readRoutesFromDom(){
     routes.forEach((rt,i)=>{
       const g=document.getElementById('fkR'+i);if(!g)return;
+      rt.enabled=g.querySelector('[data-f="enabled"]')?.checked??true;
       rt.title=g.querySelector('[data-f="title"]')?.value||'';
       rt.subtitle=g.querySelector('[data-f="subtitle"]')?.value||'';
       rt.dateFrom=g.querySelector('[data-f="dateFrom"]')?.value||'';
@@ -2351,60 +2473,78 @@ function openFkModal(){
     readRoutesFromDom();
     const c=document.getElementById('fkRoutesContainer');if(!c)return;
     c.innerHTML=routes.map((rt,i)=>{
-      const pp=calcEP(parseFloat(rt.km)||0,parseInt(rt.tage)||0);
-      return`<div id="fkR${i}" style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--lsoft)">
+      const pp=rt.enabled?calcEP(parseFloat(rt.km)||0,parseInt(rt.tage)||0,yr):{proTag:0,gesamt:0};
+      const typeIcon=rt.type==='weekly'?'&#128197;':'&#128336;';
+      const typeLbl=rt.type==='weekly'?'Wöchentlich':'Täglich';
+      return`<div id="fkR${i}" style="border:1px solid ${rt.enabled?'var(--navy)':'var(--line)'};border-radius:12px;padding:14px;margin-bottom:12px;background:${rt.enabled?'#fff':'var(--lsoft)'};opacity:${rt.enabled?'1':'0.6'}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <span style="font-weight:700;color:var(--navy);font-size:14px">Route ${i+1}</span>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" data-f="enabled" ${rt.enabled?'checked':''} onchange="document.getElementById('fkModalBk')._toggle(${i},this.checked)" style="width:18px;height:18px;accent-color:var(--navy)">
+            <span style="font-weight:700;color:var(--navy);font-size:14px">${typeIcon} ${typeLbl}</span>
+          </label>
           ${routes.length>1?`<button class="btn-xs d" onclick="document.getElementById('fkModalBk')._rmRoute(${i})">Entfernen</button>`:''}
         </div>
-        <div class="g g2" style="gap:8px;margin-bottom:8px">
-          <div class="f"><label>Bezeichnung</label><input data-f="title" value="${esc(rt.title)}" placeholder="z. B. Tägliches Pendeln"></div>
-          <div class="f"><label>Beschreibung</label><input data-f="subtitle" value="${esc(rt.subtitle)}" placeholder="z. B. Wöchentliches Pendeln zum 1. Wohnsitz"></div>
+        <div style="display:${rt.enabled?'block':'none'}">
+          <div class="g g2" style="gap:8px;margin-bottom:8px">
+            <div class="f"><label>Bezeichnung</label><input data-f="title" value="${esc(rt.title)}" placeholder="z. B. Tägliches Pendeln"></div>
+            <div class="f"><label>Beschreibung</label><input data-f="subtitle" value="${esc(rt.subtitle)}" placeholder="z. B. Wöchentl. Pendeln zum 1. Wohnsitz"></div>
+          </div>
+          <div class="g g2" style="gap:8px;margin-bottom:8px">
+            <div class="f"><label>Zeitraum von</label><input type="date" data-f="dateFrom" value="${esc(rt.dateFrom)}"></div>
+            <div class="f"><label>Zeitraum bis</label><input type="date" data-f="dateTo" value="${esc(rt.dateTo)}"></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 6px">&#127970; Arbeitsst&#228;tte</div>
+          <div class="g" style="gap:8px;grid-template-columns:80px 1fr;margin-bottom:4px">
+            <div class="f"><label>PLZ</label><input data-f="arbPlz" value="${esc(rt.arbPlz)}" placeholder="PLZ"></div>
+            <div class="f"><label>Ort</label><input data-f="arbOrt" value="${esc(rt.arbOrt)}" placeholder="Ort"></div>
+          </div>
+          <div class="f" style="margin-bottom:8px"><label>Stra&#223;e</label><input data-f="arbStr" value="${esc(rt.arbStr)}" placeholder="Stra&#223;e Nr."></div>
+          <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 6px">&#127968; Eigener Hausstand</div>
+          <div class="g" style="gap:8px;grid-template-columns:80px 1fr;margin-bottom:4px">
+            <div class="f"><label>PLZ</label><input data-f="wohnPlz" value="${esc(rt.wohnPlz)}" placeholder="PLZ"></div>
+            <div class="f"><label>Ort</label><input data-f="wohnOrt" value="${esc(rt.wohnOrt)}" placeholder="Ort"></div>
+          </div>
+          <div class="f" style="margin-bottom:8px"><label>Stra&#223;e</label><input data-f="wohnStr" value="${esc(rt.wohnStr)}" placeholder="Stra&#223;e Nr."></div>
+          <div class="g g2" style="gap:8px;margin-bottom:6px">
+            <div class="f"><label>Entfernung (km, einfach)</label><input type="number" data-f="km" value="${esc(rt.km)}" placeholder="z. B. 32" min="1"></div>
+            <div class="f"><label>Fahrten (Tage)</label><input type="number" data-f="tage" value="${esc(rt.tage)}" placeholder="z. B. 168" min="0"></div>
+          </div>
+          ${pp.gesamt>0?`<div style="background:var(--oks);border:1px solid var(--ok);border-radius:8px;padding:8px 12px;margin-top:6px;font-size:12px">
+            <span style="color:var(--ok)">Entfernungspauschale:</span>
+            <b style="color:var(--navy);margin-left:4px">${pp.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})} \u20ac</b>
+            <span style="color:var(--muted);margin-left:4px">(${pp.proTag.toLocaleString('de-DE',{minimumFractionDigits:2})} \u20ac/Tag \u00d7 ${parseInt(rt.tage)} Tage)</span>
+          </div>`:''}
         </div>
-        <div class="g g2" style="gap:8px;margin-bottom:8px">
-          <div class="f"><label>Zeitraum von</label><input type="date" data-f="dateFrom" value="${esc(rt.dateFrom)}"></div>
-          <div class="f"><label>Zeitraum bis</label><input type="date" data-f="dateTo" value="${esc(rt.dateTo)}"></div>
-        </div>
-        <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 6px">&#127970; Arbeitsst&#228;tte</div>
-        <div class="g" style="gap:8px;grid-template-columns:80px 1fr;margin-bottom:4px">
-          <div class="f"><label>PLZ</label><input data-f="arbPlz" value="${esc(rt.arbPlz)}" placeholder="PLZ"></div>
-          <div class="f"><label>Ort</label><input data-f="arbOrt" value="${esc(rt.arbOrt)}" placeholder="Ort"></div>
-        </div>
-        <div class="f" style="margin-bottom:8px"><label>Stra&#223;e</label><input data-f="arbStr" value="${esc(rt.arbStr)}" placeholder="Stra&#223;e Nr."></div>
-        <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 6px">&#127968; Eigener Hausstand</div>
-        <div class="g" style="gap:8px;grid-template-columns:80px 1fr;margin-bottom:4px">
-          <div class="f"><label>PLZ</label><input data-f="wohnPlz" value="${esc(rt.wohnPlz)}" placeholder="PLZ"></div>
-          <div class="f"><label>Ort</label><input data-f="wohnOrt" value="${esc(rt.wohnOrt)}" placeholder="Ort"></div>
-        </div>
-        <div class="f" style="margin-bottom:8px"><label>Stra&#223;e</label><input data-f="wohnStr" value="${esc(rt.wohnStr)}" placeholder="Stra&#223;e Nr."></div>
-        <div class="g g2" style="gap:8px;margin-bottom:6px">
-          <div class="f"><label>Entfernung (km, einfach)</label><input type="number" data-f="km" value="${esc(rt.km)}" placeholder="z. B. 32" min="1"></div>
-          <div class="f"><label>Fahrten (Tage)</label><input type="number" data-f="tage" value="${esc(rt.tage)}" placeholder="z. B. 168" min="0"></div>
-        </div>
-        ${pp.gesamt>0?`<div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-top:6px;font-size:12px">
-          <span style="color:var(--muted)">Entfernungspauschale:</span>
-          <b style="color:var(--navy);margin-left:4px">${pp.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})} €</b>
-          <span style="color:var(--muted);margin-left:4px">(${pp.proTag.toLocaleString('de-DE',{minimumFractionDigits:2})} €/Tag × ${parseInt(rt.tage)} Tage)</span>
-        </div>`:''}
       </div>`;}).join('');
   }
 
   bk._rmRoute=idx=>{readRoutesFromDom();routes.splice(idx,1);renderRoutes();};
+  bk._toggle=(idx,val)=>{readRoutesFromDom();routes[idx].enabled=val;renderRoutes();};
   document.body.appendChild(bk);
   renderModal();
 }
 
-function calcEP(km,tage){
-  if(!km||!tage)return{proTag:0,gesamt:0};
-  const proTag=km<=20?km*0.30:(20*0.30+(km-20)*0.38);
-  return{proTag,gesamt:proTag*tage};
+function calcEP(km,tage,year){
+  if(!km||!tage)return{proTag:0,gesamt:0,flat:false};
+  const yr=parseInt(year)||new Date().getFullYear();
+  let proTag;
+  if(yr>=2026){
+    // Ab 01.01.2026: einheitlich 0,38 €/km
+    proTag=km*0.38;
+    return{proTag,gesamt:proTag*tage,flat:true};
+  } else {
+    // Bis 2025: 0,30 €/km (erste 20 km), 0,38 €/km ab 21. km
+    proTag=km<=20?km*0.30:(20*0.30+(km-20)*0.38);
+    return{proTag,gesamt:proTag*tage,flat:false};
+  }
 }
 
 async function genFahrtkostenPdf(){
-  const routes=state.settings.fkRoutes||[];
-  if(!routes.length||!routes.some(r=>r.km&&r.tage)){
+  const allRoutes=state.settings.fkRoutes||[];
+  const routes=allRoutes.filter(r=>r.enabled!==false&&r.km&&r.tage);
+  if(!routes.length){
     toast('Bitte erst Routen konfigurieren','err');openFkModal();return;}
-  const yr=document.getElementById('rcY')?.value||String(new Date().getFullYear());
+  const yr=(document.getElementById('exFrom')?.value||'').slice(0,4)||String(new Date().getFullYear());
   toast('Fahrtkosten-PDF wird erstellt…');
   try{
     await loadPdfLib();
@@ -2432,7 +2572,7 @@ async function genFahrtkostenPdf(){
       const rt=routes[i];
       const km=parseFloat(rt.km)||0;
       const tage=parseInt(rt.tage)||0;
-      const ep=calcEP(km,tage);
+      const ep=calcEP(km,tage,yr);
       gesamtsumme+=ep.gesamt;
       sums.push({rt,ep});
 
@@ -2477,7 +2617,8 @@ async function genFahrtkostenPdf(){
       pg.drawText('Berechnung Entfernungspauschale:',{x:40,y,size:10,font:fb,color:BLK});
       y-=14;
       let formel;
-      if(km<=20){formel=km+' km \u00d7 0,30 \u20ac \u00d7 '+tage+' Tage';}
+      if(ep.flat){formel=km+' km \u00d7 0,38 \u20ac \u00d7 '+tage+' Tage';}
+      else if(km<=20){formel=km+' km \u00d7 0,30 \u20ac \u00d7 '+tage+' Tage';}
       else{formel='(20 km \u00d7 0,30 \u20ac + '+(km-20)+' km \u00d7 0,38 \u20ac) \u00d7 '+tage+' Tage';}
       pg.drawText(formel,{x:40,y,size:10,font:fn,color:BLK});
       y-=16;
@@ -2515,8 +2656,10 @@ async function genFahrtkostenPdf(){
 
     // Footer
     y-=22;
-    pg.drawText('Entfernungspauschale gem. \u00a7 9 Abs. 1 S. 3 Nr. 4 EStG: 0,30 \u20ac je km (erste 20 km), 0,38 \u20ac ab dem 21. km (ab VZ 2022).',
-      {x:40,y,size:7,font:fn,color:GR});
+    const fussNote=parseInt(yr)>=2026?
+      'Entfernungspauschale gem. \u00a7 9 Abs. 1 S. 3 Nr. 4 EStG: 0,38 \u20ac je Entfernungskilometer (ab VZ 2026).':
+      'Entfernungspauschale gem. \u00a7 9 Abs. 1 S. 3 Nr. 4 EStG: 0,30 \u20ac je km (erste 20 km), 0,38 \u20ac ab dem 21. km (VZ 2022\u20132025).';
+    pg.drawText(fussNote,{x:40,y,size:7,font:fn,color:GR});
     y-=20;
     pg.drawText('Erstellt am '+new Date().toLocaleDateString('de-DE')+' \u2013 Beleg zur Einkommensteuererkl\u00e4rung '+yr,
       {x:40,y,size:7.5,font:fn,color:GR});
@@ -2530,11 +2673,137 @@ async function genFahrtkostenPdf(){
     if(!state.settings.fkReceipts[fkKey])state.settings.fkReceipts[fkKey]=[];
     state.settings.fkReceipts[fkKey].push(storedId);
     persist();
-    await renderReceipts();
+    await renderExportPdfs();
     toast(fname+' gespeichert ('+gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac)','ok');
   }catch(e){toast('Fehler: '+e.message,'err');console.error(e);}
 }
 /* ─── END FAHRTKOSTEN ─── */
+
+/* ─── ABWESENHEITSBESCHEINIGUNG ─── */
+async function genAbwesenheitPdf(){
+  const yr=(document.getElementById('exFrom')?.value||'').slice(0,4)||String(new Date().getFullYear());
+  const s=state.settings;
+  if(!s.name){toast('Bitte Name in Einstellungen eintragen','err');return;}
+  const yrEntries=state.entries.filter(e=>e.date&&e.date.startsWith(yr));
+  const abEntries=yrEntries.filter(e=>['DR','LG','\u00dcB'].includes(e.dayCode))
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const wfhEntries=yrEntries.filter(e=>e.dayCode==='WFH');
+  if(!abEntries.length&&!wfhEntries.length){toast('Keine Abwesenheiten/HO-Tage im Jahr '+yr,'err');return;}
+
+  toast('Abwesenheitsbescheinigung wird erstellt\u2026');
+  try{
+    await loadPdfLib();
+    const{PDFDocument,StandardFonts,rgb}=window.PDFLib;
+    const doc=await PDFDocument.create();
+    const fb=await doc.embedFont(StandardFonts.HelveticaBold);
+    const fn=await doc.embedFont(StandardFonts.Helvetica);
+    const NAV=rgb(0.043,0.075,0.169);const GR=rgb(0.4,0.4,0.4);const BLK=rgb(0,0,0);
+    const W=595.28,H=841.89;
+    let pg=doc.addPage([W,H]);
+    let y=H-45;
+
+    // Briefkopf
+    const bk1=s.bk1||s.unit||'';
+    const bk2=s.bk2||'';
+    const bk3=s.bk3||'';
+    const bk4=s.bk4||'';
+    if(bk1){pg.drawText(bk1,{x:40,y,size:12,font:fb,color:NAV});y-=14;}
+    if(bk2){pg.drawText(bk2,{x:40,y,size:9,font:fn,color:GR});y-=12;}
+    if(bk3){pg.drawText(bk3,{x:40,y,size:9,font:fn,color:GR});y-=12;}
+    if(bk4){pg.drawText(bk4,{x:40,y,size:9,font:fn,color:GR});y-=12;}
+    y-=10;
+    pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:2,color:NAV});
+    y-=28;
+
+    // Title
+    pg.drawText('Bescheinigung zur Vorlage beim Finanzamt',{x:40,y,size:16,font:fb,color:NAV});
+    y-=28;
+
+    // Person
+    const fullName=((s.rank?s.rank+' ':'')+s.name).trim();
+    pg.drawText('F\u00fcr Herrn '+fullName+', f\u00fcr das Steuerjahr '+yr,{x:40,y,size:11,font:fn,color:BLK});
+    y-=24;
+    pg.drawText('Lehrg\u00e4nge, Kommandierungen und sonstige Abwesenheiten, sowie Negativbescheinigung',{x:40,y,size:9,font:fn,color:GR});
+    y-=11;
+    pg.drawText('\u00fcber nicht bereitgestellte Verpflegung.',{x:40,y,size:9,font:fn,color:GR});
+    y-=22;
+
+    // Table header
+    if(abEntries.length){
+      const colX=[40,130,300,400];
+      const colW=[88,168,98,115];
+      const hdrs=['Zweck','Dauer / Ort','Verpflegung','Nachweis'];
+      // Header row
+      pg.drawRectangle({x:40,y:y-3,width:W-80,height:17,color:NAV});
+      hdrs.forEach((h,i)=>{pg.drawText(h,{x:colX[i]+3,y:y,size:8,font:fb,color:rgb(1,1,1)});});
+      y-=20;
+
+      for(const e of abEntries){
+        if(y<100){pg=doc.addPage([W,H]);y=H-45;
+          pg.drawRectangle({x:40,y:y-3,width:W-80,height:17,color:NAV});
+          hdrs.forEach((h,i)=>{pg.drawText(h,{x:colX[i]+3,y:y,size:8,font:fb,color:rgb(1,1,1)});});
+          y-=20;}
+        const dtName=DT[e.dayCode]?.n||e.dayCode;
+        const dateStr=fmtD(e.date);
+        const ortStr=(e.stayLocation||e.vorhaben||'').slice(0,30);
+        const dauer=dateStr+(ortStr?' / '+ortStr:'');
+        const verpfl=(DT[e.dayCode]?.verpfl)?'Ja':'Nein';
+        const nachweis=e.nachweis||'\u2013';
+
+        // Alternating row bg
+        const rowIdx=abEntries.indexOf(e);
+        if(rowIdx%2===0)pg.drawRectangle({x:40,y:y-4,width:W-80,height:14,color:rgb(.96,.96,.97)});
+
+        pg.drawText(dtName.slice(0,14),{x:colX[0]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(dauer.slice(0,28),{x:colX[1]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(verpfl,{x:colX[2]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(nachweis.slice(0,18),{x:colX[3]+3,y:y-1,size:8,font:fn,color:BLK});
+        y-=15;
+      }
+      pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:0.5,color:rgb(.85,.85,.85)});
+      y-=10;
+    }
+
+    // Home Office section
+    if(wfhEntries.length){
+      y-=12;
+      pg.drawText('Arbeiten von zu Hause (Home Office)',{x:40,y,size:12,font:fb,color:NAV});
+      y-=20;
+      pg.drawText('Dar\u00fcber hinaus wird best\u00e4tigt, dass Herr '+fullName+' im Jahr '+yr,{x:40,y,size:10,font:fn,color:BLK});
+      y-=14;
+      pg.drawText('an insgesamt',{x:40,y,size:10,font:fn,color:BLK});
+      y-=20;
+      pg.drawText(wfhEntries.length+' Tagen',{x:40,y,size:16,font:fb,color:NAV});
+      y-=20;
+      pg.drawText('von zu Hause (Home Office) gearbeitet hat.',{x:40,y,size:10,font:fn,color:BLK});
+      y-=14;
+    }
+
+    // Signature area
+    y=Math.min(y-40,130);
+    pg.drawLine({start:{x:40,y},end:{x:220,y},thickness:0.5,color:GR});
+    pg.drawLine({start:{x:300,y},end:{x:W-40,y},thickness:0.5,color:GR});
+    y-=12;
+    pg.drawText('Unterschrift',{x:40,y,size:8,font:fn,color:GR});
+    pg.drawText('Dienstsiegel / Stempel',{x:300,y,size:8,font:fn,color:GR});
+
+    // Footer
+    pg.drawText('Erstellt am '+new Date().toLocaleDateString('de-DE'),{x:40,y:25,size:7,font:fn,color:GR});
+
+    const pdfBytes=await doc.save();
+    const blob=new Blob([pdfBytes],{type:'application/pdf'});
+    const fname='Abwesenheitsbescheinigung_'+yr+'.pdf';
+    const storedId=await storeFile(new File([blob],fname,{type:'application/pdf'}),'ab_'+yr);
+    if(!state.settings.abReceipts)state.settings.abReceipts={};
+    const abKey='AB-'+yr;
+    if(!state.settings.abReceipts[abKey])state.settings.abReceipts[abKey]=[];
+    state.settings.abReceipts[abKey].push(storedId);
+    persist();
+    await renderExportPdfs();
+    toast(fname+' gespeichert ('+abEntries.length+' Abwesenheiten, '+wfhEntries.length+' HO-Tage)','ok');
+  }catch(e){toast('Fehler: '+e.message,'err');console.error(e);}
+}
+/* ─── END ABWESENHEITSBESCHEINIGUNG ─── */
 
 function scheduleMonthEndSave(){
   const now=new Date();
