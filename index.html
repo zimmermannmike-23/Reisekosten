@@ -2381,32 +2381,51 @@ function autoFkRoutes(yr){
   const s=state.settings;
   const yrEntries=state.entries.filter(e=>e.date&&e.date.startsWith(yr));
   const routes=[];
-  // Daily: AW days, TGW → Arbeitsstätte
-  const awDays=yrEntries.filter(e=>['AW','WFH'].includes(e.dayCode));
+
+  // Helper: get typical km from entries' segments
+  function getTypicalKm(entries){
+    const kms=[];
+    entries.forEach(e=>{
+      (e.segs||[]).forEach(sg=>{
+        if(sg.enabled!==false&&sg.km){const k=parseFloat(sg.km);if(k>0)kms.push(k);}
+      });
+    });
+    if(!kms.length)return '';
+    // Use the most common km value (mode), or average of unique values
+    const counts={};kms.forEach(k=>{const r=Math.round(k);counts[r]=(counts[r]||0)+1;});
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    return String(sorted[0][0]);
+  }
+
+  // Daily pendling: AW days (not WFH — WFH is home office, no commute)
+  const awDays=yrEntries.filter(e=>e.dayCode==='AW');
   if(awDays.length){
     const tgw=parsePlzOrtStr(s.addrSecondary);const arb=parsePlzOrtStr(s.addrWork);
     const dates=awDays.map(e=>e.date).sort();
-    // Estimate km from first AW segment
-    let estKm='';const awWithSeg=yrEntries.find(e=>e.dayCode==='AW'&&e.segs?.length&&e.segs[0].km);
-    if(awWithSeg)estKm=awWithSeg.segs[0].km;
-    routes.push({type:'daily',enabled:true,title:'Tägliches Pendeln',subtitle:'TGW → Arbeitsstätte',
+    const estKm=getTypicalKm(awDays);
+    routes.push({type:'daily',enabled:true,
+      title:'Tägliches Pendeln',subtitle:'TGW \u2192 Arbeitsstätte',
       dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',
       arbPlz:arb.plz,arbOrt:arb.ort,arbStr:arb.str,
       wohnPlz:tgw.plz,wohnOrt:tgw.ort,wohnStr:tgw.str,
       km:estKm,tage:String(awDays.length)});
   }
-  // Weekly: HF+RF days, EW → Arbeitsstätte
-  const hfDays=yrEntries.filter(e=>['HF','RF'].includes(e.dayCode));
-  if(hfDays.length){
+
+  // Weekly pendling: HF + RF + entries with isFHF flag, EW → Arbeitsstätte
+  const weeklyDays=yrEntries.filter(e=>['HF','RF'].includes(e.dayCode)||e.isFHF);
+  if(weeklyDays.length){
     const ew=parsePlzOrtStr(s.addrPrimary);const arb=parsePlzOrtStr(s.addrWork);
-    const dates=hfDays.map(e=>e.date).sort();
-    let estKm='';const hfWithSeg=hfDays.find(e=>e.segs?.length&&e.segs[0].km);
-    if(hfWithSeg)estKm=hfWithSeg.segs[0].km;
-    routes.push({type:'weekly',enabled:true,title:'Wöchentliches Pendeln',subtitle:'EW → Arbeitsstätte (Familienheimfahrt)',
+    const dates=weeklyDays.map(e=>e.date).sort();
+    const estKm=getTypicalKm(weeklyDays);
+    // Count actual trips: each HF or FHF-flagged entry = 1 one-way trip
+    const tripDays=yrEntries.filter(e=>e.dayCode==='HF'||e.isFHF);
+    const tage=tripDays.length||Math.ceil(weeklyDays.length/2);
+    routes.push({type:'weekly',enabled:true,
+      title:'Wöchentliches Pendeln',subtitle:'EW \u2192 Arbeitsstätte (Familienheimfahrt)',
       dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',
       arbPlz:arb.plz,arbOrt:arb.ort,arbStr:arb.str,
       wohnPlz:ew.plz,wohnOrt:ew.ort,wohnStr:ew.str,
-      km:estKm,tage:String(Math.ceil(hfDays.length/2))});
+      km:estKm,tage:String(tage)});
   }
   return routes;
 }
@@ -2581,10 +2600,12 @@ async function genFahrtkostenPdf(){
         pg.drawText('Fahrtkosten '+yr+' (Forts.)',{x:40,y:H-30,size:10,font:fn,color:GR});}
 
       // Section header
-      const secTitle=(i+1)+'. '+(rt.title||('Fahrten Wohnung \u2013 Arbeitsst\u00e4tte'));
+      const typeLabel=rt.type==='weekly'?'Wöchentliches Pendeln':'Tägliches Pendeln';
+      const secTitle=(i+1)+'. '+(rt.title||typeLabel);
       pg.drawText(secTitle,{x:40,y,size:13,font:fb,color:NAV});
       y-=15;
-      if(rt.subtitle){pg.drawText(rt.subtitle,{x:40,y,size:9,font:fn,color:GR});y-=13;}
+      const subLine=rt.subtitle||(rt.type==='weekly'?'Familienheimfahrt (EW \u2192 Arbeitsst\u00e4tte)':'TGW \u2192 Arbeitsst\u00e4tte');
+      pg.drawText(subLine,{x:40,y,size:9,font:fn,color:GR});y-=13;
       // Gold line
       pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:1.2,color:GLD});
       y-=18;
@@ -2594,6 +2615,7 @@ async function genFahrtkostenPdf(){
       const infoLines=[
         ['Zeitraum:',zeitraum],
         ['Entfernung:',km+' km (einfache Strecke)'],
+        ['Pendlertyp:',rt.type==='weekly'?'Wöchentliches Pendeln (Familienheimfahrt)':'Tägliches Pendeln'],
         ['',''],
         ['Arbeitsst\u00e4tte:',((rt.arbPlz||'')+' '+(rt.arbOrt||'')).trim()],
         ['',(rt.arbStr||'')],
@@ -2641,7 +2663,8 @@ async function genFahrtkostenPdf(){
 
     for(let i=0;i<sums.length;i++){
       const{rt,ep}=sums[i];
-      const lbl=(i+1)+'. '+(rt.arbOrt||'?')+' ('+(rt.wohnOrt||'?')+' \u2013 '+(rt.arbOrt||'?')+', '+rt.km+' km, '+rt.tage+' Tg)';
+      const typeShort=rt.type==='weekly'?'Wöchentl.':'Tägl.';
+      const lbl=(i+1)+'. '+typeShort+' '+(rt.wohnOrt||'?')+' \u2013 '+(rt.arbOrt||'?')+', '+rt.km+' km, '+rt.tage+' Tg';
       if(i%2===0)pg.drawRectangle({x:40,y:y-3,width:W-80,height:15,color:rgb(.96,.96,.96)});
       pg.drawText(lbl.slice(0,70),{x:44,y,size:9,font:fn,color:BLK});
       pg.drawText(ep.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac',{x:W-120,y,size:9,font:fn,color:BLK});
@@ -2747,7 +2770,10 @@ async function genAbwesenheitPdf(){
         const dateStr=fmtD(e.date);
         const ortStr=(e.stayLocation||e.vorhaben||'').slice(0,30);
         const dauer=dateStr+(ortStr?' / '+ortStr:'');
-        const verpfl=(DT[e.dayCode]?.verpfl)?'Ja':'Nein';
+        const verpflRaw=(e.verpflegung||'').split(',').filter(Boolean);
+        const verpfl=verpflRaw.length?verpflRaw.map(v=>{
+          const map={keine:'Keine',vollständig:'Vollst.',frühstück:'Fr.',mittag:'Mi.',abend:'Ab.',nein:'Nein',selbst:'Selbst'};
+          return map[v]||v;}).join(', '):'–';
         const nachweis=e.nachweis||'\u2013';
 
         // Alternating row bg
@@ -2756,7 +2782,7 @@ async function genAbwesenheitPdf(){
 
         pg.drawText(dtName.slice(0,14),{x:colX[0]+3,y:y-1,size:8,font:fn,color:BLK});
         pg.drawText(dauer.slice(0,28),{x:colX[1]+3,y:y-1,size:8,font:fn,color:BLK});
-        pg.drawText(verpfl,{x:colX[2]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(verpfl.slice(0,18),{x:colX[2]+3,y:y-1,size:8,font:fn,color:BLK});
         pg.drawText(nachweis.slice(0,18),{x:colX[3]+3,y:y-1,size:8,font:fn,color:BLK});
         y-=15;
       }
