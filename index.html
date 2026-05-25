@@ -2404,28 +2404,34 @@ function autoFkRoutes(yr){
     const dates=awDays.map(e=>e.date).sort();
     const estKm=getTypicalKm(awDays);
     routes.push({type:'daily',enabled:true,
-      title:'Tägliches Pendeln',subtitle:'TGW \u2192 Arbeitsstätte',
+      title:'Tägliches Pendeln',subtitle:'TGW - Arbeitsstaette',
       dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',
       arbPlz:arb.plz,arbOrt:arb.ort,arbStr:arb.str,
       wohnPlz:tgw.plz,wohnOrt:tgw.ort,wohnStr:tgw.str,
       km:estKm,tage:String(awDays.length)});
   }
 
-  // Weekly pendling: HF + RF + entries with isFHF flag, EW → Arbeitsstätte
-  const weeklyDays=yrEntries.filter(e=>['HF','RF'].includes(e.dayCode)||e.isFHF);
-  if(weeklyDays.length){
+  // Weekly pendling: only HF (Heimfahrt) entries, exclude RF and Flugzeug
+  const hfDays=yrEntries.filter(e=>e.dayCode==='HF');
+  if(hfDays.length){
     const ew=parsePlzOrtStr(s.addrPrimary);const arb=parsePlzOrtStr(s.addrWork);
-    const dates=weeklyDays.map(e=>e.date).sort();
-    const estKm=getTypicalKm(weeklyDays);
-    // Count actual trips: each HF or FHF-flagged entry = 1 one-way trip
-    const tripDays=yrEntries.filter(e=>e.dayCode==='HF'||e.isFHF);
-    const tage=tripDays.length||Math.ceil(weeklyDays.length/2);
+    const dates=hfDays.map(e=>e.date).sort();
+    // Get avg km from HF segments, excluding Flugzeug
+    const hfKms=[];
+    hfDays.forEach(e=>{
+      let tripKm=0;
+      (e.segs||[]).forEach(sg=>{
+        if(sg.enabled!==false&&sg.km&&sg.mode!=='Flugzeug'){tripKm+=parseFloat(sg.km)||0;}
+      });
+      if(tripKm>0)hfKms.push(Math.round(tripKm));
+    });
+    const estKm=hfKms.length?String(Math.round(hfKms.reduce((a,b)=>a+b,0)/hfKms.length)):'';
     routes.push({type:'weekly',enabled:true,
-      title:'Wöchentliches Pendeln',subtitle:'EW \u2192 Arbeitsstätte (Familienheimfahrt)',
+      title:'Woechentliches Pendeln',subtitle:'EW - Arbeitsstaette (Familienheimfahrt)',
       dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',
       arbPlz:arb.plz,arbOrt:arb.ort,arbStr:arb.str,
       wohnPlz:ew.plz,wohnOrt:ew.ort,wohnStr:ew.str,
-      km:estKm,tage:String(tage)});
+      km:estKm,tage:String(hfDays.length)});
   }
   return routes;
 }
@@ -2559,12 +2565,77 @@ function calcEP(km,tage,year){
 }
 
 async function genFahrtkostenPdf(){
-  const allRoutes=state.settings.fkRoutes||[];
-  const routes=allRoutes.filter(r=>r.enabled!==false&&r.km&&r.tage);
-  if(!routes.length){
-    toast('Bitte erst Routen konfigurieren','err');openFkModal();return;}
   const yr=(document.getElementById('exFrom')?.value||'').slice(0,4)||String(new Date().getFullYear());
-  toast('Fahrtkosten-PDF wird erstellt…');
+  const yrEntries=state.entries.filter(e=>e.date&&e.date.startsWith(yr));
+
+  // Excluded modes for weekly pendling (Flugzeug)
+  const EXCL_MODES=['Flugzeug'];
+
+  // Helper: collect stats and segment details from entries
+  // For weekly: calculates EP per trip individually, then sums
+  function entryStats(type){
+    let entries;
+    if(type==='daily'){
+      entries=yrEntries.filter(e=>e.dayCode==='AW');
+    } else {
+      entries=yrEntries.filter(e=>e.dayCode==='HF');
+    }
+    const trips=[];
+    const allKms=[];
+    let totalEP=0;
+    entries.forEach(e=>{
+      const segs=(e.segs||[]).filter(sg=>sg.enabled!==false&&sg.km);
+      const validSegs=type==='weekly'?segs.filter(sg=>!EXCL_MODES.includes(sg.mode)):segs;
+      const tripKm=validSegs.reduce((a,sg)=>a+(parseFloat(sg.km)||0),0);
+      const roundKm=Math.round(tripKm*10)/10;
+      // Calculate EP for this single trip
+      const tripEpResult=calcEP(roundKm,1,yr);
+      const tripEP=tripEpResult.gesamt;
+      totalEP+=tripEP;
+      if(tripKm>0)allKms.push(Math.round(tripKm));
+      trips.push({
+        date:e.date,
+        totalKm:roundKm,
+        ep:tripEP,
+        segments:validSegs.map(sg=>({mode:sg.mode||'?',km:parseFloat(sg.km)||0,from:sg.fromLoc||'',to:sg.toLoc||''}))
+      });
+    });
+    let typicalKm=0;
+    if(allKms.length)typicalKm=Math.round(allKms.reduce((a,b)=>a+b,0)/allKms.length);
+    const tage=entries.length;
+    const dates=entries.map(e=>e.date).sort();
+    return{km:typicalKm,tage,dateFrom:dates[0]||'',dateTo:dates[dates.length-1]||'',trips,totalEP};
+  }
+
+  // Build routes: merge saved config with entry data
+  let routes;
+  const saved=state.settings.fkRoutes||[];
+  const statsCache={};
+  if(saved.length){
+    routes=saved.filter(r=>r.enabled!==false).map(r=>{
+      const rt={...r};
+      const es=entryStats(rt.type||'daily');
+      statsCache[rt.type||'daily']=es;
+      // Auto-fill tage/dates from entries, but keep user-configured km
+      if(es.tage>0)rt.tage=String(es.tage);
+      if(!rt.dateFrom)rt.dateFrom=es.dateFrom;
+      if(!rt.dateTo)rt.dateTo=es.dateTo;
+      return rt;
+    });
+  } else {
+    routes=autoFkRoutes(yr);
+    routes.forEach(r=>{const es=entryStats(r.type||'daily');statsCache[r.type||'daily']=es;});
+  }
+  routes=routes.filter(r=>parseFloat(r.km)>0&&parseInt(r.tage)>0);
+
+  if(!routes.length){
+    toast('Keine Fahrtdaten vorhanden. Bitte Routen konfigurieren oder Eintraege anlegen.','err');
+    openFkModal();return;}
+
+  // Also auto-save routes for next time
+  state.settings.fkRoutes=routes;persist();
+
+  toast('Fahrtkosten-PDF wird erstellt...');
   try{
     await loadPdfLib();
     const{PDFDocument,StandardFonts,rgb}=window.PDFLib;
@@ -2574,12 +2645,16 @@ async function genFahrtkostenPdf(){
     const NAV=rgb(0.043,0.075,0.169);const GLD=rgb(0.902,0.686,0.180);
     const GR=rgb(0.4,0.4,0.4);const BLK=rgb(0,0,0);
     const W=595.28,H=841.89;
+
+    // WinAnsi text sanitizer
+    function san(v){return String(v||'').replace(/\u2192/g,'->').replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/\u00d7/g,'x').replace(/\u20ac/g,'EUR').replace(/[^\x00-\xff]/g,'');}
+
     let pg=doc.addPage([W,H]);
     let y=H-45;
     // Title
     pg.drawText('Fahrtkosten Ehemann',{x:40,y,size:20,font:fb,color:NAV});
     y-=18;
-    pg.drawText('Steuerjahr '+yr+' \u2013 Anlage N / Werbungskosten',{x:40,y,size:10,font:fn,color:GR});
+    pg.drawText(san('Steuerjahr '+yr+' - Anlage N / Werbungskosten'),{x:40,y,size:10,font:fn,color:GR});
     y-=6;
     pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:2.5,color:NAV});
     y-=24;
@@ -2591,33 +2666,44 @@ async function genFahrtkostenPdf(){
       const rt=routes[i];
       const km=parseFloat(rt.km)||0;
       const tage=parseInt(rt.tage)||0;
-      const ep=calcEP(km,tage,yr);
-      gesamtsumme+=ep.gesamt;
-      sums.push({rt,ep});
+      const es=statsCache[rt.type||'daily'];
+      const isWeekly=rt.type==='weekly';
+
+      // For weekly: use per-trip sum; for daily: bulk formula (same km each day)
+      let routeTotal,epInfo;
+      if(isWeekly&&es&&es.totalEP>0){
+        routeTotal=es.totalEP;
+        epInfo={proTag:0,gesamt:routeTotal,flat:parseInt(yr)>=2026,perTrip:true};
+      } else {
+        epInfo=calcEP(km,tage,yr);
+        routeTotal=epInfo.gesamt;
+      }
+      gesamtsumme+=routeTotal;
+      sums.push({rt,gesamt:routeTotal,km,tage});
 
       // Check if we need a new page
       if(y<220){pg=doc.addPage([W,H]);y=H-45;
-        pg.drawText('Fahrtkosten '+yr+' (Forts.)',{x:40,y:H-30,size:10,font:fn,color:GR});}
+        pg.drawText(san('Fahrtkosten '+yr+' (Forts.)'),{x:40,y:H-30,size:10,font:fn,color:GR});}
 
       // Section header
-      const typeLabel=rt.type==='weekly'?'Wöchentliches Pendeln':'Tägliches Pendeln';
-      const secTitle=(i+1)+'. '+(rt.title||typeLabel);
+      const typeLabel=isWeekly?'Woechentliches Pendeln':'Taegliches Pendeln';
+      const secTitle=san((i+1)+'. '+(rt.title||typeLabel));
       pg.drawText(secTitle,{x:40,y,size:13,font:fb,color:NAV});
       y-=15;
-      const subLine=rt.subtitle||(rt.type==='weekly'?'Familienheimfahrt (EW \u2192 Arbeitsst\u00e4tte)':'TGW \u2192 Arbeitsst\u00e4tte');
+      const subLine=san(rt.subtitle||(isWeekly?'Familienheimfahrt (EW - Arbeitsstaette)':'TGW - Arbeitsstaette'));
       pg.drawText(subLine,{x:40,y,size:9,font:fn,color:GR});y-=13;
-      // Gold line
       pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:1.2,color:GLD});
       y-=18;
 
       // Info block
-      const zeitraum=(rt.dateFrom?fmtD(rt.dateFrom):'?')+' \u2013 '+(rt.dateTo?fmtD(rt.dateTo):'?');
+      const zeitraum=(rt.dateFrom?fmtD(rt.dateFrom):'?')+' - '+(rt.dateTo?fmtD(rt.dateTo):'?');
+      const kmLabel='Entfernung:';
       const infoLines=[
         ['Zeitraum:',zeitraum],
-        ['Entfernung:',km+' km (einfache Strecke)'],
-        ['Pendlertyp:',rt.type==='weekly'?'Wöchentliches Pendeln (Familienheimfahrt)':'Tägliches Pendeln'],
+        [kmLabel,km+' km (einfache Strecke)'],
+        ['Pendlertyp:',isWeekly?'Woechentliches Pendeln (Familienheimfahrt)':'Taegliches Pendeln'],
         ['',''],
-        ['Arbeitsst\u00e4tte:',((rt.arbPlz||'')+' '+(rt.arbOrt||'')).trim()],
+        ['Arbeitsstaette:',((rt.arbPlz||'')+' '+(rt.arbOrt||'')).trim()],
         ['',(rt.arbStr||'')],
         ['',''],
         ['Eigener Hausstand:',((rt.wohnPlz||'')+' '+(rt.wohnOrt||'')).trim()],
@@ -2627,26 +2713,77 @@ async function genFahrtkostenPdf(){
       ];
       for(const[lbl,val] of infoLines){
         if(!lbl&&!val){y-=4;continue;}
-        if(lbl)pg.drawText(lbl,{x:40,y,size:10,font:fb,color:BLK});
-        if(val)pg.drawText(val,{x:175,y,size:10,font:fn,color:BLK});
+        if(lbl)pg.drawText(san(lbl),{x:40,y,size:10,font:fb,color:BLK});
+        if(val)pg.drawText(san(val),{x:175,y,size:10,font:fn,color:BLK});
         y-=14;
       }
       y-=4;
       pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:0.4,color:rgb(.85,.85,.85)});
       y-=14;
 
-      // Calculation
-      pg.drawText('Berechnung Entfernungspauschale:',{x:40,y,size:10,font:fb,color:BLK});
-      y-=14;
-      let formel;
-      if(ep.flat){formel=km+' km \u00d7 0,38 \u20ac \u00d7 '+tage+' Tage';}
-      else if(km<=20){formel=km+' km \u00d7 0,30 \u20ac \u00d7 '+tage+' Tage';}
-      else{formel='(20 km \u00d7 0,30 \u20ac + '+(km-20)+' km \u00d7 0,38 \u20ac) \u00d7 '+tage+' Tage';}
-      pg.drawText(formel,{x:40,y,size:10,font:fn,color:BLK});
-      y-=16;
-      const res='= '+ep.proTag.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac/Tag \u00d7 '+tage+' Tage = '+ep.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac';
-      pg.drawText(res,{x:40,y,size:11,font:fb,color:NAV});
-      y-=28;
+      // Calculation section
+      if(isWeekly&&es&&es.trips&&es.trips.length){
+        // WEEKLY: per-trip calculation with detail table
+        pg.drawText('Berechnung Entfernungspauschale (pro Fahrt):',{x:40,y,size:10,font:fb,color:BLK});
+        y-=12;
+        const rate=parseInt(yr)>=2026?'0,38 EUR/km':'0,30 EUR (1-20 km) + 0,38 EUR (ab 21. km)';
+        pg.drawText(san('Satz: '+rate),{x:40,y,size:8,font:fn,color:GR});
+        y-=16;
+
+        // Detail table header
+        pg.drawRectangle({x:40,y:y-2,width:W-80,height:14,color:rgb(.92,.92,.95)});
+        pg.drawText('Datum',{x:44,y:y+1,size:7,font:fb,color:BLK});
+        pg.drawText('Teilstrecken (ohne Flugzeug)',{x:110,y:y+1,size:7,font:fb,color:BLK});
+        pg.drawText('km',{x:380,y:y+1,size:7,font:fb,color:BLK});
+        pg.drawText('EP/Tag',{x:W-90,y:y+1,size:7,font:fb,color:BLK});
+        y-=15;
+
+        let totalDetailKm=0;
+        for(const trip of es.trips){
+          if(y<80){pg=doc.addPage([W,H]);y=H-45;
+            pg.drawText(san('Fahrtkosten '+yr+' (Forts.)'),{x:40,y:H-30,size:10,font:fn,color:GR});y-=20;
+            // Repeat header
+            pg.drawRectangle({x:40,y:y-2,width:W-80,height:14,color:rgb(.92,.92,.95)});
+            pg.drawText('Datum',{x:44,y:y+1,size:7,font:fb,color:BLK});
+            pg.drawText('Teilstrecken',{x:110,y:y+1,size:7,font:fb,color:BLK});
+            pg.drawText('km',{x:380,y:y+1,size:7,font:fb,color:BLK});
+            pg.drawText('EP/Tag',{x:W-90,y:y+1,size:7,font:fb,color:BLK});
+            y-=15;}
+
+          pg.drawText(san(fmtD(trip.date)),{x:44,y,size:7.5,font:fn,color:BLK});
+          const segStr=trip.segments.map(sg=>san(sg.mode+' '+sg.km.toFixed(1)+'km')).join(', ')||'-';
+          pg.drawText(segStr.slice(0,45),{x:110,y,size:7,font:fn,color:GR});
+          pg.drawText(trip.totalKm.toFixed(1),{x:380,y,size:7.5,font:fn,color:BLK});
+          const epFmt=trip.ep.toLocaleString('de-DE',{minimumFractionDigits:2});
+          pg.drawText(san(epFmt+' EUR'),{x:W-90,y,size:7.5,font:fb,color:BLK});
+          totalDetailKm+=trip.totalKm;
+          y-=11;
+        }
+        // Sum row
+        pg.drawLine({start:{x:40,y:y+2},end:{x:W-40,y:y+2},thickness:0.7,color:NAV});
+        pg.drawText(san('Summe ('+es.trips.length+' Fahrten)'),{x:44,y:y-5,size:8.5,font:fb,color:NAV});
+        pg.drawText(totalDetailKm.toFixed(1),{x:380,y:y-5,size:8.5,font:fb,color:NAV});
+        const totalFmt=routeTotal.toLocaleString('de-DE',{minimumFractionDigits:2});
+        pg.drawText(san(totalFmt+' EUR'),{x:W-90,y:y-5,size:8.5,font:fb,color:NAV});
+        y-=22;
+
+      } else {
+        // DAILY: bulk formula (same km every day)
+        pg.drawText('Berechnung Entfernungspauschale:',{x:40,y,size:10,font:fb,color:BLK});
+        y-=14;
+        let formel;
+        if(epInfo.flat){formel=km+' km x 0,38 EUR x '+tage+' Tage';}
+        else if(km<=20){formel=km+' km x 0,30 EUR x '+tage+' Tage';}
+        else{formel='(20 km x 0,30 EUR + '+(km-20)+' km x 0,38 EUR) x '+tage+' Tage';}
+        pg.drawText(formel,{x:40,y,size:10,font:fn,color:BLK});
+        y-=16;
+        const proTagFmt=epInfo.proTag.toLocaleString('de-DE',{minimumFractionDigits:2});
+        const gesFmt=routeTotal.toLocaleString('de-DE',{minimumFractionDigits:2});
+        const res=san('= '+proTagFmt+' EUR/Tag x '+tage+' Tage = '+gesFmt+' EUR');
+        pg.drawText(res,{x:40,y,size:11,font:fb,color:NAV});
+        y-=20;
+      }
+      y-=8;
     }
 
     // Summary table
@@ -2662,29 +2799,29 @@ async function genFahrtkostenPdf(){
     y-=20;
 
     for(let i=0;i<sums.length;i++){
-      const{rt,ep}=sums[i];
-      const typeShort=rt.type==='weekly'?'Wöchentl.':'Tägl.';
-      const lbl=(i+1)+'. '+typeShort+' '+(rt.wohnOrt||'?')+' \u2013 '+(rt.arbOrt||'?')+', '+rt.km+' km, '+rt.tage+' Tg';
+      const{rt,gesamt,km:skm,tage:stg}=sums[i];
+      const typeShort=rt.type==='weekly'?'Woechentl.':'Taegl.';
+      const lbl=san((i+1)+'. '+typeShort+' '+(rt.wohnOrt||'?')+' - '+(rt.arbOrt||'?')+', '+skm+' km, '+stg+' Tg');
       if(i%2===0)pg.drawRectangle({x:40,y:y-3,width:W-80,height:15,color:rgb(.96,.96,.96)});
       pg.drawText(lbl.slice(0,70),{x:44,y,size:9,font:fn,color:BLK});
-      pg.drawText(ep.gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac',{x:W-120,y,size:9,font:fn,color:BLK});
+      pg.drawText(san(gesamt.toLocaleString('de-DE',{minimumFractionDigits:2})+' EUR'),{x:W-120,y,size:9,font:fn,color:BLK});
       y-=16;
     }
     // Total
     pg.drawRectangle({x:40,y:y-4,width:W-80,height:18,color:rgb(.91,.88,.80)});
     pg.drawText('Gesamtsumme Fahrtkosten',{x:44,y:y-1,size:10,font:fb,color:NAV});
-    pg.drawText(gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac',{x:W-120,y:y-1,size:10,font:fb,color:NAV});
+    pg.drawText(san(gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' EUR'),{x:W-120,y:y-1,size:10,font:fb,color:NAV});
     y-=20;
     pg.drawLine({start:{x:40,y},end:{x:W-40,y},thickness:1,color:NAV});
 
     // Footer
     y-=22;
     const fussNote=parseInt(yr)>=2026?
-      'Entfernungspauschale gem. \u00a7 9 Abs. 1 S. 3 Nr. 4 EStG: 0,38 \u20ac je Entfernungskilometer (ab VZ 2026).':
-      'Entfernungspauschale gem. \u00a7 9 Abs. 1 S. 3 Nr. 4 EStG: 0,30 \u20ac je km (erste 20 km), 0,38 \u20ac ab dem 21. km (VZ 2022\u20132025).';
+      san('Entfernungspauschale gem. Paragraph 9 Abs. 1 S. 3 Nr. 4 EStG: 0,38 EUR je Entfernungskilometer (ab VZ 2026).'):
+      san('Entfernungspauschale gem. Paragraph 9 Abs. 1 S. 3 Nr. 4 EStG: 0,30 EUR je km (erste 20 km), 0,38 EUR ab dem 21. km (VZ 2022-2025).');
     pg.drawText(fussNote,{x:40,y,size:7,font:fn,color:GR});
     y-=20;
-    pg.drawText('Erstellt am '+new Date().toLocaleDateString('de-DE')+' \u2013 Beleg zur Einkommensteuererkl\u00e4rung '+yr,
+    pg.drawText(san('Erstellt am '+new Date().toLocaleDateString('de-DE')+' - Beleg zur Einkommensteuererklaerung '+yr),
       {x:40,y,size:7.5,font:fn,color:GR});
 
     const pdfBytes=await doc.save();
@@ -2697,7 +2834,7 @@ async function genFahrtkostenPdf(){
     state.settings.fkReceipts[fkKey].push(storedId);
     persist();
     await renderExportPdfs();
-    toast(fname+' gespeichert ('+gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' \u20ac)','ok');
+    toast(fname+' gespeichert ('+gesamtsumme.toLocaleString('de-DE',{minimumFractionDigits:2})+' EUR)','ok');
   }catch(e){toast('Fehler: '+e.message,'err');console.error(e);}
 }
 /* ─── END FAHRTKOSTEN ─── */
@@ -2725,11 +2862,14 @@ async function genAbwesenheitPdf(){
     let pg=doc.addPage([W,H]);
     let y=H-45;
 
+    // WinAnsi sanitizer
+    function san(v){return String(v||'').replace(/\u2192/g,'->').replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/[^\x00-\xff]/g,'');}
+
     // Briefkopf
-    const bk1=s.bk1||s.unit||'';
-    const bk2=s.bk2||'';
-    const bk3=s.bk3||'';
-    const bk4=s.bk4||'';
+    const bk1=san(s.bk1||s.unit||'');
+    const bk2=san(s.bk2||'');
+    const bk3=san(s.bk3||'');
+    const bk4=san(s.bk4||'');
     if(bk1){pg.drawText(bk1,{x:40,y,size:12,font:fb,color:NAV});y-=14;}
     if(bk2){pg.drawText(bk2,{x:40,y,size:9,font:fn,color:GR});y-=12;}
     if(bk3){pg.drawText(bk3,{x:40,y,size:9,font:fn,color:GR});y-=12;}
@@ -2743,7 +2883,7 @@ async function genAbwesenheitPdf(){
     y-=28;
 
     // Person
-    const fullName=((s.rank?s.rank+' ':'')+s.name).trim();
+    const fullName=san(((s.rank?s.rank+' ':'')+s.name).trim());
     pg.drawText('F\u00fcr Herrn '+fullName+', f\u00fcr das Steuerjahr '+yr,{x:40,y,size:11,font:fn,color:BLK});
     y-=24;
     pg.drawText('Lehrg\u00e4nge, Kommandierungen und sonstige Abwesenheiten, sowie Negativbescheinigung',{x:40,y,size:9,font:fn,color:GR});
@@ -2774,15 +2914,15 @@ async function genAbwesenheitPdf(){
         const verpfl=verpflRaw.length?verpflRaw.map(v=>{
           const map={keine:'Keine',vollständig:'Vollst.',frühstück:'Fr.',mittag:'Mi.',abend:'Ab.',nein:'Nein',selbst:'Selbst'};
           return map[v]||v;}).join(', '):'–';
-        const nachweis=e.nachweis||'\u2013';
+        const nachweis=san(e.nachweis||'-');
 
         // Alternating row bg
         const rowIdx=abEntries.indexOf(e);
         if(rowIdx%2===0)pg.drawRectangle({x:40,y:y-4,width:W-80,height:14,color:rgb(.96,.96,.97)});
 
-        pg.drawText(dtName.slice(0,14),{x:colX[0]+3,y:y-1,size:8,font:fn,color:BLK});
-        pg.drawText(dauer.slice(0,28),{x:colX[1]+3,y:y-1,size:8,font:fn,color:BLK});
-        pg.drawText(verpfl.slice(0,18),{x:colX[2]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(san(dtName).slice(0,14),{x:colX[0]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(san(dauer).slice(0,28),{x:colX[1]+3,y:y-1,size:8,font:fn,color:BLK});
+        pg.drawText(san(verpfl).slice(0,18),{x:colX[2]+3,y:y-1,size:8,font:fn,color:BLK});
         pg.drawText(nachweis.slice(0,18),{x:colX[3]+3,y:y-1,size:8,font:fn,color:BLK});
         y-=15;
       }
